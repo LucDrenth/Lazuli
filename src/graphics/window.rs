@@ -1,5 +1,6 @@
 use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, GlRequest, ContextBuilder, Api, event::{Event, WindowEvent}};
-use crate::renderer;
+
+use super::renderer::{Renderer};
 
 pub fn run(name: String) {
     let window = WindowBuilder::new().with_title(name);
@@ -18,7 +19,7 @@ pub fn run(name: String) {
 
     gl::load_with(|ptr| gl_context.get_proc_address(ptr) as *const _);
 
-    let renderer = renderer::Renderer::new().expect("Can not create renderer");
+    let renderer = Renderer::new().expect("Can not create renderer");
 
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Wait;
