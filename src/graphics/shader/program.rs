@@ -1,3 +1,5 @@
+use std::ffi::{NulError, CString};
+
 use gl::types::{GLuint, GLint};
 
 use super::shader::Shader;
@@ -30,6 +32,11 @@ impl ShaderProgram {
 
     pub unsafe fn apply (&self) {
         gl::UseProgram(self.id);
+    }
+
+    pub unsafe fn get_attribute_location(&self, attribute: &str) -> Result<GLuint, NulError> {
+        let attribute = CString::new(attribute).expect("Could not create attribute CString");
+        Ok(gl::GetAttribLocation(self.id, attribute.as_ptr()) as GLuint)
     }
 
     unsafe fn get_shader_program_error(&self) -> String {
