@@ -1,8 +1,9 @@
 use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, GlRequest, ContextBuilder, Api, event::{Event, WindowEvent}};
+use crate::renderer;
 
-pub fn start_window() {
+pub fn run(name: String) {
+    let window = WindowBuilder::new().with_title(name);
     let event_loop = EventLoop::new();
-    let window = WindowBuilder::new().with_title("Lazuli");
 
     let  gl_context = ContextBuilder::new()
         .with_gl(GlRequest::Specific(Api::OpenGl, (3, 3)))
@@ -17,6 +18,9 @@ pub fn start_window() {
 
     gl::load_with(|ptr| gl_context.get_proc_address(ptr) as *const _);
 
+
+    let renderer = renderer::Renderer::new().expect("Can not create renderer");
+
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Wait;
 
@@ -28,12 +32,10 @@ pub fn start_window() {
                 _ => (),
             },
             Event::RedrawRequested(_) => {
-                unsafe {
-                    gl::ClearColor(0.0, 0.0, 1.0, 1.0);
-                    gl::Clear(gl::COLOR_BUFFER_BIT);
-                }
+                renderer.draw();
+                gl_context.swap_buffers().expect("Failed to swap buffers")
             }
             _ => ()
         }
     });
-}
+}  

@@ -1,5 +1,6 @@
-mod window;
+mod graphics;
+mod renderer;
 
 fn main() {
-    window::start_window();
+    graphics::window::run(String::from("Lazuli"));
 }
