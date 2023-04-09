@@ -18,7 +18,6 @@ pub fn run(name: String) {
 
     gl::load_with(|ptr| gl_context.get_proc_address(ptr) as *const _);
 
-
     let renderer = renderer::Renderer::new().expect("Can not create renderer");
 
     event_loop.run(move |event, _, control_flow| {

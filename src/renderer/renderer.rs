@@ -1,5 +1,4 @@
-use crate::renderer::program::ShaderProgram;
-use crate::renderer::shader::{Shader};
+use super::shader::{Shader, ShaderProgram};
 
 const VERTEX_SHADER_SOURCE: &str = r#"
 #version 330
