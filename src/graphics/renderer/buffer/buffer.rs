@@ -1,4 +1,4 @@
-// TODO rename to VBO (Vertex buffer object)
+// TODO should we rename to VBO (Vertex buffer object) or will we use this as other buffers?
 
 use gl::types::{GLuint, GLsizeiptr};
 

@@ -17,7 +17,9 @@ impl Vao {
         gl::BindVertexArray(self.id);
     }
 
-    // TODO might want to use other types than f32 (gl::FLOAT) in the future. Make this variable.
+    // TODO might want to use other types than f32 (gl::FLOAT) in the future. Make this variable. 
+    // Don't forget to update the set_attribute macro (see its TODO comment)
+    //
     // V represents the vertex layout
     pub unsafe fn set_attribute<V: Sized>(
         &self, 
