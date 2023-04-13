@@ -1,4 +1,4 @@
-use crate::{graphics::{shader::{ShaderProgram, Shader}, shapes::Triangle}};
+use crate::{graphics::{shader::{ShaderProgram, Shader}, shapes::{Triangle, Shape, Rectangle}}};
 
 const VERTEX_SHADER_SOURCE: &str = r#"
 #version 330
@@ -21,7 +21,8 @@ void main() {
 "#;
 
 pub struct Renderer {
-    triangle: Triangle
+    triangle: Triangle,
+    rectangle: Rectangle,
 }
 
 impl Renderer {
@@ -31,8 +32,12 @@ impl Renderer {
             let vertex_shader = Shader::new(VERTEX_SHADER_SOURCE, gl::VERTEX_SHADER)?;
             let fragment_shader = Shader::new(FRAGMENT_SHADER_SOURCE, gl::FRAGMENT_SHADER)?;
             let program = ShaderProgram::new(&[vertex_shader, fragment_shader])?;
+            let triangle = Triangle::new(program);
 
-            let triangle = Triangle::create(program);
+            let vertex_shader = Shader::new(VERTEX_SHADER_SOURCE, gl::VERTEX_SHADER)?;
+            let fragment_shader = Shader::new(FRAGMENT_SHADER_SOURCE, gl::FRAGMENT_SHADER)?;
+            let program = ShaderProgram::new(&[vertex_shader, fragment_shader])?;
+            let rectangle = Rectangle::new(program);
 
             // TODO put this in a macro and use it at more places
             // error handling
@@ -42,7 +47,7 @@ impl Renderer {
                 err = gl::GetError();
             }
 
-            let result = Self { triangle };
+            let result = Self { triangle, rectangle };
 
             Ok(result)
         }
@@ -53,7 +58,8 @@ impl Renderer {
             gl::ClearColor(0.45, 0.4, 0.6, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT);
 
-            self.triangle.draw()
+            self.rectangle.draw();
+            self.triangle.draw();
         }
     }
 }
