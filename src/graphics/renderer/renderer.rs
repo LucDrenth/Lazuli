@@ -1,6 +1,4 @@
-use crate::{graphics::shader::{ShaderProgram, Shader}, set_attribute};
-
-use super::buffer::{Buffer, Vao};
+use crate::{graphics::{shader::{ShaderProgram, Shader}, shapes::Triangle}};
 
 const VERTEX_SHADER_SOURCE: &str = r#"
 #version 330
@@ -22,22 +20,8 @@ void main() {
 }
 "#;
 
-type Position = [f32; 3];
-type Color = [f32; 3];
-
-#[repr(C, packed)]
-pub struct Vertex(pub Position, pub Color);
-
-const TRIANGLE_VERTICES: [Vertex; 3] = [
-    Vertex([-0.5, -0.5, 0.0], [1.0, 0.0, 0.0]),
-    Vertex([0.5,  -0.5, 0.0], [0.0, 1.0, 0.0]),
-    Vertex([0.0,   0.5, 0.0], [0.0, 0.0, 1.0])
-];
-
 pub struct Renderer {
-    program: ShaderProgram,
-    vertex_array: Vao,
-    _vertex_buffer: Buffer, // For now, we Save this in here so it won't get destroyed and cleaned up
+    triangle: Triangle
 }
 
 impl Renderer {
@@ -48,21 +32,7 @@ impl Renderer {
             let fragment_shader = Shader::new(FRAGMENT_SHADER_SOURCE, gl::FRAGMENT_SHADER)?;
             let program = ShaderProgram::new(&[vertex_shader, fragment_shader])?;
 
-
-            // Create triangle
-            let vertex_buffer = Buffer::new(gl::ARRAY_BUFFER);
-            vertex_buffer.set_data(&TRIANGLE_VERTICES, gl::STATIC_DRAW);
-
-            let vertex_array = Vao::new();
-
-            let position_attribute = program.get_attribute_location("position")
-                .expect("Could not get position attribute");
-            set_attribute!(vertex_array, position_attribute, Vertex::0);
-
-            let color_attribute = program.get_attribute_location("color")
-                .expect("Could not get color attribute");
-            set_attribute!(vertex_array, color_attribute, Vertex::1);
-
+            let triangle = Triangle::create(program);
 
             // TODO put this in a macro and use it at more places
             // error handling
@@ -72,13 +42,9 @@ impl Renderer {
                 err = gl::GetError();
             }
 
+            let result = Self { triangle };
 
-
-            Ok(Self { 
-                program, 
-                vertex_array, 
-                _vertex_buffer: vertex_buffer
-             })
+            Ok(result)
         }
     }
 
@@ -87,9 +53,7 @@ impl Renderer {
             gl::ClearColor(0.45, 0.4, 0.6, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT);
 
-            self.program.apply();
-            self.vertex_array.bind();
-            gl::DrawArrays(gl::TRIANGLES, 0, 3);
+            self.triangle.draw()
         }
     }
 }

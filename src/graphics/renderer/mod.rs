@@ -1,4 +1,6 @@
 mod renderer;
-mod buffer;
+
+pub mod buffer;
 
 pub use renderer::Renderer;
+
