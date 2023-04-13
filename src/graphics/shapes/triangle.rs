@@ -16,7 +16,7 @@ pub struct Triangle {
 
 impl Triangle {
     pub unsafe fn new(program: ShaderProgram) -> Self {
-        let vertex_buffer = Buffer::new(gl::ARRAY_BUFFER);
+        let mut vertex_buffer = Buffer::new(gl::ARRAY_BUFFER);
         vertex_buffer.set_data(&TRIANGLE_VERTICES, gl::STATIC_DRAW);
 
         let vertex_array = Vao::new();
@@ -41,6 +41,6 @@ impl Shape for Triangle {
     unsafe fn draw(&self) {
         self.program.apply();
         self.vertex_array.bind();
-        gl::DrawArrays(gl::TRIANGLES, 0, 3);
+        gl::DrawArrays(gl::TRIANGLES, 0, self._vertex_buffer.data_size as i32);
     }
 }

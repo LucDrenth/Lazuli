@@ -26,10 +26,10 @@ impl Rectangle {
         let vertex_array = Vao::new();
         vertex_array.bind();
         
-        let vertex_buffer = Buffer::new(gl::ARRAY_BUFFER);
+        let mut vertex_buffer = Buffer::new(gl::ARRAY_BUFFER);
         vertex_buffer.set_data(&RECTANGLE_VERTICES, gl::STATIC_DRAW);
 
-        let index_buffer = Buffer::new(gl::ELEMENT_ARRAY_BUFFER);
+        let mut index_buffer = Buffer::new(gl::ELEMENT_ARRAY_BUFFER);
         index_buffer.set_data(&INDICES, gl::STATIC_DRAW);
 
         let position_attribute = program.get_attribute_location("position")
@@ -53,6 +53,6 @@ impl Shape for Rectangle {
     unsafe fn draw(&self) {
         self.program.apply();
         self.vertex_array.bind();
-        gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, core::ptr::null());
+        gl::DrawElements(gl::TRIANGLES, self._index_buffer.data_size as i32, gl::UNSIGNED_INT, core::ptr::null());
     }
 }
