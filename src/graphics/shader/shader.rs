@@ -2,6 +2,9 @@ use std::ffi::CString;
 use std::ptr;
 use gl::types::{GLuint, GLenum, GLint};
 
+pub const PATH_BASE_VERT: &str = "./assets/shaders/base.vert";
+pub const PATH_BASE_FRAG: &str = "./assets/shaders/base.frag";
+
 pub struct Shader {
     pub id: GLuint,
 }

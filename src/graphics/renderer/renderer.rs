@@ -1,24 +1,6 @@
-use crate::{graphics::{shader::{ShaderProgram, Shader}, shapes::{Triangle, Shape, Rectangle}}};
+use std::fs;
 
-const VERTEX_SHADER_SOURCE: &str = r#"
-#version 330
-in vec3 position;
-in vec3 color;
-out vec3 vertexColor;
-void main() {
-    gl_Position = vec4(position, 1.0);
-    vertexColor = color;
-}
-"#;
-
-const FRAGMENT_SHADER_SOURCE: &str = r#"
-#version 330
-out vec4 FragColor;
-in vec3 vertexColor;
-void main() {
-    FragColor = vec4(vertexColor, 1.0);
-}
-"#;
+use crate::{graphics::{shader::{ShaderProgram, Shader, PATH_BASE_VERT, PATH_BASE_FRAG}, shapes::{Triangle, Shape, Rectangle}}};
 
 pub struct Renderer {
     triangle: Triangle,
@@ -27,15 +9,18 @@ pub struct Renderer {
 
 impl Renderer {
     pub fn new() -> Result<Self, String> {
+        let vertex_shader_source = fs::read_to_string(PATH_BASE_VERT).unwrap();
+        let fragment_shader_source = fs::read_to_string(PATH_BASE_FRAG).unwrap();
+
         unsafe {
             // Create shaders
-            let vertex_shader = Shader::new(VERTEX_SHADER_SOURCE, gl::VERTEX_SHADER)?;
-            let fragment_shader = Shader::new(FRAGMENT_SHADER_SOURCE, gl::FRAGMENT_SHADER)?;
+            let vertex_shader = Shader::new(vertex_shader_source.as_str(), gl::VERTEX_SHADER)?;
+            let fragment_shader = Shader::new(fragment_shader_source.as_str(), gl::FRAGMENT_SHADER)?;
             let program = ShaderProgram::new(&[vertex_shader, fragment_shader])?;
             let triangle = Triangle::new(program);
 
-            let vertex_shader = Shader::new(VERTEX_SHADER_SOURCE, gl::VERTEX_SHADER)?;
-            let fragment_shader = Shader::new(FRAGMENT_SHADER_SOURCE, gl::FRAGMENT_SHADER)?;
+            let vertex_shader = Shader::new(vertex_shader_source.as_str(), gl::VERTEX_SHADER)?;
+            let fragment_shader = Shader::new(fragment_shader_source.as_str(), gl::FRAGMENT_SHADER)?;
             let program = ShaderProgram::new(&[vertex_shader, fragment_shader])?;
             let rectangle = Rectangle::new(program);
 
