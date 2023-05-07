@@ -2,6 +2,8 @@ use std::ffi::{NulError, CString};
 
 use gl::types::{GLuint, GLint};
 
+use crate::error::opengl;
+
 use super::shader::Shader;
 
 pub struct ShaderProgram {
@@ -32,6 +34,7 @@ impl ShaderProgram {
 
     pub unsafe fn apply (&self) {
         gl::UseProgram(self.id);
+        opengl::gl_check_errors();
     }
 
     pub unsafe fn get_attribute_location(&self, attribute: &str) -> Result<GLuint, NulError> {

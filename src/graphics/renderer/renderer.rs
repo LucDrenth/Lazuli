@@ -1,6 +1,21 @@
 use std::fs;
 
-use crate::{graphics::{shader::{ShaderProgram, Shader, PATH_BASE_VERT, PATH_BASE_FRAG}, shapes::{Triangle, Shape, Rectangle}}};
+use crate::{
+    graphics::{
+        shader::{
+            ShaderProgram, 
+            Shader, 
+            PATH_BASE_VERT, 
+            PATH_BASE_FRAG
+        }, 
+        shapes::{
+            Triangle, 
+            Shape, 
+            Rectangle
+        }
+    }, 
+    error::opengl
+};
 
 pub struct Renderer {
     triangle: Triangle,
@@ -23,16 +38,10 @@ impl Renderer {
             let fragment_shader = Shader::new(fragment_shader_source.as_str(), gl::FRAGMENT_SHADER)?;
             let program = ShaderProgram::new(&[vertex_shader, fragment_shader])?;
             let rectangle = Rectangle::new(program);
-
-            // TODO put this in a macro and use it at more places
-            // error handling
-            let mut err = gl::GetError();
-            while err != gl::NO_ERROR {
-                print!("gl error: {}", err);
-                err = gl::GetError();
-            }
-
+            
             let result = Self { triangle, rectangle };
+
+            opengl::gl_check_errors();
 
             Ok(result)
         }
@@ -45,6 +54,8 @@ impl Renderer {
 
             self.rectangle.draw();
             self.triangle.draw();
+
+            opengl::gl_check_errors();
         }
     }
 }

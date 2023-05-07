@@ -2,6 +2,8 @@
 
 use gl::types::{GLuint, GLsizeiptr};
 
+use crate::error::opengl;
+
 pub struct Buffer {
     pub id: GLuint,
     target: GLuint,
@@ -12,11 +14,13 @@ impl Buffer {
     pub unsafe fn new(target: GLuint) -> Self {
         let mut id = 0;
         gl::GenBuffers(1, &mut id);
+        opengl::gl_check_errors();
         Self { id, target, data_size: 0 }
     }
 
     pub unsafe fn bind(&self) {
         gl::BindBuffer(self.target, self.id);
+        opengl::gl_check_errors();
     }
 
     // usage is one of: gl::STREAM_DRAW, gl::STATIC_DRAW, gl::DYNAMIC_DRAW

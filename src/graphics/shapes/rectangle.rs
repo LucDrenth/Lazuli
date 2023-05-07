@@ -1,4 +1,4 @@
-use crate::{graphics::{shader::ShaderProgram, renderer::buffer::{Vao, Buffer}}, set_attribute};
+use crate::{graphics::{shader::ShaderProgram, renderer::buffer::{Vao, Buffer}}, set_attribute, error::opengl};
 
 use super::{Shape, shape::Vertex};
 
@@ -54,5 +54,7 @@ impl Shape for Rectangle {
         self.program.apply();
         self.vertex_array.bind();
         gl::DrawElements(gl::TRIANGLES, self._index_buffer.data_size as i32, gl::UNSIGNED_INT, core::ptr::null());
+
+        opengl::gl_check_errors();
     }
 }

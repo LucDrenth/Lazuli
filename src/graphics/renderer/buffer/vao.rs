@@ -2,6 +2,8 @@
 
 use gl::types::{GLuint, GLint};
 
+use crate::error::opengl;
+
 pub struct Vao {
     pub id: GLuint
 }
@@ -10,11 +12,13 @@ impl Vao {
     pub unsafe fn new() -> Self {
         let mut id: GLuint = 0;
         gl::GenVertexArrays(1, &mut id);
+        opengl::gl_check_errors();
         Self { id }
     }
 
     pub unsafe fn bind(&self) {
         gl::BindVertexArray(self.id);
+        opengl::gl_check_errors();
     }
 
     // TODO might want to use other types than f32 (gl::FLOAT) in the future. Make this variable. 
@@ -36,7 +40,10 @@ impl Vao {
             std::mem::size_of::<V>() as GLint,
             offset as *const _,
         );
+        opengl::gl_check_errors();
+
         gl::EnableVertexAttribArray(attribute_position);
+        opengl::gl_check_errors();
     }
 }
 

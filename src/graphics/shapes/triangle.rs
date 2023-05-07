@@ -1,4 +1,4 @@
-use crate::{graphics::{shader::ShaderProgram, renderer::buffer::{Vao, Buffer}}, set_attribute};
+use crate::{graphics::{shader::ShaderProgram, renderer::buffer::{Vao, Buffer}}, set_attribute, error::opengl};
 
 use super::{Shape, shape::Vertex};
 
@@ -42,5 +42,7 @@ impl Shape for Triangle {
         self.program.apply();
         self.vertex_array.bind();
         gl::DrawArrays(gl::TRIANGLES, 0, self._vertex_buffer.data_size as i32);
+
+        opengl::gl_check_errors();
     }
 }
