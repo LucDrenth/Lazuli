@@ -2,6 +2,8 @@ use std::ffi::CString;
 use std::ptr;
 use gl::types::{GLuint, GLenum, GLint};
 
+use crate::error::opengl;
+
 pub const PATH_COLORED_VERT: &str = "./assets/shaders/colored.vert";
 pub const PATH_COLORED_FRAG: &str = "./assets/shaders/colored.frag";
 pub const PATH_TEXTURED_VERT: &str = "./assets/shaders/textured.vert";
@@ -17,12 +19,16 @@ impl Shader {
         let shader = Self {
             id: gl::CreateShader(shader_type),
         };
+        opengl::gl_check_errors();
 
         gl::ShaderSource(shader.id, 1, &source_code.as_ptr(), ptr::null());
+        opengl::gl_check_errors();
         gl::CompileShader(shader.id);
+        opengl::gl_check_errors();
 
         let mut success: GLint = 0;
         gl::GetShaderiv(shader.id, gl::COMPILE_STATUS, &mut success);
+        opengl::gl_check_errors();
 
         if success == 1 {
             Ok(shader)
@@ -34,6 +40,8 @@ impl Shader {
     unsafe fn get_shader_error(&self) -> String {
         let mut error_log_size: GLint = 0;
         gl::GetShaderiv(self.id, gl::INFO_LOG_LENGTH, &mut error_log_size);
+        opengl::gl_check_errors();
+        
         let mut error_log: Vec<u8> = Vec::with_capacity(error_log_size as usize);
         gl::GetShaderInfoLog(
             self.id, 
@@ -41,6 +49,7 @@ impl Shader {
             &mut error_log_size, 
             error_log.as_mut_ptr() as *mut _,
         );
+        opengl::gl_check_errors();
 
         error_log.set_len(error_log_size as usize);
         let log = String::from_utf8(error_log);

@@ -22,7 +22,8 @@ use crate::{
 pub struct Renderer {
     triangle: Triangle,
     rectangle: Rectangle,
-    texture: Texture,
+    texture0: Texture,
+    texture1: Texture,
 }
 
 impl Renderer {
@@ -50,14 +51,23 @@ impl Renderer {
             let program = ShaderProgram::new(&[vertex_shader, fragment_shader])?;
             let rectangle = Rectangle::new_textured(program);
 
-            let texture = Texture::new();
-            texture.load(&Path::new("./assets/images/lazuli-rock.png"));
+            let texture0 = Texture::new();
+            texture0.load(&Path::new("./assets/images/lazuli-rock.png"));
+            rectangle.program.set_uniform_int("texture0", 0);
+
+            let texture1 = Texture::new();
+            texture1.load(&Path::new("./assets/images/rust-logo.png"));
+            rectangle.program.set_uniform_int("texture1", 1);
             
-            let result = Self { triangle, rectangle, texture };
+            let result = Self { 
+                triangle, 
+                rectangle, 
+                texture0,
+                texture1,
+            };
 
             gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
             gl::Enable(gl::BLEND);
-            
             opengl::gl_check_errors();
 
             Ok(result)
@@ -70,6 +80,11 @@ impl Renderer {
             gl::Clear(gl::COLOR_BUFFER_BIT);
 
             self.triangle.draw();
+
+            self.texture0.activate(gl::TEXTURE0);
+            self.texture1.activate(gl::TEXTURE1);
+            // TODO put this in to a mask struct/image
+
             self.rectangle.draw();
 
             opengl::gl_check_errors();

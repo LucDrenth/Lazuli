@@ -17,6 +17,11 @@ impl Texture {
         Self { id }
     }
 
+    pub unsafe fn activate(&self, unit: GLuint) {
+        gl::ActiveTexture(unit);
+        self.bind();
+    }
+
     pub unsafe fn bind(&self) {
         gl::BindTexture(gl::TEXTURE_2D, self.id);
         opengl::gl_check_errors();

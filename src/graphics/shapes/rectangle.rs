@@ -22,7 +22,7 @@ const INDICES: [i32; 6] = [
 ];
 
 pub struct Rectangle {
-    program: ShaderProgram,
+    pub program: ShaderProgram,
     vertex_array: Vao,
     _vertex_buffer: Buffer,
     _index_buffer: Buffer,
