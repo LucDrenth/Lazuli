@@ -3,7 +3,7 @@ pub fn gl_check_errors() {
         let mut err = gl::GetError();
 
         while err != gl::NO_ERROR {
-            print!("gl error: {}", err);
+            println!("gl error: {}", err);
             err = gl::GetError();
         }
     }

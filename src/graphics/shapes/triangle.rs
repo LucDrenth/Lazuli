@@ -1,11 +1,11 @@
 use crate::{graphics::{shader::ShaderProgram, renderer::buffer::{Vao, Buffer}}, set_attribute, error::opengl};
 
-use super::{Shape, shape::Vertex};
+use super::{Shape, shape::VertexColored};
 
-const TRIANGLE_VERTICES: [Vertex; 3] = [
-    Vertex([-0.5, -0.5, 0.0], [1.0, 0.0, 0.0]),
-    Vertex([0.5,  -0.5, 0.0], [0.0, 1.0, 0.0]),
-    Vertex([0.0,   0.5, 0.0], [0.0, 0.0, 1.0])
+const TRIANGLE_VERTICES: [VertexColored; 3] = [
+    VertexColored([-0.5, -0.5, 0.0], [1.0, 0.0, 0.0]),
+    VertexColored([0.5,  -0.5, 0.0], [0.0, 1.0, 0.0]),
+    VertexColored([0.0,   0.5, 0.0], [0.0, 0.0, 1.0])
 ];
 
 pub struct Triangle {
@@ -23,11 +23,11 @@ impl Triangle {
 
         let position_attribute = program.get_attribute_location("position")
             .expect("Could not get position attribute");
-        set_attribute!(vertex_array, position_attribute, Vertex::0);
+        set_attribute!(vertex_array, position_attribute, VertexColored::0);
 
         let color_attribute = program.get_attribute_location("color")
             .expect("Could not get color attribute");
-        set_attribute!(vertex_array, color_attribute, Vertex::1);
+        set_attribute!(vertex_array, color_attribute, VertexColored::1);
 
         Self { 
             program, 

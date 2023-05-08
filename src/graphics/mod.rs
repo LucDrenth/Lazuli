@@ -3,3 +3,4 @@ mod shader;
 mod shapes;
 
 pub mod window;
+pub mod texture;
