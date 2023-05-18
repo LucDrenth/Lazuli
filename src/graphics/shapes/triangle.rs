@@ -9,13 +9,12 @@ const TRIANGLE_VERTICES: [VertexColored; 3] = [
 ];
 
 pub struct Triangle {
-    program: ShaderProgram,
     vertex_array: Vao,
     _vertex_buffer: Buffer,
 }
 
 impl Triangle {
-    pub unsafe fn new(program: ShaderProgram) -> Self {
+    pub unsafe fn new(program: &ShaderProgram) -> Self {
         let mut vertex_buffer = Buffer::new(gl::ARRAY_BUFFER);
         vertex_buffer.set_data(&TRIANGLE_VERTICES, gl::STATIC_DRAW);
 
@@ -30,7 +29,6 @@ impl Triangle {
         set_attribute!(vertex_array, color_attribute, VertexColored::1);
 
         Self { 
-            program, 
             vertex_array, 
             _vertex_buffer: vertex_buffer
          }
@@ -38,8 +36,8 @@ impl Triangle {
 }
 
 impl Shape for Triangle {
-    unsafe fn draw(&self) {
-        self.program.apply();
+    unsafe fn draw(&self, program: &ShaderProgram) {
+        program.apply();
         self.vertex_array.bind();
         gl::DrawArrays(gl::TRIANGLES, 0, self._vertex_buffer.data_size as i32);
 
