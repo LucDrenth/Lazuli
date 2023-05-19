@@ -12,21 +12,19 @@ use crate::{
         }, 
         shapes::{
             Triangle, 
-            Shape, 
             Rectangle
-        }, texture::Texture
+        }, material::{Material}
     }, 
     error::opengl
 };
 
+use super::mesh_renderer;
+
 pub struct Renderer {
+    material_textured: Material,
+    material_colored: Material,
     triangle: Triangle,
-    rectangle_colored: Rectangle,
-    rectangle_textured: Rectangle,
-    texture0: Texture,
-    texture1: Texture,
-    program_colored: ShaderProgram,
-    program_textured: ShaderProgram,
+    rectangle: Rectangle,
 }
 
 impl Renderer {
@@ -37,7 +35,6 @@ impl Renderer {
         let textured_vertex_shader_source = fs::read_to_string(PATH_TEXTURED_VERT).unwrap();
         let textured_fragment_shader_source = fs::read_to_string(PATH_TEXTURED_FRAG).unwrap();
 
-
         unsafe {
             let vertex_shader = Shader::new(colored_vertex_shader_source.as_str(), gl::VERTEX_SHADER)?;
             let fragment_shader = Shader::new(colored_fragment_shader_source.as_str(), gl::FRAGMENT_SHADER)?;
@@ -47,26 +44,20 @@ impl Renderer {
             let fragment_shader = Shader::new(textured_fragment_shader_source.as_str(), gl::FRAGMENT_SHADER)?;
             let program_textured = ShaderProgram::new(&[vertex_shader, fragment_shader])?;
 
-            let triangle = Triangle::new(&program_colored);
-            let rectangle_colored = Rectangle::new_colored(&program_colored);
-            let rectangle_textured = Rectangle::new_textured(&program_textured);
+            let mut material_textured = Material::new(program_textured);
+            material_textured.add_texture(&Path::new("./assets/images/lazuli-rock.png"));
+            material_textured.add_texture(&Path::new("./assets/images/rust-logo.png"));
 
-            let texture0 = Texture::new();
-            texture0.load(&Path::new("./assets/images/lazuli-rock.png"));
-            program_textured.set_uniform_int("texture0", 0);
+            let material_colored = Material::new(program_colored);
 
-            let texture1 = Texture::new();
-            texture1.load(&Path::new("./assets/images/rust-logo.png"));
-            program_textured.set_uniform_int("texture1", 1);
-            
+            let triangle = Triangle::new(&material_colored.shader_program);
+            let rectangle = Rectangle::new_textured(&material_textured.shader_program);
+
             let result = Self { 
-                triangle, 
-                rectangle_colored, 
-                rectangle_textured, 
-                texture0,
-                texture1,
-                program_colored,
-                program_textured,
+                material_textured,
+                material_colored,
+                triangle,
+                rectangle, 
             };
 
             gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
@@ -82,14 +73,8 @@ impl Renderer {
             gl::ClearColor(0.45, 0.4, 0.6, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT);
 
-            self.triangle.draw(&self.program_colored);
-
-            self.texture0.activate(gl::TEXTURE0);
-            self.texture1.activate(gl::TEXTURE1);
-            // TODO put this in to a mask struct/image
-
-            self.rectangle_colored.draw(&self.program_colored);
-            self.rectangle_textured.draw(&self.program_textured);
+            mesh_renderer::draw_triangle(&self.triangle, &self.material_colored);
+            mesh_renderer::draw_rectangle(&self.rectangle, &self.material_textured);
 
             opengl::gl_check_errors();
         }

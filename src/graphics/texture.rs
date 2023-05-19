@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use gl::types::GLuint;
+use gl::types::{GLuint, GLenum};
 use image::EncodableLayout;
 
 use crate::error::opengl;
@@ -17,8 +17,8 @@ impl Texture {
         Self { id }
     }
 
-    pub unsafe fn activate(&self, unit: GLuint) {
-        gl::ActiveTexture(unit);
+    pub unsafe fn activate(&self, unit: usize) {
+        gl::ActiveTexture(to_gl_texture_unit(unit));
         self.bind();
     }
 
@@ -46,6 +46,20 @@ impl Texture {
 
         opengl::gl_check_errors();
 
+    }
+}
+
+fn to_gl_texture_unit(unit: usize) -> GLenum {
+    // TODO cleaner way to do this
+    match unit {
+        0 => gl::TEXTURE0,
+        1 => gl::TEXTURE1,
+        2 => gl::TEXTURE2,
+        3 => gl::TEXTURE3,
+        4 => gl::TEXTURE4,
+        5 => gl::TEXTURE5,
+        6 => gl::TEXTURE6,
+        _ => gl::TEXTURE31
     }
 }
 
