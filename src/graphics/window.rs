@@ -1,9 +1,9 @@
-use glutin::{event_loop::{EventLoop, ControlFlow}, window::{WindowBuilder}, GlRequest, ContextBuilder, Api, event::{Event, WindowEvent}, ContextWrapper, PossiblyCurrent};
+use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, GlRequest, ContextBuilder, Api, event::{Event, WindowEvent}, ContextWrapper, PossiblyCurrent};
 
-use super::renderer::{Renderer};
+use super::renderer::Renderer;
 
 pub struct Window {
-    context: ContextWrapper<PossiblyCurrent, glutin::window::Window>,
+    render_context: ContextWrapper<PossiblyCurrent, glutin::window::Window>,
     event_loop: EventLoop<()>,
 }
 
@@ -26,7 +26,7 @@ impl Window {
         gl::load_with(|ptr| gl_context.get_proc_address(ptr) as *const _);
 
         return Self {
-            context: gl_context,
+            render_context: gl_context,
             event_loop
         }
     }
@@ -39,12 +39,12 @@ impl Window {
                 Event::LoopDestroyed => (),
                 Event::WindowEvent { event, .. } => match event {
                     WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
-                    WindowEvent::Resized(physical_size) => self.context.resize(physical_size),
+                    WindowEvent::Resized(physical_size) => self.render_context.resize(physical_size),
                     _ => (),
                 },
                 Event::RedrawRequested(_) => {
                     renderer.draw();
-                    self.context.swap_buffers().expect("Failed to swap buffers")
+                    self.render_context.swap_buffers().expect("Failed to swap buffers")
                 }
                 _ => ()
             }
