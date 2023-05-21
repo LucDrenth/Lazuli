@@ -3,8 +3,11 @@ use crate::{
     error::opengl
 };
 
+use super::fps::Fps;
+
 pub struct Renderer {
     scene: Box<dyn Scene>,
+    fps: Fps,
 }
 
 impl Renderer {
@@ -14,16 +17,19 @@ impl Renderer {
             gl::Enable(gl::BLEND);
             opengl::gl_check_errors();
 
-            Ok(Renderer{scene})
+            Ok(Self{
+                scene, fps: Fps::new()
+            })
         }
     }
 
-    pub fn draw(&self) {
+    pub fn draw(&mut self) {
         unsafe {
             gl::ClearColor(0.45, 0.4, 0.6, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT);
 
             self.scene.draw();
+            self.fps.update_fps_count();
 
             opengl::gl_check_errors();
         }

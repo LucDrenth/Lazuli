@@ -31,7 +31,7 @@ impl Window {
         }
     }
     
-    pub fn run(self, renderer: Renderer) {
+    pub fn run(self, mut renderer: Renderer) {
         self.event_loop.run(move |event, _, control_flow| {
             *control_flow = ControlFlow::Wait;
             
@@ -42,7 +42,7 @@ impl Window {
                     WindowEvent::Resized(physical_size) => self.render_context.resize(physical_size),
                     _ => (),
                 },
-                Event::RedrawRequested(_) => {
+                Event::MainEventsCleared => {
                     renderer.draw();
                     self.render_context.swap_buffers().expect("Failed to swap buffers")
                 }
