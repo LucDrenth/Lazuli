@@ -1,18 +1,14 @@
-use std::env;
-
-use graphics::renderer::Renderer;
+use app::App;
 use scenes::basic_scene::BasicScene;
 
 mod graphics;
+mod scenes;
 mod error;
-pub mod scenes;
+
+mod app;
 
 fn main() {
-    // TODO since backtrace can be slow in production, we need to disable this in release mode
-    env::set_var("RUST_BACKTRACE", "1");
-
-    let window = graphics::Window::new(String::from("Lazuli"));
+    let app = App::new();
     let scene = BasicScene::new().expect("Could not create scene");
-    let renderer = Renderer::new(Box::new(scene)).expect("Could not create renderer");
-    window.run(renderer);
+    app.run(Box::new(scene)); 
 }
