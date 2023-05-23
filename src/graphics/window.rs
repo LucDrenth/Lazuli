@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, GlRequest, ContextBuilder, Api, event::{Event, WindowEvent}, ContextWrapper, PossiblyCurrent};
 
 use super::renderer::Renderer;
@@ -5,6 +7,7 @@ use super::renderer::Renderer;
 pub struct Window {
     render_context: ContextWrapper<PossiblyCurrent, glutin::window::Window>,
     event_loop: EventLoop<()>,
+    target_fps: u64,
 }
 
 impl Window {
@@ -27,28 +30,45 @@ impl Window {
 
         return Self {
             render_context: gl_context,
-            event_loop
+            event_loop,
+            target_fps: 60,
         }
     }
     
     pub fn run(self, mut renderer: Renderer) {
         self.event_loop.run(move |event, _, control_flow| {
-            *control_flow = ControlFlow::Wait;
-            
+            let start_time = Instant::now();
+
             match event {
-                Event::LoopDestroyed => (),
                 Event::WindowEvent { event, .. } => match event {
                     WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                     WindowEvent::Resized(physical_size) => self.render_context.resize(physical_size),
                     _ => (),
                 },
-                Event::MainEventsCleared => {
+                _ => ()
+            }
+
+            match *control_flow {
+                ControlFlow::Exit => (),
+                _ => {
                     renderer.draw();
                     self.render_context.swap_buffers().expect("Failed to swap buffers");
                     self.render_context.window().request_redraw();
+
+                    *control_flow = wait_until_next_frame(start_time, self.target_fps);
                 }
-                _ => ()
             }
         });
-    }     
+    }
+}
+
+fn wait_until_next_frame(start_time: Instant, target_fps: u64) -> ControlFlow {
+    let elapsed_time = Instant::now().duration_since(start_time).as_millis() as u64;
+    let frame_time_ms = 1000 / target_fps;
+
+    if elapsed_time < frame_time_ms {
+        std::thread::sleep(std::time::Duration::from_millis(frame_time_ms - elapsed_time));
+    }
+    
+    return  ControlFlow::WaitUntil(Instant::now() + std::time::Duration::from_millis(frame_time_ms));
 }
