@@ -44,7 +44,8 @@ impl Window {
                 },
                 Event::MainEventsCleared => {
                     renderer.draw();
-                    self.render_context.swap_buffers().expect("Failed to swap buffers")
+                    self.render_context.swap_buffers().expect("Failed to swap buffers");
+                    self.render_context.window().request_redraw();
                 }
                 _ => ()
             }
