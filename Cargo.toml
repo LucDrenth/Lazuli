@@ -1,4 +1,5 @@
 [package]
+authors = ["Luc Drenth <luc.drenth@hotmail.com>"]
 name = "lazuli"
 version = "0.1.0"
 edition = "2021"
