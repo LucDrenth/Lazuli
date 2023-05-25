@@ -3,6 +3,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 pub struct Fps {
     current_fps_count: u16,
     last_fps_measure_time: u128,
+    print: bool,
 }
 
 impl Fps {
@@ -10,6 +11,7 @@ impl Fps {
         Self {
             current_fps_count: 0,
             last_fps_measure_time: now(),
+            print: false,
         }
     }
 
@@ -23,7 +25,10 @@ impl Fps {
         self.current_fps_count += 1;
 
         if now - self.last_fps_measure_time > 1_000 {
-            println!("fps: {}", self.current_fps_count);
+            if self.print {
+                println!("fps: {}", self.current_fps_count);
+            }
+
             self.last_fps_measure_time = now;
             self.current_fps_count = 0;
         }
