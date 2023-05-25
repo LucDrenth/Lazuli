@@ -8,6 +8,7 @@ pub struct Window {
     render_context: ContextWrapper<PossiblyCurrent, glutin::window::Window>,
     event_loop: EventLoop<()>,
     target_fps: u64,
+    wireframe_mode: bool,
 }
 
 impl Window {
@@ -33,11 +34,19 @@ impl Window {
             render_context: gl_context,
             event_loop,
             target_fps: 60,
+            wireframe_mode: false,
         }
     }
     
     pub fn run(self, mut renderer: Renderer) {
         self.event_loop.run(move |event, _, control_flow| {
+            
+            if self.wireframe_mode {
+                unsafe {
+                    gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
+                }
+            }
+
             let start_time = Instant::now();
 
             match event {
