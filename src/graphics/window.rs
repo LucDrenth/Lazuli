@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, GlRequest, ContextBuilder, Api, event::{Event, WindowEvent}, ContextWrapper, PossiblyCurrent};
+use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, GlRequest, ContextBuilder, Api, event::{Event, WindowEvent}, ContextWrapper, PossiblyCurrent, GlProfile};
 
 use super::renderer::Renderer;
 
@@ -17,6 +17,7 @@ impl Window {
 
         let  gl_context = ContextBuilder::new()
             .with_gl(GlRequest::Specific(Api::OpenGl, (3, 3)))
+            .with_gl_profile(GlProfile::Core)
             .build_windowed(window, &event_loop)
             .expect("Cannot create window context");
 
