@@ -1,5 +1,3 @@
-// TODO should we rename to VBO (Vertex buffer object) or will we use this as other buffers?
-
 use gl::types::{GLuint, GLsizeiptr};
 
 use crate::error::opengl;
@@ -23,7 +21,9 @@ impl Buffer {
         opengl::gl_check_errors();
     }
 
-    // usage is one of: gl::STREAM_DRAW, gl::STATIC_DRAW, gl::DYNAMIC_DRAW
+    /// # Arguments
+    ///
+    /// * `usage` - one of: gl::STREAM_DRAW, gl::STATIC_DRAW, gl::DYNAMIC_DRAWn
     pub unsafe fn set_data<D>(&mut self, data: &[D], usage: GLuint) {
         self.bind();
         let (_, data_bytes, _) = data.align_to::<u8>();
