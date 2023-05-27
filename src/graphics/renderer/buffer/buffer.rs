@@ -13,7 +13,11 @@ impl Buffer {
         let mut id = 0;
         gl::GenBuffers(1, &mut id);
         opengl::gl_check_errors();
-        Self { id, target, data_size: 0 }
+        Self { 
+            id, 
+            target,
+            data_size: 0 // will be set when setting our data
+        }
     }
 
     pub unsafe fn bind(&self) {
