@@ -32,10 +32,10 @@ impl Rectangle {
         let vao = Vao::new();
         vao.bind();
         
-        let mut vbo = Buffer::new(gl::ARRAY_BUFFER);
+        let mut vbo = Buffer::new_vbo();
         vbo.set_data(&COLORED_RECTANGLE_VERTICES, gl::STATIC_DRAW);
 
-        let mut ebo = Buffer::new(gl::ELEMENT_ARRAY_BUFFER);
+        let mut ebo = Buffer::new_ebo();
         ebo.set_data(&INDICES, gl::STATIC_DRAW);
 
         let position_attribute = program.get_attribute_location("position")
@@ -54,13 +54,13 @@ impl Rectangle {
     }
 
     pub unsafe fn new_textured(program: &ShaderProgram) -> Self {
-        let mut vbo = Buffer::new(gl::ARRAY_BUFFER);
+        let mut vbo = Buffer::new_vbo();
         vbo.set_data(&TEXTURED_RECTANGLE_VERTICES, gl::STATIC_DRAW);
 
         let vao = Vao::new();
         vao.bind();
 
-        let mut ebo = Buffer::new(gl::ELEMENT_ARRAY_BUFFER);
+        let mut ebo = Buffer::new_ebo();
         ebo.set_data(&INDICES, gl::STATIC_DRAW);
 
         let position_attribute = program.get_attribute_location("position")

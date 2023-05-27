@@ -15,7 +15,7 @@ pub struct Triangle {
 
 impl Triangle {
     pub unsafe fn new(program: &ShaderProgram) -> Self {
-        let mut vbo = Buffer::new(gl::ARRAY_BUFFER);
+        let mut vbo = Buffer::new_vbo();
         vbo.set_data(&TRIANGLE_VERTICES, gl::STATIC_DRAW);
 
         let vao = Vao::new();

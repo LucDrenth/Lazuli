@@ -9,7 +9,15 @@ pub struct Buffer {
 }
 
 impl Buffer {
-    pub unsafe fn new(target: GLuint) -> Self {
+    pub unsafe fn new_vbo() -> Self {
+       return Buffer::new(gl::ARRAY_BUFFER)
+    }
+
+    pub unsafe fn new_ebo() -> Self {
+       return Buffer::new(gl::ELEMENT_ARRAY_BUFFER)
+    }
+
+    unsafe fn new(target: GLuint) -> Self {
         let mut id = 0;
         gl::GenBuffers(1, &mut id);
         opengl::gl_check_errors();
