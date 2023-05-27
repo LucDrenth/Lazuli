@@ -24,7 +24,7 @@ const INDICES: [i32; 6] = [
 pub struct Rectangle {
     vao: Vao,
     _vbo: Buffer,
-    _index_buffer: Buffer,
+    ebo: Buffer,
 }
 
 impl Rectangle {    
@@ -35,8 +35,8 @@ impl Rectangle {
         let mut vbo = Buffer::new(gl::ARRAY_BUFFER);
         vbo.set_data(&COLORED_RECTANGLE_VERTICES, gl::STATIC_DRAW);
 
-        let mut index_buffer = Buffer::new(gl::ELEMENT_ARRAY_BUFFER);
-        index_buffer.set_data(&INDICES, gl::STATIC_DRAW);
+        let mut ebo = Buffer::new(gl::ELEMENT_ARRAY_BUFFER);
+        ebo.set_data(&INDICES, gl::STATIC_DRAW);
 
         let position_attribute = program.get_attribute_location("position")
             .expect("Could not get position attribute");
@@ -49,19 +49,19 @@ impl Rectangle {
         Self { 
             vao, 
             _vbo: vbo,
-            _index_buffer: index_buffer,
+            ebo
          }
     }
 
     pub unsafe fn new_textured(program: &ShaderProgram) -> Self {
-        let vao = Vao::new();
-        vao.bind();
-        
         let mut vbo = Buffer::new(gl::ARRAY_BUFFER);
         vbo.set_data(&TEXTURED_RECTANGLE_VERTICES, gl::STATIC_DRAW);
 
-        let mut index_buffer = Buffer::new(gl::ELEMENT_ARRAY_BUFFER);
-        index_buffer.set_data(&INDICES, gl::STATIC_DRAW);
+        let vao = Vao::new();
+        vao.bind();
+
+        let mut ebo = Buffer::new(gl::ELEMENT_ARRAY_BUFFER);
+        ebo.set_data(&INDICES, gl::STATIC_DRAW);
 
         let position_attribute = program.get_attribute_location("position")
             .expect("Could not get position attribute");
@@ -74,7 +74,7 @@ impl Rectangle {
         Self { 
             vao, 
             _vbo: vbo,
-            _index_buffer: index_buffer,
+            ebo,
          }
     }
 }
@@ -83,7 +83,7 @@ impl Shape for Rectangle {
     unsafe fn draw(&self, program: &ShaderProgram) {
         program.apply();
         self.vao.bind();
-        gl::DrawElements(gl::TRIANGLES, self._index_buffer.data_size as i32, gl::UNSIGNED_INT, core::ptr::null());
+        gl::DrawElements(gl::TRIANGLES, self.ebo.data_size as i32, gl::UNSIGNED_INT, core::ptr::null());
 
         opengl::gl_check_errors();
     }
