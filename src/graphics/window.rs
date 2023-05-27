@@ -40,13 +40,6 @@ impl Window {
     
     pub fn run(self, mut renderer: Renderer) {
         self.event_loop.run(move |event, _, control_flow| {
-            
-            if self.wireframe_mode {
-                unsafe {
-                    gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
-                }
-            }
-
             let start_time = Instant::now();
 
             match event {

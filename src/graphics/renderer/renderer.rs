@@ -18,7 +18,7 @@ impl Renderer {
             opengl::gl_check_errors();
 
             Ok(Self{
-                scene, fps: Fps::new()
+                scene, fps: Fps::new(),
             })
         }
     }
@@ -33,5 +33,18 @@ impl Renderer {
 
             opengl::gl_check_errors();
         }
+    }
+
+    pub fn set_wireframe_mode(enable: bool) {
+        if enable {
+            unsafe {
+                gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
+            }
+        } else {
+            unsafe {
+                gl::PolygonMode(gl::FRONT_AND_BACK, gl::FILL);
+            }
+        }
+        opengl::gl_check_errors();
     }
 }
