@@ -4,6 +4,7 @@ use scenes::basic_scene::BasicScene;
 mod graphics;
 mod scenes;
 mod error;
+mod log;
 
 mod app;
 
