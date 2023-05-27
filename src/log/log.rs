@@ -10,21 +10,9 @@
 #[macro_export]
 macro_rules! current_time {
     () => {{
-        use std::time::{SystemTime, UNIX_EPOCH};
-
-        let current_time = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .expect("Failed to obtain system time.")
-            .as_secs();
-
-        // TODO get this from the system timezone
-        let timezone_offset = 2;
-
-        let hours = (current_time / 3600) % 24;
-        let minutes = (current_time / 60) % 60;
-        let seconds = current_time % 60;
-
-        format!("{:02}:{:02}:{:02}", hours + timezone_offset, minutes, seconds)
+        use chrono::Local;
+        
+        Local::now().format("%H:%M:%S")
     }};
 }
 
