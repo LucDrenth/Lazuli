@@ -9,23 +9,21 @@ pub struct MovingTriangleScene {
 
 impl MovingTriangleScene {
     pub fn new() -> Result<Self, String> {
-        unsafe {
-            let vertex_shader = Shader::new(PATH_MOVING_TRIANGLE_VERT, gl::VERTEX_SHADER).unwrap();
-            let fragment_shader = Shader::new(PATH_MOVING_TRIANGLE_FRAG, gl::FRAGMENT_SHADER).unwrap();
-            let program_colored = ShaderProgram::new(&[vertex_shader, fragment_shader]).unwrap();
-            let material_colored = Material::new(program_colored);
+        let vertex_shader = Shader::new(PATH_MOVING_TRIANGLE_VERT, gl::VERTEX_SHADER).unwrap();
+        let fragment_shader = Shader::new(PATH_MOVING_TRIANGLE_FRAG, gl::FRAGMENT_SHADER).unwrap();
+        let program_colored = ShaderProgram::new(&[vertex_shader, fragment_shader]).unwrap();
+        let material_colored = Material::new(program_colored);
 
-            let triangle = Triangle::new(&material_colored.shader_program);
+        let triangle = Triangle::new(&material_colored.shader_program);
 
-            let result = Self { 
-                material_colored,
-                triangle,
-                triangle_offset_x: 0.0,
-                triangle_movement_velocity: 0.008,
-            };
+        let result = Self { 
+            material_colored,
+            triangle,
+            triangle_offset_x: 0.0,
+            triangle_movement_velocity: 0.008,
+        };
 
-            Ok(result)
-        }
+        Ok(result)
     }
 }
 

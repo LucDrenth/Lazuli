@@ -28,54 +28,58 @@ pub struct Rectangle {
 }
 
 impl Rectangle {    
-    pub unsafe fn new_colored(program: &ShaderProgram) -> Self {
-        let vao = Vao::new();
-        vao.bind();
-        
-        let mut vbo = Buffer::new_vbo();
-        vbo.set_data(&COLORED_RECTANGLE_VERTICES, gl::STATIC_DRAW);
+    pub fn new_colored(program: &ShaderProgram) -> Self {
+        unsafe {
+            let vao = Vao::new();
+            vao.bind();
+            
+            let mut vbo = Buffer::new_vbo();
+            vbo.set_data(&COLORED_RECTANGLE_VERTICES, gl::STATIC_DRAW);
 
-        let mut ebo = Buffer::new_ebo();
-        ebo.set_data(&INDICES, gl::STATIC_DRAW);
+            let mut ebo = Buffer::new_ebo();
+            ebo.set_data(&INDICES, gl::STATIC_DRAW);
 
-        let position_attribute = program.get_attribute_location("position")
-            .expect("Could not get position attribute");
-        set_attribute!(vao, position_attribute, VertexColored::0);
+            let position_attribute = program.get_attribute_location("position")
+                .expect("Could not get position attribute");
+            set_attribute!(vao, position_attribute, VertexColored::0);
 
-        let color_attribute = program.get_attribute_location("color")
-            .expect("Could not get color attribute");
-        set_attribute!(vao, color_attribute, VertexColored::1);
+            let color_attribute = program.get_attribute_location("color")
+                .expect("Could not get color attribute");
+            set_attribute!(vao, color_attribute, VertexColored::1);
 
-        Self { 
-            vao, 
-            _vbo: vbo,
-            ebo
-         }
+            Self { 
+                vao, 
+                _vbo: vbo,
+                ebo
+            }
+        }
     }
 
-    pub unsafe fn new_textured(program: &ShaderProgram) -> Self {
-        let mut vbo = Buffer::new_vbo();
-        vbo.set_data(&TEXTURED_RECTANGLE_VERTICES, gl::STATIC_DRAW);
+    pub fn new_textured(program: &ShaderProgram) -> Self {
+        unsafe {
+            let mut vbo = Buffer::new_vbo();
+            vbo.set_data(&TEXTURED_RECTANGLE_VERTICES, gl::STATIC_DRAW);
 
-        let vao = Vao::new();
-        vao.bind();
+            let vao = Vao::new();
+            vao.bind();
 
-        let mut ebo = Buffer::new_ebo();
-        ebo.set_data(&INDICES, gl::STATIC_DRAW);
+            let mut ebo = Buffer::new_ebo();
+            ebo.set_data(&INDICES, gl::STATIC_DRAW);
 
-        let position_attribute = program.get_attribute_location("position")
-            .expect("Could not get position attribute");
-        set_attribute!(vao, position_attribute, VertexTextured::0);
+            let position_attribute = program.get_attribute_location("position")
+                .expect("Could not get position attribute");
+            set_attribute!(vao, position_attribute, VertexTextured::0);
 
-        let texture_coordinates_attribute = program.get_attribute_location("vertexTextureCoordinates")
-            .expect("Could not get vertexTextureCoordinates attribute");
-        set_attribute!(vao, texture_coordinates_attribute, VertexTextured::1);
+            let texture_coordinates_attribute = program.get_attribute_location("vertexTextureCoordinates")
+                .expect("Could not get vertexTextureCoordinates attribute");
+            set_attribute!(vao, texture_coordinates_attribute, VertexTextured::1);
 
-        Self { 
-            vao, 
-            _vbo: vbo,
-            ebo,
-         }
+            Self { 
+                vao, 
+                _vbo: vbo,
+                ebo,
+            }
+        }
     }
 }
 

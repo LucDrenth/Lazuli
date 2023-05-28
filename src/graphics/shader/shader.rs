@@ -16,27 +16,29 @@ pub struct Shader {
 }
 
 impl Shader {
-    pub unsafe fn new(path: &str, shader_type: GLenum) -> Result<Self, String> {
+    pub fn new(path: &str, shader_type: GLenum) -> Result<Self, String> {
         let source_code = load_shader_source(path);
 
-        let shader = Self {
-            id: gl::CreateShader(shader_type),
-        };
-        opengl::gl_check_errors();
+        unsafe {
+            let shader = Self {
+                id: gl::CreateShader(shader_type),
+            };
+            opengl::gl_check_errors();
 
-        gl::ShaderSource(shader.id, 1, &source_code.as_ptr(), ptr::null());
-        opengl::gl_check_errors();
-        gl::CompileShader(shader.id);
-        opengl::gl_check_errors();
+            gl::ShaderSource(shader.id, 1, &source_code.as_ptr(), ptr::null());
+            opengl::gl_check_errors();
+            gl::CompileShader(shader.id);
+            opengl::gl_check_errors();
 
-        let mut success: GLint = 0;
-        gl::GetShaderiv(shader.id, gl::COMPILE_STATUS, &mut success);
-        opengl::gl_check_errors();
+            let mut success: GLint = 0;
+            gl::GetShaderiv(shader.id, gl::COMPILE_STATUS, &mut success);
+            opengl::gl_check_errors();
 
-        if success == 1 {
-            Ok(shader)
-        } else {
-            Err(format!("failed to compile {} shader {}: [{}]", shader_type_to_string(shader_type), path, shader.get_shader_error()))
+            if success == 1 {
+                Ok(shader)
+            } else {
+                Err(format!("failed to compile {} shader {}: [{}]", shader_type_to_string(shader_type), path, shader.get_shader_error()))
+            }
         }
     }
 

@@ -11,34 +11,36 @@ pub struct ShaderProgram {
 }
 
 impl ShaderProgram {
-    pub unsafe fn new (shaders: &[Shader]) -> Result<Self, String> {
-        let program = Self {
-            id: gl::CreateProgram()
-        };
+    pub fn new(shaders: &[Shader]) -> Result<Self, String> {
+        unsafe {
+            let program = Self {
+                id: gl::CreateProgram()
+            };
 
-        opengl::gl_check_errors();
+            opengl::gl_check_errors();
 
-        for shader in shaders {
-            gl::AttachShader(program.id, shader.id);
-        }
+            for shader in shaders {
+                gl::AttachShader(program.id, shader.id);
+            }
 
-        opengl::gl_check_errors();
+            opengl::gl_check_errors();
 
-        gl::LinkProgram(program.id);
-        opengl::gl_check_errors();
+            gl::LinkProgram(program.id);
+            opengl::gl_check_errors();
 
-        let mut success: GLint = 0;
-        gl::GetProgramiv(program.id, gl::LINK_STATUS, &mut success);
-        opengl::gl_check_errors();
+            let mut success: GLint = 0;
+            gl::GetProgramiv(program.id, gl::LINK_STATUS, &mut success);
+            opengl::gl_check_errors();
 
-        if success == 1 {
-            Ok(program)
-        } else {
-            Err(program.get_shader_program_error())
+            if success == 1 {
+                Ok(program)
+            } else {
+                Err(program.get_shader_program_error())
+            }
         }
     }
 
-    pub fn apply (&self) {
+    pub fn apply(&self) {
         unsafe {
             gl::UseProgram(self.id);
             opengl::gl_check_errors();
