@@ -8,33 +8,30 @@
  */
 
 #[macro_export]
-macro_rules! current_time {
-    () => {{
-        use chrono::Local;
-        
-        Local::now().format("%H:%M:%S")
-    }};
-}
-
-
-#[macro_export]
 macro_rules! lz_core_info {
-    ($($arg:tt)*) => {
-        println!("[{}] ENGINE: {}", current_time!(), format!($($arg)*));
-    };
+    ($($arg:tt)*) => {{
+        use chrono::Local;
+        let local = Local::now();
+
+        println!("[{}] ENGINE: {}", local.format("%H:%M:%S"), format!($($arg)*));
+    }};
 }
 
 #[macro_export]
 macro_rules! lz_core_warn {
     ($($arg:tt)*) => {
-        println!("{}[{}] ENGINE: {}{}",  "\x1B[33m", current_time!(), format!($($arg)*), "\x1B[0m");
+        use chrono::Local;
+
+        println!("{}[{}] ENGINE: {}{}",  "\x1B[33m", Local::now().format("%H:%M:%S"), format!($($arg)*), "\x1B[0m");
     };
 }
 
 #[macro_export]
 macro_rules! lz_core_err {
     ($($arg:tt)*) => {
-        println!("{}[{}] ENGINE: {}{}", "\x1B[31m", current_time!(), format!($($arg)*), "\x1B[0m");
+        use chrono::Local;
+
+        println!("{}[{}] ENGINE: {}{}", "\x1B[31m", Local::now().format("%H:%M:%S"), format!($($arg)*), "\x1B[0m");
     };
 }
 
@@ -42,20 +39,26 @@ macro_rules! lz_core_err {
 #[macro_export]
 macro_rules! lz_info {
     ($($arg:tt)*) => {
-        println!("[{}] APP: {}", current_time!(), format!($($arg)*));
+        use chrono::Local;
+
+        println!("[{}] APP: {}", Local::now().format("%H:%M:%S"), format!($($arg)*));
     };
 }
 
 #[macro_export]
 macro_rules! lz_warn {
     ($($arg:tt)*) => {
-        println!("{}[{}] APP: {}{}", "\x1B[33m", current_time!(), format!($($arg)*), "\x1B[0m");
+        use chrono::Local;
+
+        println!("{}[{}] APP: {}{}", "\x1B[33m", Local::now().format("%H:%M:%S"), format!($($arg)*), "\x1B[0m");
     };
 }
 
 #[macro_export]
 macro_rules! lz_err {
     ($($arg:tt)*) => {
-        println!("{}[{}] APP: {}{}", "\x1B[31m", current_time!(), format!($($arg)*), "\x1B[0m");
+        use chrono::Local;
+        
+        println!("{}[{}] APP: {}{}", "\x1B[31m", Local::now().format("%H:%M:%S"), format!($($arg)*), "\x1B[0m");
     };
 }
