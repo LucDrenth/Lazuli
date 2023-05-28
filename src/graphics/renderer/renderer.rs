@@ -6,7 +6,7 @@ use crate::{
 use super::fps::Fps;
 
 pub struct Renderer {
-    scene: Box<dyn Scene>,
+    pub scene: Box<dyn Scene>,
     fps: Fps,
 }
 

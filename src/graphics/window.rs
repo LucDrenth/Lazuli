@@ -54,6 +54,7 @@ impl Window {
             match *control_flow {
                 ControlFlow::Exit => (),
                 _ => {
+                    renderer.scene.update();
                     renderer.draw();
                     self.render_context.swap_buffers().expect("Failed to swap buffers");
                     self.render_context.window().request_redraw();

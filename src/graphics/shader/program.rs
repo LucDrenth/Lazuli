@@ -75,10 +75,36 @@ impl ShaderProgram {
         }
     }
 
-    pub unsafe fn set_uniform_int(&self, name: &str, value: i32 ) {
-        self.apply();
+    pub fn set_uniform_int(&self, name: &str, value: i32 ) {
         let uniform = CString::new(name).unwrap();
-        gl::Uniform1i(gl::GetUniformLocation(self.id, uniform.as_ptr()), value);
+
+        unsafe {
+            self.apply();
+            gl::Uniform1i(gl::GetUniformLocation(self.id, uniform.as_ptr()), value);
+        }
+        
+        opengl::gl_check_errors();
+    }
+
+    pub fn set_uniform_float(&self, name: &str, value: f32 ) {
+        let uniform = CString::new(name).unwrap();
+
+        unsafe {   
+            self.apply();
+            gl::Uniform1f(gl::GetUniformLocation(self.id, uniform.as_ptr()), value);
+        }
+
+        opengl::gl_check_errors();
+    }
+
+    pub fn set_uniform_float2(&self, name: &str, value1: f32, value2: f32) {
+        let uniform = CString::new(name).unwrap();
+
+        unsafe {
+            self.apply();
+            gl::Uniform2f(gl::GetUniformLocation(self.id, uniform.as_ptr()), value1, value2);
+        }
+
         opengl::gl_check_errors();
     }
 }

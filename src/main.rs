@@ -1,5 +1,5 @@
 use app::App;
-use scenes::basic_scene::BasicScene;
+use scenes::moving_triangle_scene::MovingTriangleScene as Scene;
 
 mod graphics;
 mod scenes;
@@ -10,6 +10,6 @@ mod app;
 
 fn main() {
     let app = App::new();
-    let scene = BasicScene::new().expect("Could not create scene");
+    let scene = Scene::new().expect("Could not create scene");
     app.run(Box::new(scene)); 
 }

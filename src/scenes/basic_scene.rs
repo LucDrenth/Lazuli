@@ -42,6 +42,8 @@ impl BasicScene {
 }
 
 impl Scene for BasicScene {
+    fn update(&mut self) {}
+
     unsafe fn draw(&self) {
         mesh_renderer::draw_triangle(&self.triangle, &self.material_colored);
         mesh_renderer::draw_rectangle(&self.rectangle, &self.material_textured);

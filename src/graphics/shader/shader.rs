@@ -8,6 +8,8 @@ pub const PATH_COLORED_VERT: &str = "./assets/shaders/colored.vert";
 pub const PATH_COLORED_FRAG: &str = "./assets/shaders/colored.frag";
 pub const PATH_TEXTURED_VERT: &str = "./assets/shaders/textured.vert";
 pub const PATH_TEXTURED_FRAG: &str = "./assets/shaders/textured.frag";
+pub const PATH_MOVING_TRIANGLE_VERT: &str = "./assets/shaders/moving-triangle.vert";
+pub const PATH_MOVING_TRIANGLE_FRAG: &str = "./assets/shaders/moving-triangle.frag";
 
 pub struct Shader {
     pub id: GLuint,
