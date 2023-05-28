@@ -1,4 +1,4 @@
-use std::{fs, path::Path};
+use std::{path::Path};
 
 use crate::graphics::{scene::Scene, material::Material, Triangle, Rectangle, mesh_renderer, shader::{Shader, ShaderProgram, PATH_COLORED_VERT, PATH_COLORED_FRAG, PATH_TEXTURED_VERT, PATH_TEXTURED_FRAG}};
 
@@ -11,20 +11,14 @@ pub struct BasicScene {
 
 impl BasicScene {
     pub fn new() -> Result<Self, String> {
-        let colored_vertex_shader_source = fs::read_to_string(PATH_COLORED_VERT).unwrap();
-        let colored_fragment_shader_source = fs::read_to_string(PATH_COLORED_FRAG).unwrap();
-
-        let textured_vertex_shader_source = fs::read_to_string(PATH_TEXTURED_VERT).unwrap();
-        let textured_fragment_shader_source = fs::read_to_string(PATH_TEXTURED_FRAG).unwrap();
-
         unsafe {
-            let vertex_shader = Shader::new(colored_vertex_shader_source.as_str(), gl::VERTEX_SHADER)?;
-            let fragment_shader = Shader::new(colored_fragment_shader_source.as_str(), gl::FRAGMENT_SHADER)?;
-            let program_colored = ShaderProgram::new(&[vertex_shader, fragment_shader])?;
+            let vertex_shader = Shader::new(PATH_COLORED_VERT, gl::VERTEX_SHADER).unwrap();
+            let fragment_shader = Shader::new(PATH_COLORED_FRAG, gl::FRAGMENT_SHADER).unwrap();
+            let program_colored = ShaderProgram::new(&[vertex_shader, fragment_shader]).unwrap();
             
-            let vertex_shader = Shader::new(textured_vertex_shader_source.as_str(), gl::VERTEX_SHADER)?;
-            let fragment_shader = Shader::new(textured_fragment_shader_source.as_str(), gl::FRAGMENT_SHADER)?;
-            let program_textured = ShaderProgram::new(&[vertex_shader, fragment_shader])?;
+            let vertex_shader = Shader::new(PATH_TEXTURED_VERT, gl::VERTEX_SHADER).unwrap();
+            let fragment_shader = Shader::new(PATH_TEXTURED_FRAG, gl::FRAGMENT_SHADER).unwrap();
+            let program_textured = ShaderProgram::new(&[vertex_shader, fragment_shader]).unwrap();
 
             let mut material_textured = Material::new(program_textured);
             material_textured.add_texture(&Path::new("./assets/images/lazuli-rock.png"));

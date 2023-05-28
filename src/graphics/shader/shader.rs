@@ -1,4 +1,4 @@
-use std::ffi::CString;
+use std::{ffi::CString, fs};
 use std::ptr;
 use gl::types::{GLuint, GLenum, GLint};
 
@@ -14,8 +14,9 @@ pub struct Shader {
 }
 
 impl Shader {
-    pub unsafe fn new(source_code: &str, shader_type: GLenum) -> Result<Self, String> {
-        let source_code = CString::new(source_code).unwrap();
+    pub unsafe fn new(path: &str, shader_type: GLenum) -> Result<Self, String> {
+        let source_code = load_shader_source(path);
+
         let shader = Self {
             id: gl::CreateShader(shader_type),
         };
@@ -33,7 +34,7 @@ impl Shader {
         if success == 1 {
             Ok(shader)
         } else {
-            Err(shader.get_shader_error())
+            Err(format!("failed to compile {} shader {}: [{}]", shader_type_to_string(shader_type), path, shader.get_shader_error()))
         }
     }
 
@@ -66,5 +67,22 @@ impl Drop for Shader {
         unsafe {
             gl::DeleteShader(self.id);
         }
+    }
+}
+
+/// TODO don't use unwrap functions here
+/// 
+/// TODO cache result for if we reuse the shader source
+fn load_shader_source(path: &str) -> CString {
+    let source_code = fs::read_to_string(path).unwrap();
+    return CString::new(source_code).unwrap();
+}
+
+fn shader_type_to_string(shader_type: GLenum) -> String {
+    match shader_type {
+        gl::VERTEX_SHADER => String::from("vertex"),
+        gl::FRAGMENT_SHADER => String::from("fragment"),
+        gl::GEOMETRY_SHADER => String::from("geometry"),
+        _ => String::from("unknown"),
     }
 }

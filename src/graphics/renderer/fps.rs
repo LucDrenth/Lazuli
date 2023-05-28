@@ -1,5 +1,7 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use crate::lz_core_info;
+
 pub struct Fps {
     current_fps_count: u16,
     last_fps_measure_time: u128,
@@ -26,7 +28,7 @@ impl Fps {
 
         if now - self.last_fps_measure_time > 1_000 {
             if self.print {
-                println!("fps: {}", self.current_fps_count);
+                lz_core_info!("fps: {}", self.current_fps_count);
             }
 
             self.last_fps_measure_time = now;
