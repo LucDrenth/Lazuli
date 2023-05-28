@@ -78,22 +78,26 @@ impl ShaderProgram {
     }
 
     pub fn set_uniform<T>(&self, name: &str, value: T) where T: Into<UniformValue>, {
-        let uniform = CString::new(name).unwrap();
         self.apply();
 
-        unsafe {
-            let location = gl::GetUniformLocation(self.id, uniform.as_ptr());
-
-            if location < 0 {
-                lz_core_warn!("Can not find uniform location of: {}", name);
-                return;
-            }
-
-            let uniform_value = value.into();
-            uniform_value.set_uniform(location);
+        let location = self.get_uniform_location(name);
+        
+        if location < 0 {
+            lz_core_warn!("Can not find uniform location of: {}", name);
+            return;
         }
-
+        
+        let uniform_value = value.into();
+        uniform_value.set_uniform(location);
         opengl::gl_check_errors();
+    }
+
+    fn get_uniform_location(&self, name: &str) -> i32 {
+        let uniform = CString::new(name).unwrap();
+
+        unsafe {
+            return gl::GetUniformLocation(self.id, uniform.as_ptr());
+        }
     }
 }
 
