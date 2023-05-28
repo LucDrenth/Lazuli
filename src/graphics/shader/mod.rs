@@ -1,5 +1,6 @@
 mod program;
 mod shader;
+mod uniform;
 
 pub use shader::Shader;
 pub use program::ShaderProgram;

@@ -1,4 +1,4 @@
-use crate::{graphics::{scene::Scene, material::Material, Triangle, mesh_renderer, shader::{Shader, ShaderProgram, PATH_MOVING_TRIANGLE_VERT, PATH_MOVING_TRIANGLE_FRAG}}, lz_info};
+use crate::{graphics::{scene::Scene, material::Material, Triangle, mesh_renderer, shader::{Shader, ShaderProgram, PATH_MOVING_TRIANGLE_VERT, PATH_MOVING_TRIANGLE_FRAG}}};
 
 pub struct MovingTriangleScene {
     material_colored: Material,
@@ -42,7 +42,7 @@ impl Scene for MovingTriangleScene {
             self.triangle_movement_velocity *= -1.0;
         }
 
-        self.material_colored.shader_program.set_uniform_float("xPos", self.triangle_offset_x);
+        self.material_colored.shader_program.set_uniform("xPos", self.triangle_offset_x);
     }
 
     unsafe fn draw(&self) {

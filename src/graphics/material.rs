@@ -20,9 +20,9 @@ impl Material {
             let texture = Texture::new();
             texture.load(path);
 
-            self.shader_program.set_uniform_int(
+            self.shader_program.set_uniform(
                 format!("texture{}", self.textures.len()).as_str(), 
-                self.textures.len().try_into().unwrap()
+                self.textures.len() as i32
             );
 
             self.textures.push(texture);

@@ -4,7 +4,7 @@ use gl::types::{GLuint, GLint};
 
 use crate::{error::opengl, lz_core_warn};
 
-use super::shader::Shader;
+use super::{shader::Shader, uniform::UniformValue};
 
 pub struct ShaderProgram {
     pub id: GLuint
@@ -77,22 +77,11 @@ impl ShaderProgram {
         }
     }
 
-    pub fn set_uniform_int(&self, name: &str, value: i32 ) {
+    pub fn set_uniform<T>(&self, name: &str, value: T) where T: Into<UniformValue>, {
         let uniform = CString::new(name).unwrap();
+        self.apply();
 
         unsafe {
-            self.apply();
-            gl::Uniform1i(gl::GetUniformLocation(self.id, uniform.as_ptr()), value);
-        }
-        
-        opengl::gl_check_errors();
-    }
-
-    pub fn set_uniform_float(&self, name: &str, value: f32 ) {
-        let uniform = CString::new(name).unwrap();
-        self.apply();
-
-        unsafe {   
             let location = gl::GetUniformLocation(self.id, uniform.as_ptr());
 
             if location < 0 {
@@ -100,61 +89,8 @@ impl ShaderProgram {
                 return;
             }
 
-            gl::Uniform1f(location, value);
-        }
-
-        opengl::gl_check_errors();
-    }
-
-    pub fn set_uniform_float2(&self, name: &str, value1: f32, value2: f32) {
-        let uniform = CString::new(name).unwrap();
-        self.apply();
-
-        unsafe {   
-            let location = gl::GetUniformLocation(self.id, uniform.as_ptr());
-
-            if location < 0 {
-                lz_core_warn!("Can not find uniform location of: {}", name);
-                return;
-            }
-
-            gl::Uniform2f(gl::GetUniformLocation(self.id, uniform.as_ptr()), value1, value2);
-        }
-
-        opengl::gl_check_errors();
-    }
-
-    pub fn set_uniform_float3(&self, name: &str, value1: f32, value2: f32, value3: f32) {
-        let uniform = CString::new(name).unwrap();
-        self.apply();
-
-        unsafe {   
-            let location = gl::GetUniformLocation(self.id, uniform.as_ptr());
-
-            if location < 0 {
-                lz_core_warn!("Can not find uniform location of: {}", name);
-                return;
-            }
-
-            gl::Uniform3f(gl::GetUniformLocation(self.id, uniform.as_ptr()), value1, value2, value3);
-        }
-
-        opengl::gl_check_errors();
-    }
-
-    pub fn set_uniform_float4(&self, name: &str, value1: f32, value2: f32, value3: f32, value4: f32) {
-        let uniform = CString::new(name).unwrap();
-        self.apply();
-
-        unsafe {   
-            let location = gl::GetUniformLocation(self.id, uniform.as_ptr());
-
-            if location < 0 {
-                lz_core_warn!("Can not find uniform location of: {}", name);
-                return;
-            }
-
-            gl::Uniform4f(gl::GetUniformLocation(self.id, uniform.as_ptr()), value1, value2, value3, value4);
+            let uniform_value = value.into();
+            uniform_value.set_uniform(location);
         }
 
         opengl::gl_check_errors();
