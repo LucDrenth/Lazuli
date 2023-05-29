@@ -1,5 +1,5 @@
 use app::App;
-use scenes::moving_triangle_scene::MovingTriangleScene as Scene;
+use scenes::MovingTriangle as Scene;
 
 mod graphics;
 mod scenes;

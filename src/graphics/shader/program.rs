@@ -11,7 +11,13 @@ pub struct ShaderProgram {
 }
 
 impl ShaderProgram {
-    pub fn new(shaders: &[Shader]) -> Result<Self, String> {
+    pub fn new(path_vert: &str, path_frag: &str) -> Result<Self, String> {
+        let vertex_shader = Shader::new(path_vert, gl::VERTEX_SHADER)?;
+        let fragment_shader = Shader::new(path_frag, gl::FRAGMENT_SHADER)?;
+        return Self::from_shaders(&[vertex_shader, fragment_shader]);
+    }
+
+    pub fn from_shaders(shaders: &[Shader]) -> Result<Self, String> {
         unsafe {
             let program = Self {
                 id: gl::CreateProgram()

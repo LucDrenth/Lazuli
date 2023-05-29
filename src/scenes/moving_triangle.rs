@@ -1,17 +1,15 @@
-use crate::{graphics::{scene::Scene, material::Material, Triangle, mesh_renderer, shader::{Shader, ShaderProgram, PATH_MOVING_TRIANGLE_VERT, PATH_MOVING_TRIANGLE_FRAG}}};
+use crate::{graphics::{scene::Scene, material::Material, Triangle, mesh_renderer, shader::{ShaderProgram, PATH_MOVING_TRIANGLE_VERT, PATH_MOVING_TRIANGLE_FRAG}}};
 
-pub struct MovingTriangleScene {
+pub struct MovingTriangle {
     material_colored: Material,
     triangle: Triangle,
     triangle_offset_x: f32,
     triangle_movement_velocity: f32,
 }
 
-impl MovingTriangleScene {
+impl MovingTriangle {
     pub fn new() -> Result<Self, String> {
-        let vertex_shader = Shader::new(PATH_MOVING_TRIANGLE_VERT, gl::VERTEX_SHADER).unwrap();
-        let fragment_shader = Shader::new(PATH_MOVING_TRIANGLE_FRAG, gl::FRAGMENT_SHADER).unwrap();
-        let program_colored = ShaderProgram::new(&[vertex_shader, fragment_shader]).unwrap();
+        let program_colored = ShaderProgram::new(PATH_MOVING_TRIANGLE_VERT, PATH_MOVING_TRIANGLE_FRAG).unwrap();
         let material_colored = Material::new(program_colored);
 
         let triangle = Triangle::new(&material_colored.shader_program);
@@ -27,7 +25,7 @@ impl MovingTriangleScene {
     }
 }
 
-impl Scene for MovingTriangleScene {
+impl Scene for MovingTriangle {
     fn update(&mut self) {
         self.triangle_offset_x += self.triangle_movement_velocity;
 
