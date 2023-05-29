@@ -17,7 +17,7 @@ pub struct Shader {
 
 impl Shader {
     pub fn new(path: &str, shader_type: GLenum) -> Result<Self, String> {
-        let source_code = load_shader_source(path);
+        let source_code = load_shader_source(path)?;
 
         unsafe {
             let shader = Self {
@@ -74,12 +74,15 @@ impl Drop for Shader {
     }
 }
 
-/// TODO don't use unwrap functions here
-/// 
 /// TODO cache result for if we reuse the shader source
-fn load_shader_source(path: &str) -> CString {
-    let source_code = fs::read_to_string(path).unwrap();
-    return CString::new(source_code).unwrap();
+fn load_shader_source(path: &str) -> Result<CString, String> {
+    let source_code = fs::read_to_string(path).map_err(|err| {
+        format!("failed to read file [{}]: {}", path, err.to_string())
+    })?;
+
+    CString::new(source_code).map_err(|err| {
+        format!("failed to creating CString from file [{}]: {}", path, err.to_string())
+    })
 }
 
 fn shader_type_to_string(shader_type: GLenum) -> String {
