@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, GlRequest, ContextBuilder, Api, event::{Event, WindowEvent}, ContextWrapper, PossiblyCurrent, GlProfile};
+use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, GlRequest, ContextBuilder, Api, event::{Event, WindowEvent}, ContextWrapper, PossiblyCurrent, GlProfile, dpi::Size};
 
 use super::renderer::Renderer;
 
@@ -13,7 +13,10 @@ pub struct Window {
 
 impl Window {
     pub fn new(name: String) -> Self{
-        let window = WindowBuilder::new().with_title(name);
+        let window = WindowBuilder::new()
+            .with_title(name)
+            .with_inner_size(glutin::dpi::LogicalSize::new(1000, 750));
+
         let event_loop = EventLoop::new();
 
         let  gl_context = ContextBuilder::new()
