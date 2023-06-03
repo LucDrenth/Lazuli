@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use gl::types::{GLuint, GLenum};
+use gl::{types::{GLuint, GLenum, GLfloat}, REPEAT};
 use image::EncodableLayout;
 
 use crate::{error::opengl, lz_core_warn};
@@ -30,6 +30,7 @@ impl Texture {
     pub unsafe fn load(&self, path: &Path) {
         self.bind();
 
+        // TODO don't use unwrap and return a Result here
         let img = image::open(path).unwrap().into_rgba8();
         gl::TexImage2D(
             gl::TEXTURE_2D,
@@ -42,6 +43,10 @@ impl Texture {
             gl::UNSIGNED_BYTE,
             img.as_bytes().as_ptr() as *const _,
         );
+
+        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
+        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
+
         gl::GenerateMipmap(gl::TEXTURE_2D);
 
         opengl::gl_check_errors();

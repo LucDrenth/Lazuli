@@ -1,6 +1,6 @@
 use std::{path::Path};
 
-use crate::graphics::{scene::Scene, material::Material, Rectangle, mesh_renderer, shader::{ShaderProgram, PATH_TEXTURED_VERT, PATH_TEXTURED_FRAG}};
+use crate::graphics::{scene::Scene, material::Material, Rectangle, mesh_renderer, shader::{ShaderProgram, PATH_TEXTURE_MASK_VERT, PATH_TEXTURE_MASK_FRAG}};
 
 pub struct TextureMask {
     material_textured: Material,
@@ -9,7 +9,7 @@ pub struct TextureMask {
 
 impl TextureMask {
     pub fn new() -> Result<Self, String> {
-        let program_textured = ShaderProgram::new(PATH_TEXTURED_VERT, PATH_TEXTURED_FRAG).unwrap();
+        let program_textured = ShaderProgram::new(PATH_TEXTURE_MASK_VERT, PATH_TEXTURE_MASK_FRAG).unwrap();
 
         let mut material_textured = Material::new(program_textured);
         material_textured.add_texture(&Path::new("./assets/images/lazuli-rock.png"));

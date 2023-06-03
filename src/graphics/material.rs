@@ -29,7 +29,7 @@ impl Material {
         }
     }
 
-    pub fn activate_materials(&self) {
+    pub fn activate(&self) {
         unsafe {
             for (index, texture) in self.textures.iter().enumerate() {
                 texture.activate(index);

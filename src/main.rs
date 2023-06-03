@@ -1,5 +1,5 @@
 use app::App;
-use scenes::MovingTriangle as Scene;
+use scenes::HelloTexture as Scene;
 
 mod graphics;
 mod scenes;
