@@ -22,6 +22,12 @@ pub fn gl_check_errors() {
     }
 }
 
+pub fn gl_clear_errors() {
+    unsafe {
+        while gl::GetError() != gl::NO_ERROR {}
+    }
+}
+
 pub fn error_to_string(err: u32) -> String {
     match err {
         gl::INVALID_ENUM => String::from("INVALID_ENUM"),

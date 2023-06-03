@@ -1,8 +1,8 @@
-use std::ffi::{NulError, CString};
+use std::ffi::CString;
 
 use gl::types::{GLuint, GLint};
 
-use crate::{error::opengl, lz_core_warn};
+use crate::{error::opengl, lz_core_warn, lz_core_err};
 
 use super::{shader::Shader, uniform::UniformValue};
 
@@ -53,13 +53,22 @@ impl ShaderProgram {
         }
     }
 
-    pub unsafe fn get_attribute_location(&self, attribute: &str) -> Result<GLuint, NulError> {
-        let attribute = CString::new(attribute).expect("Could not create attribute CString");
+    pub unsafe fn get_attribute_location(&self, attribute: &str) -> Result<GLuint, String> {
+        let attribute_as_cstring = CString::new(attribute).map_err(|err| {
+            format!("failed to creating CString from attribute [{}]: {}", attribute, err.to_string())
+        })?;
 
-        let result = gl::GetAttribLocation(self.id, attribute.as_ptr()) as GLuint;
+        let result = gl::GetAttribLocation(self.id, attribute_as_cstring.as_ptr());
+
+        if result == -1 {
+            lz_core_err!("Could not find attribute location of \"{}\"", attribute);
+            opengl::gl_clear_errors();
+            return Err(format!("Could not find attribute location of {}", attribute));
+        }
+
         opengl::gl_check_errors();
 
-        Ok(result)
+        Ok(result as GLuint)
     }
 
     unsafe fn get_shader_program_error(&self) -> String {
