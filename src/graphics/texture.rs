@@ -3,7 +3,7 @@ use std::path::Path;
 use gl::types::{GLuint, GLenum};
 use image::EncodableLayout;
 
-use crate::error::opengl;
+use crate::{error::opengl, lz_core_warn};
 
 pub struct Texture {
     pub id: GLuint,
@@ -18,7 +18,7 @@ impl Texture {
     }
 
     pub unsafe fn activate(&self, unit: usize) {
-        gl::ActiveTexture(to_gl_texture_unit(unit));
+        gl::ActiveTexture(to_gl_texture_unit(unit as u32));
         self.bind();
     }
 
@@ -45,22 +45,19 @@ impl Texture {
         gl::GenerateMipmap(gl::TEXTURE_2D);
 
         opengl::gl_check_errors();
-
     }
 }
 
-fn to_gl_texture_unit(unit: usize) -> GLenum {
-    // TODO cleaner way to do this
-    match unit {
-        0 => gl::TEXTURE0,
-        1 => gl::TEXTURE1,
-        2 => gl::TEXTURE2,
-        3 => gl::TEXTURE3,
-        4 => gl::TEXTURE4,
-        5 => gl::TEXTURE5,
-        6 => gl::TEXTURE6,
-        _ => gl::TEXTURE31
+fn to_gl_texture_unit(unit: u32) -> GLenum {
+    let lowest = gl::TEXTURE0;
+    let highest = gl::TEXTURE31;
+
+    if lowest + unit > highest {
+        lz_core_warn!("Texture unit {} is higher than limit {}. Using {} instead.", unit, highest - lowest, highest - lowest);
+        return gl::TEXTURE31;
     }
+
+    return lowest + unit;
 }
 
 impl Drop for Texture {
