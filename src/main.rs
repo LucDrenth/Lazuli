@@ -1,5 +1,5 @@
 use app::App;
-use scenes::HelloTexture as Scene;
+use scenes::HelloTranslate as Scene;
 
 mod graphics;
 mod scenes;

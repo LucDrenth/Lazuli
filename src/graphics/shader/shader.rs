@@ -10,6 +10,7 @@ pub const PATH_TEXTURED_VERT: &str = "./assets/shaders/textured.vert";
 pub const PATH_TEXTURED_FRAG: &str = "./assets/shaders/textured.frag";
 pub const PATH_TEXTURE_MASK_VERT: &str = "./assets/shaders/texture-mask.vert";
 pub const PATH_TEXTURE_MASK_FRAG: &str = "./assets/shaders/texture-mask.frag";
+pub const PATH_HELLO_TRANFORM_VERT: &str = "./assets/shaders/hello-transform.vert";
 pub const PATH_MOVING_TRIANGLE_VERT: &str = "./assets/shaders/moving-triangle.vert";
 pub const PATH_MOVING_TRIANGLE_FRAG: &str = "./assets/shaders/moving-triangle.frag";
 

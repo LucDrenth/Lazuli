@@ -35,7 +35,7 @@ impl Buffer {
 
     /// # Arguments
     ///
-    /// * `usage` - one of: gl::STREAM_DRAW, gl::STATIC_DRAW, gl::DYNAMIC_DRAWn
+    /// * `usage` - one of: gl::STREAM_DRAW, gl::STATIC_DRAW, gl::DYNAMIC_DRAW
     pub unsafe fn set_data<D>(&mut self, data: &[D], usage: GLuint) {
         self.bind();
         let (_, data_bytes, _) = data.align_to::<u8>();

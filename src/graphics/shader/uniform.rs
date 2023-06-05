@@ -1,3 +1,5 @@
+use glam::Mat4;
+
 pub enum UniformValue {
     Float(f32),
     Float2(f32, f32),
@@ -7,6 +9,7 @@ pub enum UniformValue {
     Int2(i32, i32),
     Int3(i32, i32, i32),
     Int4(i32, i32, i32, i32),
+    Mat4(Mat4),
 }
 
 impl From<f32> for UniformValue {
@@ -57,6 +60,12 @@ impl From<(i32, i32, i32, i32)> for UniformValue {
     }
 }
 
+impl From<Mat4> for UniformValue {
+    fn from(value: Mat4) -> Self {
+        UniformValue::Mat4(value)
+    }
+}
+
 impl UniformValue {
     pub fn set_uniform(&self, location: i32) {
         unsafe {
@@ -85,6 +94,10 @@ impl UniformValue {
                 UniformValue::Int4(value1, value2, value3, value4) => {
                     gl::Uniform4i(location, *value1, *value2, *value3, *value4);
                 },
+                UniformValue::Mat4(mat) => {
+                    let ptr: *const f32 = std::mem::transmute(mat);
+                    gl::UniformMatrix4fv(location, 1, gl::FALSE, ptr);
+                }
             }
         }
     }
