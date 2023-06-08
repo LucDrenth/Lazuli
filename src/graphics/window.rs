@@ -2,6 +2,8 @@ use std::time::Instant;
 
 use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, GlRequest, ContextBuilder, Api, event::{Event, WindowEvent}, ContextWrapper, PossiblyCurrent, GlProfile};
 
+use crate::event::{event::WindowResizeEvent, event_bus};
+
 use super::renderer::Renderer;
 
 pub struct Window {
@@ -48,7 +50,11 @@ impl Window {
             match event {
                 Event::WindowEvent { event, .. } => match event {
                     WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
-                    WindowEvent::Resized(physical_size) => self.render_context.resize(physical_size),
+                    WindowEvent::Resized(physical_size) => {
+                        // physical_size.width;
+                        self.render_context.resize(physical_size);
+                        event_bus::send(&crate::event::Event::WindowResize(WindowResizeEvent { width: 100, height: 100 }));
+                    },
                     _ => (),
                 },
                 _ => ()
