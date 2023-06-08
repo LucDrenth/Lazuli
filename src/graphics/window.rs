@@ -51,9 +51,11 @@ impl Window {
                 Event::WindowEvent { event, .. } => match event {
                     WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                     WindowEvent::Resized(physical_size) => {
-                        // physical_size.width;
                         self.render_context.resize(physical_size);
-                        event_bus::send(&crate::event::Event::WindowResize(WindowResizeEvent { width: 100, height: 100 }));
+                        event_bus::send(&crate::event::Event::WindowResize(WindowResizeEvent {
+                            width: physical_size.width, 
+                            height: physical_size.height 
+                        }));
                     },
                     _ => (),
                 },
