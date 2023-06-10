@@ -1,10 +1,11 @@
 use app::App;
-use scenes::HelloTranslate as Scene;
+use scenes::EventBusScene as Scene;
 
 mod graphics;
 mod scenes;
 mod error;
 mod log;
+mod event;
 
 mod app;
 
