@@ -1,5 +1,3 @@
-use crate::lz_core_warn;
-
 use super::event::{Event, WindowResizeEvent};
 
 static mut EVENT_BUS: EventBus = EventBus{
@@ -22,9 +20,6 @@ impl EventBus {
                     listener_function(e);
                 }
             },
-            _ => {
-                lz_core_warn!("Sending unimplemented event of type [{}]", event.type_to_string());
-            }
         }
     }
 }

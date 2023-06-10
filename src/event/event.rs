@@ -1,16 +1,7 @@
 
 #[derive(Eq, Hash, PartialEq)]
 pub enum Event {
-    WindowResize(WindowResizeEvent) // width x height
-}
-
-impl Event {
-    pub fn type_to_string(&self) -> &str {
-        match self {
-            Event::WindowResize(_) => "WindowResize",
-            _ => "undefined"
-        }
-    }
+    WindowResize(WindowResizeEvent), 
 }
 
 #[derive(Eq, Hash, PartialEq)]
