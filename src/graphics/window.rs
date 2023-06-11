@@ -43,7 +43,7 @@ impl Window {
         }
     }
     
-    pub fn run(self, mut renderer: Renderer, event_system: EventSystem) {
+    pub fn run(self, mut renderer: Renderer, mut event_system: EventSystem) {
         self.event_loop.run(move |event, _, control_flow| {
             let start_time = Instant::now();
 
@@ -66,7 +66,7 @@ impl Window {
             match *control_flow {
                 ControlFlow::Exit => (),
                 _ => {
-                    renderer.scene.update();
+                    renderer.scene.update(&mut event_system);
                     renderer.draw();
                     self.render_context.swap_buffers().expect("Failed to swap buffers");
                     self.render_context.window().request_redraw();

@@ -1,4 +1,4 @@
-use crate::graphics::{scene::Scene, material::Material, Triangle, mesh_renderer, shader::{ShaderProgram, PATH_MOVING_TRIANGLE_VERT, PATH_MOVING_TRIANGLE_FRAG}};
+use crate::{graphics::{scene::Scene, material::Material, Triangle, mesh_renderer, shader::{ShaderProgram, PATH_MOVING_TRIANGLE_VERT, PATH_MOVING_TRIANGLE_FRAG}}, event::EventSystem};
 
 pub struct MovingTriangle {
     material: Material,
@@ -26,7 +26,7 @@ impl MovingTriangle {
 }
 
 impl Scene for MovingTriangle {
-    fn update(&mut self) {
+    fn update(&mut self, _: &mut EventSystem) {
         self.triangle_offset_x += self.triangle_movement_velocity;
 
         if self.triangle_offset_x > 0.5 {
