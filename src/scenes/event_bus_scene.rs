@@ -17,5 +17,5 @@ impl Scene for EventBusScene {
 }
 
 fn my_test(e: &WindowResizeEvent) {
-    lz_core_info!("Window resize event: {} / {}", e.width, e.height);
+    // lz_core_info!("Window resize event: {} / {}", e.width, e.height);
 }

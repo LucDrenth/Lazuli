@@ -10,7 +10,11 @@ mod event;
 mod app;
 
 fn main() {
+    event::do_test();
+
+    
     let app = App::new();
     let scene = Scene::new().expect("Could not create scene");
     app.run(Box::new(scene)); 
+
 }
