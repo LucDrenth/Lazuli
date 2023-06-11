@@ -1,11 +1,10 @@
-use crate::{graphics::scene::Scene, event::{event_bus, event::WindowResizeEvent}, lz_core_info};
+use crate::{graphics::scene::Scene, lz_core_info, event::{WindowResizeEvent, EventSystem}};
 
 pub struct EventBusScene {}
 
 impl EventBusScene {
-    pub fn new() -> Result<Self, String> {
-        event_bus::add_listener_window_resize(my_test);
-
+    pub fn new(event_system: &mut EventSystem) -> Result<Self, String> {
+        event_system.add_listener::<WindowResizeEvent>(window_resize_listener);
         Ok(Self{})
     }
 }
@@ -16,6 +15,6 @@ impl Scene for EventBusScene {
     unsafe fn draw(&self) {}
 }
 
-fn my_test(e: &WindowResizeEvent) {
-    // lz_core_info!("Window resize event: {} / {}", e.width, e.height);
+fn window_resize_listener(event: &WindowResizeEvent) {
+    lz_core_info!("Window resize event: {} / {}", event.width, event.height);
 }
