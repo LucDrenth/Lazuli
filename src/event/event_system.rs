@@ -4,10 +4,10 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 type Listener = Box<dyn Fn(&dyn Any)>;
-pub type ListenerHandle = Rc<std::cell::RefCell<Box<dyn Fn(&dyn Any)>>>;
+pub type ListenerHandle = Rc<RefCell<Listener>>;
 
 pub struct EventSystem {
-    listeners: HashMap<TypeId, Vec<Rc<RefCell<Listener>>>>,
+    listeners: HashMap<TypeId, Vec<ListenerHandle>>,
 }
 
 impl EventSystem {
@@ -24,16 +24,16 @@ impl EventSystem {
             }
         });
 
-        let entry = self.listeners.entry(TypeId::of::<T>()).or_default();
-        let listener = Rc::new(RefCell::new(boxed_callback));
+        let entry: &mut Vec<ListenerHandle> = self.listeners.entry(TypeId::of::<T>()).or_default();
+        let listener: ListenerHandle = Rc::new(RefCell::new(boxed_callback));
         entry.push(listener.clone());
         
         return listener;
     }
 
-    pub fn remove_listener<T: 'static>(&mut self, listener: &Rc<RefCell<Listener>>) {
+    pub fn remove_listener<T: 'static>(&mut self, listener: &ListenerHandle) {
         if let Some(callbacks) = self.listeners.get_mut(&TypeId::of::<T>()) {
-            callbacks.retain(|stored_listener| !Rc::ptr_eq(listener, stored_listener));
+            callbacks.retain(|stored_listener: &ListenerHandle| !Rc::ptr_eq(listener, stored_listener));
         }
     }
 
