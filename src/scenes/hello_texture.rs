@@ -7,8 +7,8 @@ pub struct HelloTexture {
     shape: Rectangle,
 }
 
-impl HelloTexture {
-    pub fn new() -> Result<Self, String> {
+impl Scene for HelloTexture {
+    fn new(_event_system: &mut EventSystem) -> Result<Self, String> {
         let program = ShaderProgram::new(PATH_TEXTURED_VERT, PATH_TEXTURED_FRAG).unwrap();
         let mut material = Material::new(program);
 
@@ -23,9 +23,7 @@ impl HelloTexture {
 
         Ok(result)
     }
-}
 
-impl Scene for HelloTexture {
     fn update(&mut self, _: &mut EventSystem) {}
 
     unsafe fn draw(&self) {

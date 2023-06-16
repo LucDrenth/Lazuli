@@ -5,8 +5,8 @@ pub struct HelloTriangle {
     triangle: Triangle,
 }
 
-impl HelloTriangle {
-    pub fn new() -> Result<Self, String> {
+impl Scene for HelloTriangle {
+    fn new(_event_system: &mut EventSystem) -> Result<Self, String> {
         let program = ShaderProgram::new(PATH_MOVING_TRIANGLE_VERT, PATH_MOVING_TRIANGLE_FRAG).unwrap();
         let material = Material::new(program);
 
@@ -19,9 +19,7 @@ impl HelloTriangle {
 
         Ok(result)
     }
-}
 
-impl Scene for HelloTriangle {
     fn update(&mut self, _: &mut EventSystem) {}
 
     unsafe fn draw(&self) {

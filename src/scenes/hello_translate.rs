@@ -17,8 +17,8 @@ pub struct HelloTranslate {
     scale_direction3: f32,
 }
 
-impl HelloTranslate {
-    pub fn new() -> Result<Self, String> {
+impl Scene for HelloTranslate {
+    fn new(_event_system: &mut EventSystem) -> Result<Self, String> {
         let program1 = ShaderProgram::new(PATH_HELLO_TRANFORM_VERT, PATH_TEXTURED_FRAG).unwrap();
         let mut material1 = Material::new(program1);
         material1.add_texture(&Path::new("./assets/images/pattern.png"));
@@ -57,9 +57,7 @@ impl HelloTranslate {
 
         Ok(result)
     }
-}
 
-impl Scene for HelloTranslate {
     fn update(&mut self, _: &mut EventSystem) {
         // object 1
         self.transform1.scale(0.02 * self.scale_direction1);

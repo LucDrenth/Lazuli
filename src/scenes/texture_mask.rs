@@ -7,8 +7,8 @@ pub struct TextureMask {
     rectangle: Rectangle,
 }
 
-impl TextureMask {
-    pub fn new() -> Result<Self, String> {
+impl Scene for TextureMask {
+    fn new(_event_system: &mut EventSystem) -> Result<Self, String> {
         let program_textured = ShaderProgram::new(PATH_TEXTURE_MASK_VERT, PATH_TEXTURE_MASK_FRAG).unwrap();
 
         let mut material_textured = Material::new(program_textured);
@@ -24,9 +24,7 @@ impl TextureMask {
 
         Ok(result)
     }
-}
 
-impl Scene for TextureMask {
     fn update(&mut self, _: &mut EventSystem) {}
 
     unsafe fn draw(&self) {

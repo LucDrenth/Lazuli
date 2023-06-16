@@ -7,8 +7,8 @@ pub struct MovingTriangle {
     triangle_movement_velocity: f32,
 }
 
-impl MovingTriangle {
-    pub fn new() -> Result<Self, String> {
+impl Scene for MovingTriangle {
+    fn new(_event_system: &mut EventSystem) -> Result<Self, String> {
         let program = ShaderProgram::new(PATH_MOVING_TRIANGLE_VERT, PATH_MOVING_TRIANGLE_FRAG).unwrap();
         let material = Material::new(program);
 
@@ -23,9 +23,7 @@ impl MovingTriangle {
 
         Ok(result)
     }
-}
 
-impl Scene for MovingTriangle {
     fn update(&mut self, _: &mut EventSystem) {
         self.triangle_offset_x += self.triangle_movement_velocity;
 

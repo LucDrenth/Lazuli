@@ -5,8 +5,8 @@ pub struct EventBusScene {
     nr_updates: u32,
 }
 
-impl EventBusScene {
-    pub fn new(event_system: &mut EventSystem) -> Result<Self, String> {
+impl Scene for EventBusScene {
+    fn new(event_system: &mut EventSystem) -> Result<Self, String> {
         let handle: ListenerHandle = event_system.add_listener::<WindowResizeEvent>(window_resize_listener);        
         
         Ok(Self{
@@ -14,9 +14,7 @@ impl EventBusScene {
             nr_updates: 0,
         })
     }
-}
 
-impl Scene for EventBusScene {
     fn update(&mut self, event_system: &mut EventSystem) {
         self.nr_updates += 1;
 
