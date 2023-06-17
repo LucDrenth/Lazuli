@@ -46,4 +46,10 @@ impl EventSystem {
             }
         }
     }
+
+    pub fn default_listener_handle() -> ListenerHandle {
+        let boxed_callback: Listener = Box::new(|_|{});
+        let listener: ListenerHandle = Rc::new(RefCell::new(boxed_callback));
+        return listener;
+    }
 }
