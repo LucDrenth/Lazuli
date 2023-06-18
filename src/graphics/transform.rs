@@ -1,8 +1,8 @@
 use glam::{Vec3, Mat4};
 
 pub struct Transform {
-    pub position: Vec3,
-    pub rotation: Vec3, // in radians. TODO use a quaternion
+    pub position: Vec3, // AKA view.
+    pub rotation: Vec3, // AKA model. A Vec3 of radians. TODO use a quaternion instead.
     pub scale: Vec3,
 }
 
@@ -87,17 +87,20 @@ impl Transform {
     }
 
     pub fn build(&self) -> Mat4 {
-        let mut result = Mat4::IDENTITY;
+        return self.get_scale_matrix() * self.get_view_matrix() * self.get_model_matrix();
+    }
 
-        // TODO use Quaternions for the rotations
-        result = Mat4::from_rotation_x(self.rotation.x) * result;
-        result = Mat4::from_rotation_y(self.rotation.y) * result;
-        result = Mat4::from_rotation_z(self.rotation.z) * result;
+    pub fn get_view_matrix(&self) -> Mat4 {
+        Mat4::from_translation(self.position)
+    }
 
-        result = Mat4::from_translation(self.position) * result;
+    pub fn get_model_matrix(&self) -> Mat4 {
+        return Mat4::from_rotation_x(self.rotation.x) 
+            * Mat4::from_rotation_y(self.rotation.y) 
+            * Mat4::from_rotation_y(self.rotation.y);
+    }
 
-        result = Mat4::from_scale(self.scale) * result;
-
-        return result;
+    pub fn get_scale_matrix(&self) -> Mat4 {
+        return Mat4::from_scale(self.scale);
     }
 }
