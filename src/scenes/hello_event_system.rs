@@ -18,7 +18,7 @@ impl Scene for HelloEventSystem {
         })
     }
 
-    fn update(&mut self, event_system: &mut EventSystem) {
+    fn update(&mut self, _: &mut EventSystem) {
         for event in self.window_resize_listener1.read().iter() {
             lz_core_info!("(1) Window resize event: {} / {}", event.width, event.height);
         }

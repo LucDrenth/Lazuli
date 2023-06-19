@@ -1,4 +1,4 @@
-use crate::{graphics::{scene::Scene, material::Material, Triangle, Cube, mesh_renderer, shader::{ShaderProgram, PATH_MOVING_TRIANGLE_FRAG}, Transform, Camera}, event::EventSystem, lz_core_info};
+use crate::{graphics::{scene::Scene, material::Material, Cube, mesh_renderer, shader::{ShaderProgram, PATH_COLORED_FRAG}, Transform, Camera}, event::EventSystem};
 
 use glam::Vec3;
 
@@ -10,7 +10,7 @@ pub struct CoordinateSystem {
 
 impl Scene for CoordinateSystem {
     fn new(_event_system: &mut EventSystem) -> Result<Self, String> {
-        let program = ShaderProgram::new("./assets/shaders/with-camera.vert", PATH_MOVING_TRIANGLE_FRAG).unwrap();
+        let program = ShaderProgram::new("./assets/shaders/with-camera.vert", PATH_COLORED_FRAG).unwrap();
         let material = Material::new(program);
 
         let cube = Cube::new_colored(&material.shader_program);
