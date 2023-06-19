@@ -28,6 +28,6 @@ impl Scene for TextureMask {
     fn update(&mut self, _: &mut EventSystem) {}
 
     unsafe fn draw(&self) {
-        mesh_renderer::draw_rectangle(&self.rectangle, &self.material_textured);
+        mesh_renderer::draw_shape(&self.rectangle, &self.material_textured);
     }
 }

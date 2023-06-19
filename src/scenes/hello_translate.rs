@@ -100,8 +100,8 @@ impl Scene for HelloTranslate {
     }
 
     unsafe fn draw(&self) {
-        mesh_renderer::draw_rectangle(&self.shape1, &self.material1);
-        mesh_renderer::draw_rectangle(&self.shape2, &self.material2);
-        mesh_renderer::draw_rectangle(&self.shape3, &self.material3);
+        mesh_renderer::draw_shape(&self.shape1, &self.material1);
+        mesh_renderer::draw_shape(&self.shape2, &self.material2);
+        mesh_renderer::draw_shape(&self.shape3, &self.material3);
     }
 }

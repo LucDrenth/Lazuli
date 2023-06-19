@@ -9,8 +9,7 @@ pub mod texture;
 pub mod material;
 pub mod scene;
 
-pub use shapes::Triangle;
-pub use shapes::Rectangle;
+pub use shapes::*;
 pub use renderer::mesh_renderer;
 pub use window::Window;
 pub use transform::Transform;

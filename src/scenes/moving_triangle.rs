@@ -40,6 +40,6 @@ impl Scene for MovingTriangle {
     }
 
     unsafe fn draw(&self) {
-        mesh_renderer::draw_triangle(&self.triangle, &self.material);
+        mesh_renderer::draw_shape(&self.triangle, &self.material);
     }
 }

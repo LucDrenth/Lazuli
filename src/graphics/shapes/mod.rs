@@ -1,7 +1,9 @@
+mod shape;
 mod triangle;
 mod rectangle;
-mod shape;
+mod cube;
 
+pub use shape::Shape;
 pub use triangle::Triangle;
 pub use rectangle::Rectangle;
-pub use shape::Shape;
+pub use cube::Cube;

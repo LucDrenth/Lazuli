@@ -15,6 +15,7 @@ impl Renderer {
         unsafe {
             gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
             gl::Enable(gl::BLEND);
+            gl::Enable(gl::DEPTH_TEST);
             opengl::gl_check_errors();
 
             Ok(Self{
@@ -26,7 +27,7 @@ impl Renderer {
     pub fn draw(&mut self) {
         unsafe {
             gl::ClearColor(0.45, 0.4, 0.6, 1.0);
-            gl::Clear(gl::COLOR_BUFFER_BIT);
+            gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
             self.scene.draw();
             self.fps.update_fps_count();

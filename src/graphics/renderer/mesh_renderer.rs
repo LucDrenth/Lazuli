@@ -1,13 +1,6 @@
-use crate::graphics::{shapes::{Triangle, Rectangle, Shape}, material::Material};
+use crate::graphics::{shapes::{Shape}, material::Material};
 
-pub fn draw_rectangle(mesh: &Rectangle, material: &Material) {
-    material.activate();
-    unsafe {
-        mesh.draw(&material.shader_program);
-    }
-}
-
-pub fn draw_triangle(mesh: &Triangle, material: &Material) {
+pub fn draw_shape(mesh: &dyn Shape, material: &Material) {
     material.activate();
     unsafe {
         mesh.draw(&material.shader_program);

@@ -27,6 +27,6 @@ impl Scene for HelloTexture {
     fn update(&mut self, _: &mut EventSystem) {}
 
     unsafe fn draw(&self) {
-        mesh_renderer::draw_rectangle(&self.shape, &self.material);
+        mesh_renderer::draw_shape(&self.shape, &self.material);
     }
 }
