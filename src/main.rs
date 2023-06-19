@@ -1,6 +1,6 @@
 use app::App;
 use graphics::scene::Scene;
-use scenes::CoordinateSystem as InitialScene;
+use scenes::HelloEventSystem as InitialScene;
 
 mod graphics;
 mod scenes;
