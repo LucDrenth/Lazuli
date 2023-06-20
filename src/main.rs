@@ -7,6 +7,7 @@ mod scenes;
 mod error;
 mod log;
 mod event;
+mod input;
 
 mod app;
 

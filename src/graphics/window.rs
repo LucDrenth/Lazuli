@@ -1,7 +1,7 @@
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, GlRequest, ContextBuilder, Api, event::{Event, WindowEvent}, ContextWrapper, PossiblyCurrent, GlProfile};
 
-use crate::{event::{EventSystem, WindowResizeEvent}, lz_core_info, lz_core_err};
+use crate::{event::{EventSystem, WindowResizeEvent}, lz_core_err, input::{Input, glutin_mapper}, lz_core_warn};
 
 use super::renderer::Renderer;
 
@@ -42,7 +42,7 @@ impl Window {
         }
     }
     
-    pub fn run(self, mut renderer: Renderer, mut event_system: EventSystem) {
+    pub fn run(self, mut renderer: Renderer, mut event_system: EventSystem, mut lz_input: Input) {
         let mut next_frame_time: u128 = 0;
 
         self.event_loop.run(move |event, _, control_flow| {
@@ -60,39 +60,36 @@ impl Window {
                         })
                     },
                     WindowEvent::KeyboardInput { device_id: _, input, is_synthetic: _ } => {
-                        match input.state {
-                            glutin::event::ElementState::Pressed => {
-                                if let Some(keycode) = input.virtual_keycode {
-                                    // TODO send event
-                                    lz_core_info!("pressed: {:?} - {:?}", keycode, input.scancode);
-                                }
-                            },
-                            glutin::event::ElementState::Released => {
-                                if let Some(keycode) = input.virtual_keycode {
-                                    // TODO send event
-                                    lz_core_info!("released: {:?} - {:?}", keycode, input.scancode);
-                                }
-                            },
+                        if let Some(key) = input.virtual_keycode {
+                            lz_input.register_key_event(
+                                glutin_mapper::map_glutin_keycode(key), 
+                                glutin_mapper::map_glutin_key_state(input.state)
+                            );
                         }
                     },
                     WindowEvent::MouseInput { device_id: _, state, button, modifiers: _ } => {
-                        // TODO send event. Convert state and button to our own id/enum.
-                        lz_core_info!("button {:?} to state {:?}", button, state);
+                        lz_input.register_mouse_button_event(
+                            glutin_mapper::map_glutin_mouse_button(button), 
+                            glutin_mapper::map_glutin_mouse_button_state(state)
+                        );
                     },
-                    WindowEvent::MouseWheel { device_id: _, delta, phase, modifiers: _ } => {
+                    WindowEvent::MouseWheel { device_id: _, delta, phase: _, modifiers: _ } => {
                         match delta {
-                            glutin::event::MouseScrollDelta::LineDelta(_, _) => {
-                                // TODO
-                                lz_core_err!("Unhandled delta type of MouseWheel event: {:?}", delta);
+                            glutin::event::MouseScrollDelta::LineDelta(x, y) => {
+                                // TODO how is this triggered? Can we register it the same as the other type?
+                                lz_core_warn!("Unchecked MouseWheel event delta type: {:?}", delta);
+                                lz_input.register_scroll_x_event(x as f64);
+                                lz_input.register_scroll_y_event(y as f64);
                             },
                             glutin::event::MouseScrollDelta::PixelDelta(movement) => {
-                                // TODO send event of movement.x and movement.y and phase
+                                lz_input.register_scroll_x_event(movement.x);
+                                lz_input.register_scroll_y_event(movement.y);
                             },
                         }
                     },
                     WindowEvent::CursorMoved { device_id: _, position, modifiers: _ } => {
-                        // TODO send event
-                        // lz_core_info!("mouse moved: {} / {}", position.x, position.y);
+                        lz_input.register_mouse_move_x_event(position.x);
+                        lz_input.register_mouse_move_y_event(position.y);
                     },
                     _ => (),
                 },
@@ -107,10 +104,12 @@ impl Window {
                         return;
                     }
 
-                    renderer.scene.update(&mut event_system);
+                    renderer.scene.update(&mut event_system, &lz_input);
                     renderer.draw();
                     self.render_context.swap_buffers().expect("Failed to swap buffers");
                     self.render_context.window().request_redraw();
+
+                    lz_input.reset();
 
                     next_frame_time = get_next_frame_time(start_time, self.target_fps);
                     *control_flow = ControlFlow::Poll;

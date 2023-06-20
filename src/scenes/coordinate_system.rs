@@ -1,4 +1,4 @@
-use crate::{graphics::{scene::Scene, material::Material, Cube, mesh_renderer, shader::{ShaderProgram, PATH_COLORED_FRAG}, Transform, Camera}, event::EventSystem};
+use crate::{graphics::{scene::Scene, material::Material, Cube, mesh_renderer, shader::{ShaderProgram, PATH_COLORED_FRAG}, Transform, Camera}, event::EventSystem, input::{Input, Key}, lz_core_info};
 
 use glam::Vec3;
 
@@ -36,10 +36,12 @@ impl Scene for CoordinateSystem {
         Ok(result)
     }
 
-    fn update(&mut self, _: &mut EventSystem) {
-        self.model_matrix.rotate_x(0.005);
-        self.model_matrix.rotate_y(0.01);
-        self.material.shader_program.set_uniform("transform", self.model_matrix.build());
+    fn update(&mut self, _: &mut EventSystem, input: &Input) {
+        if !input.is_key_held(Key::Space) {
+            self.model_matrix.rotate_x(0.005);
+            self.model_matrix.rotate_y(0.01);
+            self.material.shader_program.set_uniform("transform", self.model_matrix.build());
+        }
     }
 
     unsafe fn draw(&self) {

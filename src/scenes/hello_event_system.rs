@@ -1,4 +1,4 @@
-use crate::{graphics::scene::Scene, lz_core_info, event::{WindowResizeEvent, EventSystem, EventReader}};
+use crate::{graphics::scene::Scene, lz_core_info, event::{WindowResizeEvent, EventSystem, EventReader}, input::Input};
 
 pub struct HelloEventSystem {
     window_resize_listener1: EventReader<WindowResizeEvent>,
@@ -18,7 +18,7 @@ impl Scene for HelloEventSystem {
         })
     }
 
-    fn update(&mut self, _: &mut EventSystem) {
+    fn update(&mut self, _: &mut EventSystem, _: &Input) {
         for event in self.window_resize_listener1.read().iter() {
             lz_core_info!("(1) Window resize event: {} / {}", event.width, event.height);
         }

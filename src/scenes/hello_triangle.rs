@@ -1,4 +1,4 @@
-use crate::{graphics::{scene::Scene, material::Material, Triangle, mesh_renderer, shader::{ShaderProgram, PATH_MOVING_TRIANGLE_VERT, PATH_MOVING_TRIANGLE_FRAG}}, event::EventSystem};
+use crate::{graphics::{scene::Scene, material::Material, Triangle, mesh_renderer, shader::{ShaderProgram, PATH_MOVING_TRIANGLE_VERT, PATH_MOVING_TRIANGLE_FRAG}}, event::EventSystem, input::Input};
 
 pub struct HelloTriangle {
     material: Material,
@@ -20,7 +20,7 @@ impl Scene for HelloTriangle {
         Ok(result)
     }
 
-    fn update(&mut self, _: &mut EventSystem) {}
+    fn update(&mut self, _: &mut EventSystem, _: &Input) {}
 
     unsafe fn draw(&self) {
         mesh_renderer::draw_shape(&self.triangle, &self.material);

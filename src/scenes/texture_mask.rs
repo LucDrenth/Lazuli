@@ -1,6 +1,6 @@
 use std::{path::Path};
 
-use crate::{graphics::{scene::Scene, material::Material, Rectangle, mesh_renderer, shader::{ShaderProgram, PATH_TEXTURE_MASK_VERT, PATH_TEXTURE_MASK_FRAG}}, event::EventSystem};
+use crate::{graphics::{scene::Scene, material::Material, Rectangle, mesh_renderer, shader::{ShaderProgram, PATH_TEXTURE_MASK_VERT, PATH_TEXTURE_MASK_FRAG}}, event::EventSystem, input::Input};
 
 pub struct TextureMask {
     material_textured: Material,
@@ -25,7 +25,7 @@ impl Scene for TextureMask {
         Ok(result)
     }
 
-    fn update(&mut self, _: &mut EventSystem) {}
+    fn update(&mut self, _: &mut EventSystem, _: &Input) {}
 
     unsafe fn draw(&self) {
         mesh_renderer::draw_shape(&self.rectangle, &self.material_textured);

@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use crate::{graphics::{scene::Scene, material::Material, mesh_renderer, shader::{ShaderProgram, PATH_TEXTURED_FRAG, PATH_HELLO_TRANFORM_VERT}, Rectangle, Transform}, event::EventSystem};
+use crate::{graphics::{scene::Scene, material::Material, mesh_renderer, shader::{ShaderProgram, PATH_TEXTURED_FRAG, PATH_HELLO_TRANFORM_VERT}, Rectangle, Transform}, event::EventSystem, input::Input};
 
 pub struct HelloTranslate {
     material1: Material,
@@ -58,7 +58,7 @@ impl Scene for HelloTranslate {
         Ok(result)
     }
 
-    fn update(&mut self, _: &mut EventSystem) {
+    fn update(&mut self, _: &mut EventSystem, _: &Input) {
         // object 1
         self.transform1.scale(0.02 * self.scale_direction1);
 

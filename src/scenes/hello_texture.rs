@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use crate::{graphics::{scene::Scene, material::Material, mesh_renderer, shader::{ShaderProgram, PATH_TEXTURED_VERT, PATH_TEXTURED_FRAG}, Rectangle}, event::EventSystem};
+use crate::{graphics::{scene::Scene, material::Material, mesh_renderer, shader::{ShaderProgram, PATH_TEXTURED_VERT, PATH_TEXTURED_FRAG}, Rectangle}, event::EventSystem, input::Input};
 
 pub struct HelloTexture {
     material: Material,
@@ -24,7 +24,7 @@ impl Scene for HelloTexture {
         Ok(result)
     }
 
-    fn update(&mut self, _: &mut EventSystem) {}
+    fn update(&mut self, _: &mut EventSystem, _: &Input) {}
 
     unsafe fn draw(&self) {
         mesh_renderer::draw_shape(&self.shape, &self.material);
