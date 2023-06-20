@@ -50,6 +50,13 @@ impl Transform {
         self.rotation.z += rotation;
     }
 
+    // rotate in radians
+    pub fn rotate(&mut self, rotation: &Vec3) {
+        self.rotation.x += rotation.x;
+        self.rotation.y += rotation.y;
+        self.rotation.z += rotation.z;
+    }
+
     pub fn scale(&mut self, scale: f32) {
         self.scale.x += scale;
         self.scale.y += scale;
