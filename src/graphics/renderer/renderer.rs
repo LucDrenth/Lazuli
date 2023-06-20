@@ -17,11 +17,11 @@ impl Renderer {
             gl::Enable(gl::BLEND);
             gl::Enable(gl::DEPTH_TEST);
             opengl::gl_check_errors();
-
-            Ok(Self{
-                scene, fps: Fps::new(),
-            })
         }
+
+        Ok(Self{
+            scene, fps: Fps::new(),
+        })
     }
 
     pub fn draw(&mut self) {
@@ -46,6 +46,7 @@ impl Renderer {
                 gl::PolygonMode(gl::FRONT_AND_BACK, gl::FILL);
             }
         }
+        
         opengl::gl_check_errors();
     }
 }
