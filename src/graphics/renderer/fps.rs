@@ -17,10 +17,6 @@ impl Fps {
         }
     }
 
-    pub fn reset_last_fps_measure_time(mut self) {
-        self.last_fps_measure_time = now();
-    }
-
     pub fn update_fps_count(&mut self) {
         let now = now();
 
