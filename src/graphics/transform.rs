@@ -23,6 +23,10 @@ impl Transform {
         self.position.z = position;
     }
 
+    pub fn set_position(&mut self, position: Vec3) {
+        self.position = position;
+    }
+
     pub fn translate_x(&mut self, amount: f32) {
         self.position.x += amount;
     }
@@ -33,6 +37,12 @@ impl Transform {
 
     pub fn translate_z(&mut self, amount: f32) {
         self.position.z += amount;
+    }
+
+    pub fn translate(&mut self, amount: &Vec3) {
+        self.position.x += amount.x;
+        self.position.y += amount.y;
+        self.position.z += amount.z;
     }
 
     /// rotate in radians
@@ -50,17 +60,11 @@ impl Transform {
         self.rotation.z += rotation;
     }
 
-    // rotate in radians
+    /// rotate by Vec3 of radians
     pub fn rotate(&mut self, rotation: &Vec3) {
         self.rotation.x += rotation.x;
         self.rotation.y += rotation.y;
         self.rotation.z += rotation.z;
-    }
-
-    pub fn scale(&mut self, scale: f32) {
-        self.scale.x += scale;
-        self.scale.y += scale;
-        self.scale.z += scale;
     }
 
     pub fn scale_x(&mut self, scale: f32) {
@@ -75,10 +79,10 @@ impl Transform {
         self.scale.z += scale;
     }
 
-    pub fn set_scale(&mut self, scale: f32) {
-        self.scale.x = scale;
-        self.scale.y = scale;
-        self.scale.z = scale;
+    pub fn scale(&mut self, scale: &Vec3) {
+        self.scale.x += scale.x;
+        self.scale.y += scale.y;
+        self.scale.z += scale.z;
     }
 
     pub fn set_scale_x(&mut self, scale: f32) {
@@ -91,6 +95,12 @@ impl Transform {
 
     pub fn set_scale_z(&mut self, scale: f32) {
         self.scale.z = scale;
+    }
+
+    pub fn set_scale(&mut self, scale: Vec3) {
+        self.scale.x = scale.x;
+        self.scale.y = scale.y;
+        self.scale.z = scale.z;
     }
 
     pub fn build(&self) -> Mat4 {
