@@ -28,7 +28,7 @@ impl Scene for CoordinateSystem {
             cubes.push(cube);
 
             let mut transform = Transform::new();
-            transform.translate_z(rng.gen_range(3.0..30.0) - 33.0);
+            transform.translate_z(rng.gen_range(0.0..30.0) - 30.0);
             transform.translate_x(rng.gen_range(0.0..10.0) - 5.0);
             transform.translate_y(rng.gen_range(0.0..10.0) - 5.0);
             transform.rotate_x(rng.gen_range(0.0..TAU) - PI);
@@ -42,7 +42,8 @@ impl Scene for CoordinateSystem {
             });
         }
 
-        let camera = Camera::new(1000.0 / 750.0, 45.0, 0.1, 100.0);
+        let mut camera = Camera::new(1000.0 / 750.0, 45.0, 0.1, 100.0);
+        camera.position.z -= 15.0;
         material.shader_program.set_uniform("camera", camera.for_shader());
 
         let result = Self { 
