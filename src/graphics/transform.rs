@@ -103,7 +103,7 @@ impl Transform {
         self.scale.z = scale.z;
     }
 
-    pub fn build(&self) -> Mat4 {
+    pub fn for_shader(&self) -> Mat4 {
         return self.get_scale_matrix() * self.get_view_matrix() * self.get_model_matrix();
     }
 

@@ -63,7 +63,7 @@ impl Scene for CoordinateSystem {
 
     unsafe fn draw(&self) {
         for i in 0..self.cubes.len() {
-            self.material.shader_program.set_uniform("transform", self.transforms[i].build());
+            self.material.shader_program.set_uniform("transform", self.transforms[i].for_shader());
             mesh_renderer::draw_shape(&self.cubes[i], &self.material);
         }
     }
