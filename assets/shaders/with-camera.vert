@@ -3,12 +3,13 @@
 in vec3 position;
 in vec3 color;
 
-uniform mat4 camera;
-uniform mat4 transform;
+uniform mat4 projection;
+uniform mat4 view;
+uniform mat4 model;
 
 out vec3 vertexColor;
 
 void main() {
-    gl_Position = camera * transform * vec4(position, 1.0);
+    gl_Position = projection * view * model * vec4(position, 1.0);
     vertexColor = color;
 }
