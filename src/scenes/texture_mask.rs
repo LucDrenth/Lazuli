@@ -1,5 +1,7 @@
 use std::{path::Path};
 
+use glam::Vec2;
+
 use crate::{graphics::{scene::Scene, material::Material, Rectangle, mesh_renderer, shader::{ShaderProgram, PATH_TEXTURE_MASK_VERT, PATH_TEXTURE_MASK_FRAG}}, event::EventSystem, input::Input};
 
 pub struct TextureMask {
@@ -8,7 +10,7 @@ pub struct TextureMask {
 }
 
 impl Scene for TextureMask {
-    fn new(_event_system: &mut EventSystem) -> Result<Self, String> {
+    fn new(_event_system: &mut EventSystem, _window_size: Vec2) -> Result<Self, String> {
         let program_textured = ShaderProgram::new(PATH_TEXTURE_MASK_VERT, PATH_TEXTURE_MASK_FRAG).unwrap();
 
         let mut material_textured = Material::new(program_textured);

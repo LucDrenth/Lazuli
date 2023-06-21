@@ -1,5 +1,7 @@
 use std::env;
 
+use glam::Vec2;
+
 use crate::event::EventSystem;
 use crate::graphics::scene::Scene;
 use crate::graphics::window::Window;
@@ -22,6 +24,10 @@ impl App {
         let input = Input::new();
 
         Self { event_system, window, input }
+    }
+
+    pub fn window_size(&self) -> Vec2 {
+        self.window.get_size()
     }
 
     pub fn run(self, scene: Box<dyn Scene>) {

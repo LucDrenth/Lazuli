@@ -1,7 +1,8 @@
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
+use glam::Vec2;
 use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, GlRequest, ContextBuilder, Api, event::{Event, WindowEvent}, ContextWrapper, PossiblyCurrent, GlProfile};
 
-use crate::{event::{EventSystem, WindowResizeEvent}, lz_core_err, input::{Input, glutin_mapper}, lz_core_warn};
+use crate::{event::{EventSystem, WindowResizeEvent}, input::{Input, glutin_mapper}, lz_core_warn};
 
 use super::renderer::Renderer;
 
@@ -16,7 +17,7 @@ impl Window {
     pub fn new(name: String) -> Self{
         let window = WindowBuilder::new()
             .with_title(name)
-            .with_inner_size(glutin::dpi::LogicalSize::new(800, 600));
+            .with_inner_size(glutin::dpi::PhysicalSize::new(1600, 1200));
 
         let event_loop = EventLoop::new();
 
@@ -39,6 +40,13 @@ impl Window {
             event_loop,
             target_fps: 60,
             wireframe_mode: false,
+        }
+    }
+
+    pub fn get_size(&self) -> Vec2 {
+        return Vec2 { 
+            x: self.render_context.window().inner_size().width as f32, 
+            y: self.render_context.window().inner_size().height as f32,
         }
     }
     

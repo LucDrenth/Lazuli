@@ -1,6 +1,6 @@
 use std::f32::consts::{PI, TAU};
 
-use glam::Vec3;
+use glam::{Vec3, Vec2};
 use rand::{Rng, rngs::ThreadRng};
 
 use crate::{graphics::{scene::Scene, material::Material, Cube, mesh_renderer, shader::{ShaderProgram, PATH_COLORED_FRAG}, Transform, Camera}, event::EventSystem, input::{Input, Key}};
@@ -15,7 +15,7 @@ pub struct CoordinateSystem {
 }
 
 impl Scene for CoordinateSystem {
-    fn new(_event_system: &mut EventSystem) -> Result<Self, String> {
+    fn new(_event_system: &mut EventSystem, window_size: Vec2) -> Result<Self, String> {
         let program = ShaderProgram::new("./assets/shaders/with-camera.vert", PATH_COLORED_FRAG).unwrap();
         let material = Material::new(program);
 
@@ -44,7 +44,7 @@ impl Scene for CoordinateSystem {
             });
         }
 
-        let mut camera = Camera::new(800.0 / 600.0, 45.0, 0.1, 100.0);
+        let mut camera = Camera::new(window_size.x / window_size.y, 45.0, 0.1, 100.0);
         camera.position.z -= -40.0;
         material.shader_program.set_uniform("projection", camera.projection_for_shader());
         material.shader_program.set_uniform("view", camera.view_for_shader());

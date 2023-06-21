@@ -1,3 +1,5 @@
+use glam::Vec2;
+
 use crate::{graphics::scene::Scene, lz_core_info, event::{WindowResizeEvent, EventSystem, EventReader}, input::Input};
 
 pub struct HelloEventSystem {
@@ -7,7 +9,7 @@ pub struct HelloEventSystem {
 }
 
 impl Scene for HelloEventSystem {
-    fn new(event_system: &mut EventSystem) -> Result<Self, String> {
+    fn new(event_system: &mut EventSystem, _window_size: Vec2) -> Result<Self, String> {
         let listener1 = event_system.register::<WindowResizeEvent>();
         let listener2 = event_system.register::<WindowResizeEvent>();
         
