@@ -70,6 +70,8 @@ pub fn map_glutin_keycode(glutin_key: glutin::event::VirtualKeyCode) -> Key {
         glutin::event::VirtualKeyCode::Numpad7 => Key::Seven,
         glutin::event::VirtualKeyCode::Numpad8 => Key::Eight,
         glutin::event::VirtualKeyCode::Numpad9 => Key::Nine,
+        glutin::event::VirtualKeyCode::LShift => Key::Shift,
+        glutin::event::VirtualKeyCode::LControl => Key::Cntrl,
         _ => {
             lz_core_warn!("Unhandled glutin key event: {:?}", glutin_key);
             Key::Uknown

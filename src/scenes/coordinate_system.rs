@@ -3,7 +3,7 @@ use std::f32::consts::{PI, TAU};
 use glam::{Vec3, Vec2};
 use rand::{Rng, rngs::ThreadRng};
 
-use crate::{graphics::{scene::Scene, material::Material, Cube, mesh_renderer, shader::{ShaderProgram, PATH_COLORED_FRAG}, Transform, Camera}, event::EventSystem, input::{Input, Key}};
+use crate::{graphics::{scene::Scene, material::Material, Cube, mesh_renderer, shader::{ShaderProgram, PATH_COLORED_FRAG}, Transform, Camera}, event::EventSystem, input::{Input, Key}, time};
 
 pub struct CoordinateSystem {
     material: Material,
@@ -12,6 +12,7 @@ pub struct CoordinateSystem {
     rotations: Vec<Vec3>,
     camera: Camera,
     rng: ThreadRng,
+    movement_speed: f32,
 }
 
 impl Scene for CoordinateSystem {
@@ -56,6 +57,7 @@ impl Scene for CoordinateSystem {
             rotations,
             camera,
             rng,
+            movement_speed: 10.0,
         };
 
         Ok(result)
@@ -66,10 +68,14 @@ impl Scene for CoordinateSystem {
             self.transforms[i].rotate(&self.rotations[i]);
         }
 
+        let movement = self.get_movement_input(input);
+        self.camera.position += movement;
+
         if input.is_key_down(Key::Space) {
             self.camera.look_at = self.transforms[self.rng.gen_range(0..self.cubes.len())].position;
-            self.material.shader_program.set_uniform("view", self.camera.view_for_shader());
         }
+
+        self.material.shader_program.set_uniform("view", self.camera.view_for_shader());
     }
 
     unsafe fn draw(&self) {
@@ -77,5 +83,38 @@ impl Scene for CoordinateSystem {
             self.material.shader_program.set_uniform("model", self.transforms[i].for_shader());
             mesh_renderer::draw_shape(&self.cubes[i], &self.material);
         }
+    }
+}
+
+impl CoordinateSystem {
+    fn get_movement_input(&self, input: &Input) -> Vec3 {
+        let mut direction_x: f32 = 0.0;
+        let mut direction_y: f32 = 0.0;
+        let mut direction_z: f32 = 0.0;
+
+        if input.is_key_held(Key::A) {
+            direction_x -= 1.0;
+        }
+        if input.is_key_held(Key::D) {
+            direction_x += 1.0;
+        }
+        if input.is_key_held(Key::S) {
+            direction_z += 1.0;
+        }
+        if input.is_key_held(Key::W) {
+            direction_z -= 1.0;
+        }
+        if input.is_key_held(Key::Shift) {
+            direction_y += 1.0;
+        }
+        if input.is_key_held(Key::Cntrl) {
+            direction_y -= 1.0;
+        }
+
+        return Vec3::new(
+            direction_x * self.movement_speed * time::DELTA,
+            direction_y * self.movement_speed * time::DELTA,
+            direction_z * self.movement_speed * time::DELTA,
+        );
     }
 }

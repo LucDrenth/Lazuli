@@ -9,7 +9,7 @@ pub struct Camera {
 impl Camera {   
     pub fn new(aspect_ratio: f32, fov: f32, near_plane: f32, far_plane: f32) -> Self {
         let projection_matrix = Mat4::perspective_rh_gl(fov.to_radians(), aspect_ratio, near_plane, far_plane);
-        let view_matrix = Mat4::from_translation(Vec3::ZERO);
+
         Camera {
             projection_matrix,
             position: Vec3::ZERO,
