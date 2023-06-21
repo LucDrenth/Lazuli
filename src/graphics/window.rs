@@ -1,8 +1,8 @@
-use std::time::{Instant, SystemTime, UNIX_EPOCH};
+use std::time::{Instant};
 use glam::Vec2;
 use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, GlRequest, ContextBuilder, Api, event::{Event, WindowEvent}, ContextWrapper, PossiblyCurrent, GlProfile};
 
-use crate::{event::{EventSystem, WindowResizeEvent}, input::{Input, glutin_mapper}, lz_core_warn};
+use crate::{event::{EventSystem, WindowResizeEvent}, input::{Input, glutin_mapper}, lz_core_warn, time};
 
 use super::renderer::Renderer;
 
@@ -107,7 +107,7 @@ impl Window {
             match *control_flow {
                 ControlFlow::Exit => (),
                 _ => {
-                    if SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() < next_frame_time {
+                    if time::now_millis() < next_frame_time {
                         *control_flow = ControlFlow::Poll;
                         return;
                     }
@@ -130,5 +130,5 @@ impl Window {
 fn get_next_frame_time(start_time: Instant, target_fps: u64) -> u128 {
     let elapsed_time = Instant::now().duration_since(start_time).as_millis() as u128;
     let frame_time_ms = 1000 / target_fps as u128;
-    return SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() + frame_time_ms - elapsed_time;
+    return time::now_millis() + frame_time_ms - elapsed_time;
 }

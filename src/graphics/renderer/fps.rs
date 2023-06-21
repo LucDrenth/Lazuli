@@ -1,6 +1,4 @@
-use std::time::{SystemTime, UNIX_EPOCH};
-
-use crate::lz_core_info;
+use crate::{lz_core_info, time};
 
 pub struct Fps {
     current_fps_count: u16,
@@ -12,13 +10,13 @@ impl Fps {
     pub fn new() -> Self {
         Self {
             current_fps_count: 0,
-            last_fps_measure_time: now(),
+            last_fps_measure_time: time::now_millis(),
             print: false,
         }
     }
 
     pub fn update_fps_count(&mut self) {
-        let now = now();
+        let now = time::now_millis();
 
         self.current_fps_count += 1;
 
@@ -31,8 +29,4 @@ impl Fps {
             self.current_fps_count = 0;
         }
     }
-}
-
-fn now() -> u128 {
-    return SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
 }

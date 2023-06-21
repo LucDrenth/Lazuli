@@ -8,6 +8,7 @@ mod error;
 mod log;
 mod event;
 mod input;
+mod time;
 
 mod app;
 
