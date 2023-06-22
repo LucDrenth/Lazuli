@@ -1,6 +1,6 @@
-use std::time::{Instant};
+use std::time::Instant;
 use glam::Vec2;
-use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, GlRequest, ContextBuilder, Api, event::{Event, WindowEvent}, ContextWrapper, PossiblyCurrent, GlProfile, dpi::{Position, PhysicalPosition}};
+use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, GlRequest, ContextBuilder, Api, event::{Event, WindowEvent}, ContextWrapper, PossiblyCurrent, GlProfile, dpi::{PhysicalPosition}};
 
 use crate::{event::{EventSystem, WindowResizeEvent}, input::{Input, glutin_mapper}, lz_core_warn, time};
 
@@ -10,7 +10,6 @@ pub struct Window {
     render_context: ContextWrapper<PossiblyCurrent, glutin::window::Window>,
     event_loop: EventLoop<()>,
     target_fps: u64,
-    wireframe_mode: bool,
 }
 
 impl Window {
@@ -39,7 +38,6 @@ impl Window {
             render_context: gl_context,
             event_loop,
             target_fps: 60,
-            wireframe_mode: false,
         }
     }
     
@@ -93,7 +91,7 @@ impl Window {
                     },
                     _ => (),
                 },
-                Event::DeviceEvent { device_id, event } => match event {
+                Event::DeviceEvent { device_id: _, event } => match event {
                     glutin::event::DeviceEvent::MouseMotion { delta } => {
                         lz_input.register_mouse_move_event(delta.0, delta.1);
                     },
