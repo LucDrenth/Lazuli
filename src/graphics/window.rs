@@ -1,6 +1,6 @@
 use std::time::{Instant};
 use glam::Vec2;
-use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, GlRequest, ContextBuilder, Api, event::{Event, WindowEvent}, ContextWrapper, PossiblyCurrent, GlProfile, dpi::Position};
+use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, GlRequest, ContextBuilder, Api, event::{Event, WindowEvent}, ContextWrapper, PossiblyCurrent, GlProfile, dpi::{Position, PhysicalPosition}};
 
 use crate::{event::{EventSystem, WindowResizeEvent}, input::{Input, glutin_mapper}, lz_core_warn, time};
 
@@ -11,7 +11,6 @@ pub struct Window {
     event_loop: EventLoop<()>,
     target_fps: u64,
     wireframe_mode: bool,
-    lock_cursor: bool, // hides the cursor and reset it to the center of the screen every frame
 }
 
 impl Window {
@@ -41,24 +40,11 @@ impl Window {
             event_loop,
             target_fps: 60,
             wireframe_mode: false,
-            lock_cursor: false,
         }
     }
-
-    pub fn get_size(&self) -> Vec2 {
-        return Vec2 { 
-            x: self.render_context.window().inner_size().width as f32, 
-            y: self.render_context.window().inner_size().height as f32,
-        }
-    }
-
-    // pub fn center_cursor(&self) {
-    //     let _ = self.render_context.window().set_cursor_position(Position::Physical(glutin::dpi::PhysicalPosition { x: (self.get_size().x / 2.0) as i32, y: (self.get_size().y / 2.0) as i32 }));
-    // }
     
     pub fn run(self, mut renderer: Renderer, mut event_system: EventSystem, mut lz_input: Input) {
         let mut next_frame_time: u128 = 0;
-        let window_size = self.get_size();
 
         self.event_loop.run(move |event, _, control_flow| {
             let start_time = Instant::now();
@@ -82,13 +68,13 @@ impl Window {
                             );
                         }
                     },
-                    WindowEvent::MouseInput { device_id: _, state, button, modifiers: _ } => {
+                    WindowEvent::MouseInput { device_id: _, state, button, .. } => {
                         lz_input.register_mouse_button_event(
                             glutin_mapper::map_glutin_mouse_button(button), 
                             glutin_mapper::map_glutin_mouse_button_state(state)
                         );
                     },
-                    WindowEvent::MouseWheel { device_id: _, delta, phase: _, modifiers: _ } => {
+                    WindowEvent::MouseWheel { device_id: _, delta, phase: _, .. } => {
                         match delta {
                             glutin::event::MouseScrollDelta::LineDelta(x, y) => {
                                 // TODO how is this triggered? Can we register it the same as the other type?
@@ -102,12 +88,17 @@ impl Window {
                             },
                         }
                     },
-                    WindowEvent::CursorMoved { device_id: _, position, modifiers: _ } => {
-                        lz_input.register_mouse_move_x_event(position.x);
-                        lz_input.register_mouse_move_y_event(position.y);
+                    WindowEvent::CursorMoved { device_id: _, position, .. } => {
+                        lz_input.register_mouse_reposition_event(position.x, position.y);
                     },
                     _ => (),
                 },
+                Event::DeviceEvent { device_id, event } => match event {
+                    glutin::event::DeviceEvent::MouseMotion { delta } => {
+                        lz_input.register_mouse_move_event(delta.0, delta.1);
+                    },
+                    _ => (),
+                }
                 _ => ()
             }
 
@@ -117,15 +108,6 @@ impl Window {
                     if time::now_millis() < next_frame_time {
                         *control_flow = ControlFlow::Poll;
                         return;
-                    }
-
-                    if self.lock_cursor {
-                        // Lock the cursor to the center of the screen while still capturing mouse movement. 
-                        // The downside of this method is that on Macbook, the cursor gets big (and visible) when shaking it. Users can disable this though. 
-                        // Also, if the user moves the mouse really fast, it can go outside of the window for a moment.
-                        self.render_context.window().set_cursor_visible(false);
-                        let center = Position::Physical(glutin::dpi::PhysicalPosition { x: (window_size.x / 2.0) as i32, y: (window_size.y / 2.0) as i32 });
-                        let _ = self.render_context.window().set_cursor_position(center);
                     }
 
                     renderer.scene.update(&mut event_system, &lz_input);
@@ -140,6 +122,58 @@ impl Window {
                 }
             }
         });
+    }
+
+    pub fn get_size(&self) -> Vec2 {
+        return Vec2 { 
+            x: self.render_context.window().inner_size().width as f32, 
+            y: self.render_context.window().inner_size().height as f32,
+        }
+    }
+
+    pub fn lock_cursor(&self) {
+        match self.render_context.window().set_cursor_grab(glutin::window::CursorGrabMode::Locked) {
+            Ok(_) => (),
+            Err(err) => {
+                lz_core_warn!("could not lock cursor: {}",  err.to_string());
+            },
+        }
+    }
+
+    pub fn unlock_cursor(&self) {
+        match self.render_context.window().set_cursor_grab(glutin::window::CursorGrabMode::None) {
+            Ok(_) => (),
+            Err(err) => {
+                lz_core_warn!("could not unlock cursor: {}",  err.to_string());
+            },
+        }
+    }
+
+    /// Confine the cursor the the window area
+    pub fn confine_cursor(&self) {
+        match self.render_context.window().set_cursor_grab(glutin::window::CursorGrabMode::Confined) {
+            Ok(_) => (),
+            Err(err) => {
+                lz_core_warn!("could not confine cursor: {}",  err.to_string());
+            },
+        }
+    }
+
+    pub fn hide_cursor(&self) {
+        self.render_context.window().set_cursor_visible(false);
+    }
+
+    pub fn show_cursor(&self) {
+        self.render_context.window().set_cursor_visible(true);
+    }
+
+    pub fn set_cursor_position(&self, x: f32, y: f32) {
+        match self.render_context.window().set_cursor_position(PhysicalPosition{x, y}) {
+            Ok(_) => (),
+            Err(err) => {
+                lz_core_warn!("could not set cursor position: {}",  err.to_string());
+            },
+        }
     }
 }
 

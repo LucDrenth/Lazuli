@@ -66,11 +66,11 @@ impl Input {
     }
 
     pub fn get_mouse_moved_x(&self) -> f64 {
-        self.current_state.mouse_x - self.last_state.mouse_x
+        self.current_state.mouse_moved_x
     }
 
     pub fn get_mouse_moved_y(&self) -> f64 {
-        self.current_state.mouse_y - self.last_state.mouse_y
+        self.current_state.mouse_moved_y
     }
 
     pub fn get_mouse_moved(&self) -> Vec2 {
@@ -106,12 +106,14 @@ impl Input {
         self.current_state.scroll_y += scroll;
     }
 
-    pub fn register_mouse_move_x_event(&mut self, position_x: f64) {
+    pub fn register_mouse_reposition_event(&mut self, position_x: f64, position_y: f64) {
         self.current_state.mouse_x = position_x;
+        self.current_state.mouse_y = position_y;
     }
 
-    pub fn register_mouse_move_y_event(&mut self, position_y: f64) {
-        self.current_state.mouse_y = position_y;
+    pub fn register_mouse_move_event(&mut self, moved_x: f64, moved_y: f64) {
+        self.current_state.mouse_moved_x += moved_x;
+        self.current_state.mouse_moved_y += moved_y;
     }
 
 
@@ -119,6 +121,8 @@ impl Input {
         self.last_state = self.current_state;
         self.current_state.scroll_x = 0.0;
         self.current_state.scroll_y = 0.0;
+        self.current_state.mouse_moved_x = 0.0;
+        self.current_state.mouse_moved_y = 0.0;
     }
 }
 
@@ -128,6 +132,8 @@ struct State {
     mouse_buttons: [MouseButtonState; 16],
     scroll_x: f64,
     scroll_y: f64,
+    mouse_moved_x: f64,
+    mouse_moved_y: f64,
     mouse_x: f64,
     mouse_y: f64,
 }
@@ -139,6 +145,8 @@ impl State {
             mouse_buttons: [MouseButtonState::Up; 16],
             scroll_x: 0.0,
             scroll_y: 0.0,
+            mouse_moved_x: 0.0,
+            mouse_moved_y: 0.0,
             mouse_x: 0.0,
             mouse_y: 0.0,
         }
