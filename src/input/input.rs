@@ -1,3 +1,5 @@
+use glam::Vec2;
+
 pub struct Input {
     last_state: State,
     current_state: State,
@@ -51,12 +53,16 @@ impl Input {
         return self.current_state.mouse_buttons[button_number] == MouseButtonState::Down;
     }
 
-    pub fn get_mouse_x(&self) -> f64 {
+    pub fn get_mouse_position_x(&self) -> f64 {
         self.current_state.mouse_x
     }
 
-    pub fn get_mouse_y(&self) -> f64 {
+    pub fn get_mouse_position_y(&self) -> f64 {
         self.current_state.mouse_y
+    }
+
+    pub fn get_mouse_position(&self) -> Vec2 {
+        Vec2 { x: self.get_mouse_position_x() as f32, y: self.get_mouse_position_y() as f32 }
     }
 
     pub fn get_mouse_moved_x(&self) -> f64 {
@@ -65,6 +71,14 @@ impl Input {
 
     pub fn get_mouse_moved_y(&self) -> f64 {
         self.current_state.mouse_y - self.last_state.mouse_y
+    }
+
+    pub fn get_mouse_moved(&self) -> Vec2 {
+        Vec2 { x: self.get_mouse_moved_x() as f32, y: self.get_mouse_moved_y() as f32 }
+    }
+
+    pub fn did_mouse_move(&self) -> bool {
+        self.get_mouse_moved_x() != 0.0 || self.get_mouse_moved_y() != 0.0
     }
 
     pub fn get_scroll_x(&self) -> f64 {

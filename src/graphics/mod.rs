@@ -14,3 +14,4 @@ pub use renderer::mesh_renderer;
 pub use window::Window;
 pub use transform::Transform;
 pub use camera::Camera;
+pub use camera::LookDirectionLimits;

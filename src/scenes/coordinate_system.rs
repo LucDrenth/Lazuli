@@ -3,7 +3,7 @@ use std::f32::consts::{PI, TAU};
 use glam::{Vec3, Vec2};
 use rand::{Rng, rngs::ThreadRng};
 
-use crate::{graphics::{scene::Scene, material::Material, Cube, mesh_renderer, shader::{ShaderProgram, PATH_COLORED_FRAG}, Transform, Camera}, event::EventSystem, input::{Input, Key}, time};
+use crate::{graphics::{scene::Scene, material::Material, Cube, mesh_renderer, shader::{ShaderProgram, PATH_COLORED_FRAG}, Transform, Camera, LookDirectionLimits}, event::EventSystem, input::{Input, Key}, time, lz_core_info};
 
 pub struct CoordinateSystem {
     material: Material,
@@ -46,6 +46,8 @@ impl Scene for CoordinateSystem {
         }
 
         let mut camera = Camera::new(window_size.x / window_size.y, 45.0, 0.1, 100.0);
+        camera.set_rotation_limits(LookDirectionLimits {left: 20.0, right: 20.0, top: 20.0, bottom: 20.0});
+        camera.look_sensetivity = 3.0;
         camera.position.z -= -40.0;
         material.shader_program.set_uniform("projection", camera.projection_for_shader());
         material.shader_program.set_uniform("view", camera.view_for_shader());
@@ -70,9 +72,13 @@ impl Scene for CoordinateSystem {
 
         let movement = self.get_movement_input(input);
         self.camera.position += movement;
+        
+        if input.did_mouse_move() {
+            self.camera.rotate(input.get_mouse_moved_x() as f32 / 50.0, input.get_mouse_moved_y() as f32 / 50.0);
+        }
 
         if input.is_key_down(Key::Space) {
-            self.camera.look_at = self.transforms[self.rng.gen_range(0..self.cubes.len())].position;
+            self.camera.look_at(self.transforms[self.rng.gen_range(0..self.cubes.len())].position);
         }
 
         self.material.shader_program.set_uniform("view", self.camera.view_for_shader());

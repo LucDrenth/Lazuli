@@ -1,6 +1,6 @@
 use std::time::{Instant};
 use glam::Vec2;
-use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, GlRequest, ContextBuilder, Api, event::{Event, WindowEvent}, ContextWrapper, PossiblyCurrent, GlProfile};
+use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, GlRequest, ContextBuilder, Api, event::{Event, WindowEvent}, ContextWrapper, PossiblyCurrent, GlProfile, dpi::Position};
 
 use crate::{event::{EventSystem, WindowResizeEvent}, input::{Input, glutin_mapper}, lz_core_warn, time};
 
@@ -11,6 +11,7 @@ pub struct Window {
     event_loop: EventLoop<()>,
     target_fps: u64,
     wireframe_mode: bool,
+    lock_cursor: bool, // hides the cursor and reset it to the center of the screen every frame
 }
 
 impl Window {
@@ -40,6 +41,7 @@ impl Window {
             event_loop,
             target_fps: 60,
             wireframe_mode: false,
+            lock_cursor: false,
         }
     }
 
@@ -49,9 +51,14 @@ impl Window {
             y: self.render_context.window().inner_size().height as f32,
         }
     }
+
+    // pub fn center_cursor(&self) {
+    //     let _ = self.render_context.window().set_cursor_position(Position::Physical(glutin::dpi::PhysicalPosition { x: (self.get_size().x / 2.0) as i32, y: (self.get_size().y / 2.0) as i32 }));
+    // }
     
     pub fn run(self, mut renderer: Renderer, mut event_system: EventSystem, mut lz_input: Input) {
         let mut next_frame_time: u128 = 0;
+        let window_size = self.get_size();
 
         self.event_loop.run(move |event, _, control_flow| {
             let start_time = Instant::now();
@@ -110,6 +117,15 @@ impl Window {
                     if time::now_millis() < next_frame_time {
                         *control_flow = ControlFlow::Poll;
                         return;
+                    }
+
+                    if self.lock_cursor {
+                        // Lock the cursor to the center of the screen while still capturing mouse movement. 
+                        // The downside of this method is that on Macbook, the cursor gets big (and visible) when shaking it. Users can disable this though. 
+                        // Also, if the user moves the mouse really fast, it can go outside of the window for a moment.
+                        self.render_context.window().set_cursor_visible(false);
+                        let center = Position::Physical(glutin::dpi::PhysicalPosition { x: (window_size.x / 2.0) as i32, y: (window_size.y / 2.0) as i32 });
+                        let _ = self.render_context.window().set_cursor_position(center);
                     }
 
                     renderer.scene.update(&mut event_system, &lz_input);
