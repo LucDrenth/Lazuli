@@ -17,6 +17,7 @@ pub struct Camera {
     direction: Vec3, // the center of the camera
     look_direction_limits: Option<LookDirectionLimits>,
     invert_y_axis: f32, // 1 for true, -1 for false
+    up_direction: Vec3,
 }
 
 impl Camera {   
@@ -32,6 +33,7 @@ impl Camera {
             direction: Vec3::ZERO,
             look_direction_limits: None,
             invert_y_axis: -1.0,
+            up_direction: Vec3{x: 0.0, y: 1.0, z: 0.0},
         };
         camera.set_direction();
 
@@ -43,7 +45,7 @@ impl Camera {
     }
 
     pub fn view_for_shader(&self) -> Mat4 {
-        return Mat4::look_at_rh(self.position, self.position + self.direction, Vec3{x: 0.0, y: 1.0, z: 0.0});
+        return Mat4::look_at_rh(self.position, self.position + self.direction, self.up_direction);
     }
 
     pub fn look_at(&mut self, direction: Vec3) {
@@ -102,5 +104,34 @@ impl Camera {
             y: pitch.sin(),
             z: yaw.sin() * pitch.cos(),
         };
+    }
+
+
+    pub fn move_forth(&mut self, amount: f32) {
+        self.position += amount * self.direction;
+    }
+
+    pub fn move_back(&mut self, amount : f32) {
+        self.move_forth(-amount);
+    }
+
+    pub fn move_horizontal(&mut self, amount: f32) {
+        self.position += self.direction.cross(self.up_direction) * amount;
+    }
+
+    pub fn move_left(&mut self, amount: f32) {
+        self.move_horizontal(-amount);
+    }
+
+    pub fn move_right(&mut self, amount: f32) {
+        self.move_horizontal(amount);
+    }
+
+    pub fn move_up(&mut self, amount: f32) {
+        self.position.y += amount;
+    }
+
+    pub fn move_down(&mut self, amount: f32) {
+        self.position.y -= amount;
     }
 }

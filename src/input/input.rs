@@ -218,6 +218,7 @@ pub enum Key {
     ArrowDown = 58,
 
     Cmd = 59,
+    BackTick = 60,
 }
 
 impl Key {

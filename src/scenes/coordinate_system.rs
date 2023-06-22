@@ -46,7 +46,7 @@ impl Scene for CoordinateSystem {
         }
 
         let mut camera = Camera::new(window_size.x / window_size.y, 45.0, 0.1, 100.0);
-        camera.set_rotation_limits(LookDirectionLimits {left: 20.0, right: 20.0, top: 20.0, bottom: 20.0});
+        // camera.set_rotation_limits(LookDirectionLimits {left: 20.0, right: 20.0, top: 20.0, bottom: 20.0});
         camera.look_sensetivity = 3.0;
         camera.position.z -= -40.0;
         material.shader_program.set_uniform("projection", camera.projection_for_shader());
@@ -70,8 +70,8 @@ impl Scene for CoordinateSystem {
             self.transforms[i].rotate(&self.rotations[i]);
         }
 
-        let movement = self.get_movement_input(input);
-        self.camera.position += movement;
+        // self.poll_axis_movement(input);
+        self.poll_free_movement(input);
         
         if input.did_mouse_move() {
             self.camera.rotate(input.get_mouse_moved_x() as f32 / 50.0, input.get_mouse_moved_y() as f32 / 50.0);
@@ -93,7 +93,28 @@ impl Scene for CoordinateSystem {
 }
 
 impl CoordinateSystem {
-    fn get_movement_input(&self, input: &Input) -> Vec3 {
+    fn poll_free_movement(&mut self, input: &Input) {
+        if input.is_key_held(Key::A) {
+            self.camera.move_left(self.movement_speed * time::DELTA);
+        }
+        if input.is_key_held(Key::D) {
+            self.camera.move_right(self.movement_speed * time::DELTA);
+        }
+        if input.is_key_held(Key::S) {
+            self.camera.move_back(self.movement_speed * time::DELTA);
+        }
+        if input.is_key_held(Key::W) {
+            self.camera.move_forth(self.movement_speed * time::DELTA);
+        }
+        if input.is_key_held(Key::Shift) {
+            self.camera.move_up(self.movement_speed * time::DELTA);
+        }
+        if input.is_key_held(Key::Cntrl) {
+            self.camera.move_down(self.movement_speed * time::DELTA);
+        }
+    }
+    
+    fn poll_axis_movement(&mut self, input: &Input) {
         let mut direction_x: f32 = 0.0;
         let mut direction_y: f32 = 0.0;
         let mut direction_z: f32 = 0.0;
@@ -117,7 +138,7 @@ impl CoordinateSystem {
             direction_y -= 1.0;
         }
 
-        return Vec3::new(
+        self.camera.position += Vec3::new(
             direction_x * self.movement_speed * time::DELTA,
             direction_y * self.movement_speed * time::DELTA,
             direction_z * self.movement_speed * time::DELTA,
