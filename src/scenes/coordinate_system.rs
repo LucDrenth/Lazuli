@@ -13,6 +13,7 @@ pub struct CoordinateSystem {
     camera: Camera,
     rng: ThreadRng,
     movement_speed: f32,
+    zoom_speed: f32,
 }
 
 impl Scene for CoordinateSystem {
@@ -60,6 +61,7 @@ impl Scene for CoordinateSystem {
             camera,
             rng,
             movement_speed: 10.0,
+            zoom_speed: 10.0,
         };
 
         Ok(result)
@@ -72,6 +74,7 @@ impl Scene for CoordinateSystem {
 
         // self.poll_axis_movement(input);
         self.poll_free_movement(input);
+        self.poll_zoom(input);
         
         if input.did_mouse_move() {
             self.camera.rotate(input.get_mouse_moved_x() as f32 / 50.0, input.get_mouse_moved_y() as f32 / 50.0);
@@ -143,5 +146,14 @@ impl CoordinateSystem {
             direction_y * self.movement_speed * time::DELTA,
             direction_z * self.movement_speed * time::DELTA,
         );
+    }
+
+    fn poll_zoom(&mut self, input: &Input) {
+        let scroll_y = input.get_scroll_y() as f32 * self.zoom_speed * time::DELTA;
+
+        if scroll_y != 0.0 {
+            self.camera.zoom(scroll_y);
+            self.material.shader_program.set_uniform("projection", self.camera.projection_for_shader());
+        }
     }
 }

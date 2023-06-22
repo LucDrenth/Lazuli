@@ -42,6 +42,9 @@ impl Window {
     }
     
     pub fn run(self, mut renderer: Renderer, mut event_system: EventSystem, mut lz_input: Input) {
+        self.lock_cursor();
+        self.hide_cursor();
+
         let mut next_frame_time: u128 = 0;
 
         self.event_loop.run(move |event, _, control_flow| {

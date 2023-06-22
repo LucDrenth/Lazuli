@@ -1,5 +1,7 @@
 use glam::{Mat4, Vec3};
 
+// TODO move to its own module. Move projection and view in to a seperate file.
+
 /// Rotation limits in degrees, all >= 0
 pub struct LookDirectionLimits {
     pub left: f32,
@@ -8,8 +10,26 @@ pub struct LookDirectionLimits {
     pub bottom: f32,
 }
 
+pub struct Projection {
+    aspect_ratio: f32,
+    near_plane: f32,
+    far_plane: f32,
+    fov: Fov,
+}
+
+pub struct ZoomLimits {
+    max_zoom_in: f32, 
+    max_zoom_out: f32,
+}
+
+struct Fov {
+    base: f32,
+    zoom: f32,
+    zoom_limits: ZoomLimits,
+}
+
 pub struct Camera {
-    projection_matrix: Mat4,
+    projection: Projection,
     pub position: Vec3,
     pub pitch: f32, // horizontal rotation in degrees
     pub yaw: f32, // vertical rotation in degrees
@@ -22,10 +42,24 @@ pub struct Camera {
 
 impl Camera {   
     pub fn new(aspect_ratio: f32, fov: f32, near_plane: f32, far_plane: f32) -> Self {
-        let projection_matrix = Mat4::perspective_rh_gl(fov.to_radians(), aspect_ratio, near_plane, far_plane);
+        let fov = Fov {
+            base: fov,
+            zoom: 0.0,
+            zoom_limits: ZoomLimits { 
+                max_zoom_in: 5.0,
+                max_zoom_out: fov * 1.5,
+            }
+        };
+
+        let projection = Projection {
+            aspect_ratio,
+            near_plane,
+            far_plane,
+            fov,
+        };
 
         let mut camera = Camera {
-            projection_matrix,
+            projection,
             position: Vec3::ZERO,
             pitch: 0.0,
             yaw: 0.0,
@@ -41,7 +75,7 @@ impl Camera {
     }
 
     pub fn projection_for_shader(&self) -> Mat4 {
-        return self.projection_matrix;
+        return self.projection.for_shader();
     }
 
     pub fn view_for_shader(&self) -> Mat4 {
@@ -133,5 +167,31 @@ impl Camera {
 
     pub fn move_down(&mut self, amount: f32) {
         self.position.y -= amount;
+    }
+
+    pub fn zoom(&mut self, amount: f32) {
+        self.projection.fov.zoom -= amount;
+        self.projection.fov.confine_zoom_limits();
+    }
+}
+
+impl Fov {
+    fn confine_zoom_limits(&mut self) {
+        if self.base + self.zoom > self.zoom_limits.max_zoom_out {
+            self.zoom = self.zoom_limits.max_zoom_out - self.base;
+        } else if self.base + self.zoom < self.zoom_limits.max_zoom_in {
+            self.zoom = self.zoom_limits.max_zoom_in - self.base;
+        }
+    }
+}
+
+impl Projection {
+    pub fn for_shader(&self) -> Mat4 {
+        Mat4::perspective_rh_gl(
+            (self.fov.base + self.fov.zoom).to_radians(), 
+            self.aspect_ratio, 
+            self.near_plane, 
+            self.far_plane
+        )
     }
 }
