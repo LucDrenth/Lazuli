@@ -3,7 +3,7 @@ use std::f32::consts::{PI, TAU};
 use glam::{Vec3, Vec2};
 use rand::{Rng, rngs::ThreadRng};
 
-use crate::{graphics::{scene::Scene, material::Material, Cube, mesh_renderer, shader::{ShaderProgram, PATH_COLORED_FRAG}, Transform, Camera, LookDirectionLimits}, event::EventSystem, input::{Input, Key}, time, lz_core_info};
+use crate::{graphics::{scene::Scene, material::Material, Cube, mesh_renderer, shader::{ShaderProgram, PATH_COLORED_FRAG}, Transform, Camera}, event::EventSystem, input::{Input, Key}, time};
 
 pub struct CoordinateSystem {
     material: Material,
@@ -47,9 +47,8 @@ impl Scene for CoordinateSystem {
         }
 
         let mut camera = Camera::new(window_size.x / window_size.y, 45.0, 0.1, 100.0);
-        // camera.set_rotation_limits(LookDirectionLimits {left: 20.0, right: 20.0, top: 20.0, bottom: 20.0});
-        camera.look_sensetivity = 3.0;
-        camera.position.z -= -40.0;
+        camera.set_look_sensitivity(3.0);
+        camera.translate_z(-40.0);
         material.shader_program.set_uniform("projection", camera.projection_for_shader());
         material.shader_program.set_uniform("view", camera.view_for_shader());
 
@@ -115,37 +114,6 @@ impl CoordinateSystem {
         if input.is_key_held(Key::Cntrl) {
             self.camera.move_down(self.movement_speed * time::DELTA);
         }
-    }
-    
-    fn poll_axis_movement(&mut self, input: &Input) {
-        let mut direction_x: f32 = 0.0;
-        let mut direction_y: f32 = 0.0;
-        let mut direction_z: f32 = 0.0;
-
-        if input.is_key_held(Key::A) {
-            direction_x -= 1.0;
-        }
-        if input.is_key_held(Key::D) {
-            direction_x += 1.0;
-        }
-        if input.is_key_held(Key::S) {
-            direction_z += 1.0;
-        }
-        if input.is_key_held(Key::W) {
-            direction_z -= 1.0;
-        }
-        if input.is_key_held(Key::Shift) {
-            direction_y += 1.0;
-        }
-        if input.is_key_held(Key::Cntrl) {
-            direction_y -= 1.0;
-        }
-
-        self.camera.position += Vec3::new(
-            direction_x * self.movement_speed * time::DELTA,
-            direction_y * self.movement_speed * time::DELTA,
-            direction_z * self.movement_speed * time::DELTA,
-        );
     }
 
     fn poll_zoom(&mut self, input: &Input) {
