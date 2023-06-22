@@ -46,7 +46,7 @@ impl Scene for CoordinateSystem {
             });
         }
 
-        let mut camera = Camera::new(window_size.x / window_size.y, 45.0, 0.1, 100.0);
+        let mut camera = Camera::new(window_size.x / window_size.y, 45.0, 0.1, 500.0);
         camera.set_look_sensitivity(3.0);
         camera.translate_z(-40.0);
         material.shader_program.set_uniform("projection", camera.projection_for_shader());
@@ -80,7 +80,7 @@ impl Scene for CoordinateSystem {
         }
 
         if input.is_key_down(Key::Space) {
-            self.camera.look_at(self.transforms[self.rng.gen_range(0..self.cubes.len())].position);
+            self.camera.look_at(self.transforms[0].position);
         }
 
         self.material.shader_program.set_uniform("view", self.camera.view_for_shader());
@@ -113,6 +113,13 @@ impl CoordinateSystem {
         }
         if input.is_key_held(Key::Cntrl) {
             self.camera.move_down(self.movement_speed * time::DELTA);
+        }
+
+        if input.is_key_held(Key::T) {
+            self.camera.move_towards(self.transforms[0].position, self.movement_speed * time::DELTA);
+        }
+        if input.is_key_held(Key::G) {
+            self.camera.move_away_from(self.transforms[0].position, self.movement_speed * time::DELTA);
         }
     }
 

@@ -62,6 +62,12 @@ impl Camera {
     pub fn move_down(&mut self, amount: f32) {
         self.view.position.y -= amount;
     }
+    pub fn move_towards(&mut self, target: Vec3, amount: f32) {
+        self.view.move_towards(target, amount);
+    }
+    pub fn move_away_from(&mut self, target: Vec3, amount: f32) {
+        self.view.move_towards(target, -amount);
+    }
 
     pub fn zoom(&mut self, amount: f32) {
         self.projection.zoom(amount);

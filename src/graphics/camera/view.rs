@@ -109,6 +109,11 @@ impl View {
         self.position += amount * self.direction;
     }
 
+    pub fn move_towards(&mut self, target: Vec3, amount: f32) {
+        let direction = target - self.position;
+        self.position += amount * direction.normalize();
+    }
+
     pub fn set_invert_y_axis(&mut self, val: bool) {
         if val {
             self.invert_y_axis = -1.0
@@ -116,7 +121,6 @@ impl View {
             self.invert_y_axis = 1.0
         }
     }
-
     pub fn is_invert_y_axis(&self) -> bool {
         return self.invert_y_axis == -1.0
     }
