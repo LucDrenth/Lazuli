@@ -64,7 +64,7 @@ impl Input {
     }
 
     pub fn get_mouse_moved_y(&self) -> f64 {
-        self.current_state.mouse_y - self.last_state.mouse_x
+        self.current_state.mouse_y - self.last_state.mouse_y
     }
 
     pub fn get_scroll_x(&self) -> f64 {
@@ -202,6 +202,8 @@ pub enum Key {
     ArrowRight = 56,
     ArrowUp = 57,
     ArrowDown = 58,
+
+    Cmd = 59,
 }
 
 impl Key {
