@@ -1,5 +1,7 @@
 use glam::{Vec3, Mat4};
 
+use crate::lz_core_info;
+
 pub struct View {
     pub position: Vec3,
     pub pitch: f32, // horizontal rotation in degrees
@@ -7,8 +9,8 @@ pub struct View {
     pub look_sensetivity: f32,
     pub direction: Vec3, // the center of the camera
     pub look_direction_limits: Option<LookDirectionLimits>,
-    pub invert_y_axis: f32, // 1 for true, -1 for false
-    pub up_direction: Vec3,
+    invert_y_axis: f32, // -1 for true, 1 for false
+    up_direction: Vec3,
 }
 
 /// Rotation limits in degrees, all >= 0
@@ -83,5 +85,39 @@ impl View {
     pub fn yaw(&mut self, yaw: f32) {
         self.yaw += yaw * self.look_sensetivity;
         self.set_direction();
+    }
+
+    pub fn set_rotation(&mut self, yaw: f32, pitch: f32) {
+        self.yaw = yaw;
+        self.pitch = pitch;
+        self.set_direction();
+    }
+
+    pub fn look_at(&mut self, direction: Vec3) {        
+        let direction = direction - self.position;
+
+        let yaw = f32::atan2(direction.z, direction.x).to_degrees() - 90.0;
+        let pitch = f32::asin(direction.y / (direction.x.powi(2) + direction.y.powi(2) + direction.z.powi(2)).sqrt()).to_degrees();
+
+        self.set_rotation(yaw, pitch * self.invert_y_axis);
+    }
+
+    pub fn move_horizontal(&mut self, amount: f32) {
+        self.position += self.direction.cross(self.up_direction) * amount;
+    }
+    pub fn move_forth(&mut self, amount: f32) {
+        self.position += amount * self.direction;
+    }
+
+    pub fn set_invert_y_axis(&mut self, val: bool) {
+        if val {
+            self.invert_y_axis = -1.0
+        } else {
+            self.invert_y_axis = 1.0
+        }
+    }
+
+    pub fn is_invert_y_axis(&self) -> bool {
+        return self.invert_y_axis == -1.0
     }
 }

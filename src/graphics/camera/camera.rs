@@ -23,8 +23,7 @@ impl Camera {
     }
 
     pub fn look_at(&mut self, direction: Vec3) {
-        // TODO set pitch and yaw, then call set_direction(). Otherwise, rotating resets the camera direction to the last used rotation.
-        self.view.direction = Vec3::from(direction - self.view.position);
+        self.view.look_at(direction);
     }
     pub fn set_rotation_limits(&mut self, limits: LookDirectionLimits) {
         self.view.look_direction_limits = Some(limits);
@@ -43,13 +42,13 @@ impl Camera {
     }
 
     pub fn move_forth(&mut self, amount: f32) {
-        self.view.position += amount * self.view.direction;
+        self.view.move_forth(amount);
     }
     pub fn move_back(&mut self, amount : f32) {
         self.move_forth(-amount);
     }
     pub fn move_horizontal(&mut self, amount: f32) {
-        self.view.position += self.view.direction.cross(self.view.up_direction) * amount;
+        self.view.move_horizontal(amount);
     }
     pub fn move_left(&mut self, amount: f32) {
         self.move_horizontal(-amount);
