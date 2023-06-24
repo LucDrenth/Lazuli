@@ -110,10 +110,14 @@ impl ShaderProgram {
     }
 
     fn get_uniform_location(&self, name: &str) -> i32 {
-        let uniform = CString::new(name).unwrap();
-
-        unsafe {
-            return gl::GetUniformLocation(self.id, uniform.as_ptr());
+        match CString::new(name) {
+            Ok(cstring) => unsafe {
+                return gl::GetUniformLocation(self.id, cstring.as_ptr());
+            }
+            Err(err) => {
+                lz_core_warn!("Failed to create CString from uniform name {:?}: {}", name, err);
+                return -1;
+            },
         }
     }
 }
