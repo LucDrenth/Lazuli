@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use gl::{types::{GLuint, GLenum}};
-use image::EncodableLayout;
+use image::{EncodableLayout, RgbaImage};
 
 use crate::{error::opengl, lz_core_warn};
 
@@ -10,45 +10,66 @@ pub struct Texture {
 }
 
 impl Texture {
-    pub unsafe fn new() -> Self {
+    pub fn new() -> Self {
         let mut id: GLuint = 0;
-        gl::GenTextures(1, &mut id);
+
+        unsafe {
+            gl::GenTextures(1, &mut id);
+        }
+
         opengl::gl_check_errors();
         Self { id }
     }
 
-    pub unsafe fn activate(&self, unit: usize) {
-        gl::ActiveTexture(to_gl_texture_unit(unit as u32));
+    pub fn activate(&self, unit: usize) {
+        unsafe {
+            gl::ActiveTexture(to_gl_texture_unit(unit as u32));
+        }
+
         self.bind();
     }
 
-    pub unsafe fn bind(&self) {
-        gl::BindTexture(gl::TEXTURE_2D, self.id);
+    pub fn bind(&self) {
+        unsafe {
+            gl::BindTexture(gl::TEXTURE_2D, self.id);
+        }
+
         opengl::gl_check_errors();
     }
 
-    pub unsafe fn load(&self, path: &Path) {
+    pub fn load(&self, path: &Path) {
         self.bind();
 
-        // TODO don't use unwrap and return a Result here
-        let img = image::open(path).unwrap().into_rgba8();
-        gl::TexImage2D(
-            gl::TEXTURE_2D,
-            0,
-            gl::RGBA as i32,
-            img.width() as i32,
-            img.height() as i32,
-            0,
-            gl::RGBA,
-            gl::UNSIGNED_BYTE,
-            img.as_bytes().as_ptr() as *const _,
-        );
+        match image::open(path) {
+            Ok(img) => {
+                Self::upload(img.into_rgba8());
+            },
+            Err(err) => {
+                lz_core_warn!("Failed to load texture image from path {:?}: {}", path, err);
+            },
+        }
+    }
 
-        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
-        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
-
-        gl::GenerateMipmap(gl::TEXTURE_2D);
-
+    fn upload(img: RgbaImage) {
+        unsafe {
+            gl::TexImage2D(
+                gl::TEXTURE_2D,
+                0,
+                gl::RGBA as i32,
+                img.width() as i32,
+                img.height() as i32,
+                0,
+                gl::RGBA,
+                gl::UNSIGNED_BYTE,
+                img.as_bytes().as_ptr() as *const _,
+            );
+            
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
+            
+            gl::GenerateMipmap(gl::TEXTURE_2D);
+        }
+            
         opengl::gl_check_errors();
     }
 }

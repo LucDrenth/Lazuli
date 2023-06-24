@@ -16,24 +16,20 @@ impl Material {
     }
 
     pub fn add_texture(&mut self, path: &Path) {
-        unsafe {
-            let texture = Texture::new();
-            texture.load(path);
+        let texture = Texture::new();
+        texture.load(path);
 
-            self.shader_program.set_uniform(
-                format!("texture{}", self.textures.len()).as_str(), 
-                self.textures.len() as i32
-            );
+        self.shader_program.set_uniform(
+            format!("texture{}", self.textures.len()).as_str(), 
+            self.textures.len() as i32
+        );
 
-            self.textures.push(texture);
-        }
+        self.textures.push(texture);
     }
 
     pub fn activate(&self) {
-        unsafe {
-            for (index, texture) in self.textures.iter().enumerate() {
-                texture.activate(index);
-            }
+        for (index, texture) in self.textures.iter().enumerate() {
+            texture.activate(index);
         }
     }
 }
