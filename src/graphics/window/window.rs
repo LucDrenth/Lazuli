@@ -2,9 +2,9 @@ use std::time::Instant;
 use glam::Vec2;
 use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, GlRequest, ContextBuilder, Api, event::{Event, WindowEvent}, ContextWrapper, PossiblyCurrent, GlProfile, dpi::{PhysicalPosition}};
 
-use crate::{event::{EventSystem, WindowResizeEvent}, input::{Input, glutin_mapper}, lz_core_warn, time, graphics::renderer::Renderer};
+use crate::{event::{EventSystem, WindowResizeEvent}, input::{Input}, lz_core_warn, time, graphics::renderer::Renderer};
 
-use super::window_listeners::WindowListeners;
+use super::{window_listeners::WindowListeners, glutin_event_mapper};
 
 pub struct Window {
     render_context: ContextWrapper<PossiblyCurrent, glutin::window::Window>,
@@ -63,15 +63,15 @@ impl Window {
                     WindowEvent::KeyboardInput { device_id: _, input, is_synthetic: _ } => {
                         if let Some(key) = input.virtual_keycode {
                             lz_input.register_key_event(
-                                glutin_mapper::map_glutin_keycode(key), 
-                                glutin_mapper::map_glutin_key_state(input.state)
+                                glutin_event_mapper::map_glutin_keycode(key), 
+                                glutin_event_mapper::map_glutin_key_state(input.state)
                             );
                         }
                     },
                     WindowEvent::MouseInput { device_id: _, state, button, .. } => {
                         lz_input.register_mouse_button_event(
-                            glutin_mapper::map_glutin_mouse_button(button), 
-                            glutin_mapper::map_glutin_mouse_button_state(state)
+                            glutin_event_mapper::map_glutin_mouse_button(button), 
+                            glutin_event_mapper::map_glutin_mouse_button_state(state)
                         );
                     },
                     WindowEvent::MouseWheel { device_id: _, delta, phase: _, .. } => {

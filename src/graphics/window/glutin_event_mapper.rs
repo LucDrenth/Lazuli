@@ -1,8 +1,6 @@
 /// Functions to map input from the "glutin" crate to that of our own
 
-use crate::lz_core_warn;
-
-use super::input::{Key, KeyState, MouseButtonState, MouseButton};
+use crate::{lz_core_warn, input::{Key, KeyState, MouseButton, MouseButtonState}};
 
 pub fn map_glutin_keycode(glutin_key: glutin::event::VirtualKeyCode) -> Key {
     match glutin_key {
