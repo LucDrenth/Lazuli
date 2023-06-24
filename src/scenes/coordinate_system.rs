@@ -3,7 +3,7 @@ use std::f32::consts::{PI, TAU};
 use glam::{Vec3, Vec2};
 use rand::{Rng, rngs::ThreadRng};
 
-use crate::{graphics::{scene::Scene, material::Material, Cube, mesh_renderer, shader::{ShaderProgram, PATH_COLORED_FRAG}, Transform, Camera}, event::EventSystem, input::{Input, Key}, time};
+use crate::{graphics::{scene::Scene, material::Material, Cube, mesh_renderer, shader::{ShaderProgram, PATH_COLORED_FRAG}, Transform, Camera}, event::{EventSystem, self}, input::{Input, Key}, time};
 
 pub struct CoordinateSystem {
     material: Material,
@@ -17,7 +17,11 @@ pub struct CoordinateSystem {
 }
 
 impl Scene for CoordinateSystem {
-    fn new(_event_system: &mut EventSystem, window_size: Vec2) -> Result<Self, String> {
+    fn new(event_system: &mut EventSystem, window_size: Vec2) -> Result<Self, String> {
+        event_system.send(event::LockCursor{});
+        event_system.send(event::HideCursor{});
+
+
         let program = ShaderProgram::new("./assets/shaders/with-camera.vert", PATH_COLORED_FRAG).unwrap();
         let material = Material::new(program);
 

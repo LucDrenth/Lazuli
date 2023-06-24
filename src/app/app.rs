@@ -19,8 +19,8 @@ impl App {
         // TODO since backtrace can be slow in production, we need to disable this in release mode
         env::set_var("RUST_BACKTRACE", "1");
 
-        let event_system = EventSystem::new();
-        let window = Window::new(String::from("Lazuli"));
+        let mut event_system = EventSystem::new();
+        let window = Window::new(String::from("Lazuli"), &mut event_system);
         let input = Input::new();
 
         Self { event_system, window, input }
