@@ -2,21 +2,15 @@ use std::time::Instant;
 use glam::Vec2;
 use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, GlRequest, ContextBuilder, Api, event::{Event, WindowEvent}, ContextWrapper, PossiblyCurrent, GlProfile, dpi::{PhysicalPosition}};
 
-use crate::{event::{EventSystem, WindowResizeEvent, self, EventReader}, input::{Input, glutin_mapper}, lz_core_warn, time, lz_core_info, graphics::renderer::Renderer};
+use crate::{event::{EventSystem, WindowResizeEvent}, input::{Input, glutin_mapper}, lz_core_warn, time, graphics::renderer::Renderer};
 
-// TODO abstractiate in to a Window trait and rename this to GlutinWindow
+use super::window_listeners::WindowListeners;
+
 pub struct Window {
     render_context: ContextWrapper<PossiblyCurrent, glutin::window::Window>,
     event_loop: EventLoop<()>,
     target_fps: u64,
-
-    // TODO put this in to its own struct: WindowListeners
-    lock_cursor_listener: EventReader<event::LockCursor>,
-    unlock_cursor_listener: EventReader<event::UnlockCursor>,
-    confine_cursor_listener: EventReader<event::ConfineCursor>,
-    show_cursor_listener: EventReader<event::ShowCursor>,
-    hide_cursor_listener: EventReader<event::HideCursor>,
-    set_cursor_position_listener: EventReader<event::SetCursorPosition>,
+    event_listeners: WindowListeners,
 }
 
 impl Window {
@@ -45,12 +39,7 @@ impl Window {
             render_context: gl_context,
             event_loop,
             target_fps: 60,
-            lock_cursor_listener: event_system.register::<event::LockCursor>(),
-            unlock_cursor_listener: event_system.register::<event::UnlockCursor>(),
-            confine_cursor_listener: event_system.register::<event::ConfineCursor>(),
-            show_cursor_listener: event_system.register::<event::ShowCursor>(),
-            hide_cursor_listener: event_system.register::<event::HideCursor>(),
-            set_cursor_position_listener: event_system.register::<event::SetCursorPosition>(),
+            event_listeners: WindowListeners::new(event_system),
         }
     }
     
@@ -122,17 +111,7 @@ impl Window {
                     }
 
                     renderer.scene.update(&mut event_system, &lz_input);
-
-                    // TODO extract this block of listeners reading in to a function of WindowListeners
-                    if self.lock_cursor_listener.read().len() > 0 { Self::lock_cursor(self.render_context.window()) }
-                    if self.unlock_cursor_listener.read().len() > 0 { Self::unlock_cursor(self.render_context.window()) }
-                    if self.confine_cursor_listener.read().len() > 0 { Self::confine_cursor(self.render_context.window()) }
-                    if self.hide_cursor_listener.read().len() > 0 { Self::hide_cursor(self.render_context.window()) }
-                    if self.show_cursor_listener.read().len() > 0 { Self::show_cursor(self.render_context.window()) }
-                    if let Some(event) = self.set_cursor_position_listener.read().last() {
-                        Self::set_cursor_position(self.render_context.window(), event.x, event.y);
-                    }
-                    //
+                    self.event_listeners.read(&self.render_context.window());
 
                     renderer.draw();
                     self.render_context.swap_buffers().expect("Failed to swap buffers");
