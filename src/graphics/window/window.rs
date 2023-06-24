@@ -2,9 +2,7 @@ use std::time::Instant;
 use glam::Vec2;
 use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, GlRequest, ContextBuilder, Api, event::{Event, WindowEvent}, ContextWrapper, PossiblyCurrent, GlProfile, dpi::{PhysicalPosition}};
 
-use crate::{event::{EventSystem, WindowResizeEvent, self, EventReader}, input::{Input, glutin_mapper}, lz_core_warn, time, lz_core_info};
-
-use super::renderer::Renderer;
+use crate::{event::{EventSystem, WindowResizeEvent, self, EventReader}, input::{Input, glutin_mapper}, lz_core_warn, time, lz_core_info, graphics::renderer::Renderer};
 
 // TODO abstractiate in to a Window trait and rename this to GlutinWindow
 pub struct Window {
