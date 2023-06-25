@@ -8,6 +8,7 @@ pub mod window;
 pub mod texture;
 pub mod material;
 pub mod scene;
+pub mod text;
 
 pub use shapes::*;
 pub use renderer::mesh_renderer;
