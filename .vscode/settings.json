@@ -1,0 +1,7 @@
+{
+    "rust-analyzer.showUnlinkedFileNotification": false,
+    // "rust-analyzer.checkOnSave": false
+    "rust-analyzer.cargo.extraEnv": {
+        "RUSTFLAGS": "-A dead_code"
+    }
+}
