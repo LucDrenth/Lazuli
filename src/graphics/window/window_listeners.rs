@@ -1,15 +1,12 @@
 use crate::event::{EventReader, self, EventSystem};
 
-use super::Window;
-
 pub struct WindowListeners {
-    // TODO put this in to its own struct: WindowListeners
-    lock_cursor_listener: EventReader<event::LockCursor>,
-    unlock_cursor_listener: EventReader<event::UnlockCursor>,
-    confine_cursor_listener: EventReader<event::ConfineCursor>,
-    show_cursor_listener: EventReader<event::ShowCursor>,
-    hide_cursor_listener: EventReader<event::HideCursor>,
-    set_cursor_position_listener: EventReader<event::SetCursorPosition>,
+    pub lock_cursor_listener: EventReader<event::LockCursor>,
+    pub unlock_cursor_listener: EventReader<event::UnlockCursor>,
+    pub confine_cursor_listener: EventReader<event::ConfineCursor>,
+    pub show_cursor_listener: EventReader<event::ShowCursor>,
+    pub hide_cursor_listener: EventReader<event::HideCursor>,
+    pub set_cursor_position_listener: EventReader<event::SetCursorPosition>,
 }
 
 impl WindowListeners {
@@ -24,14 +21,15 @@ impl WindowListeners {
         }
     }
 
-    pub fn read(&mut self, glutin_window: &glutin::window::Window) {
-        if self.lock_cursor_listener.read().len() > 0 { Window::lock_cursor(glutin_window) }
-        if self.unlock_cursor_listener.read().len() > 0 { Window::unlock_cursor(glutin_window) }
-        if self.confine_cursor_listener.read().len() > 0 { Window::confine_cursor(glutin_window) }
-        if self.hide_cursor_listener.read().len() > 0 { Window::hide_cursor(glutin_window) }
-        if self.show_cursor_listener.read().len() > 0 { Window::show_cursor(glutin_window) }
-        if let Some(event) = self.set_cursor_position_listener.read().last() {
-            Window::set_cursor_position(glutin_window, event.x, event.y);
-        }
-    }
+    // TODO
+    // pub fn read(&mut self, window: &dyn Window) {
+    //     if self.lock_cursor_listener.read().len() > 0 { window.lock_cursor() }
+    //     if self.unlock_cursor_listener.read().len() > 0 { window.unlock_cursor() }
+    //     if self.confine_cursor_listener.read().len() > 0 { window.confine_cursor() }
+    //     if self.hide_cursor_listener.read().len() > 0 { window.hide_cursor() }
+    //     if self.show_cursor_listener.read().len() > 0 { window.show_cursor() }
+    //     if let Some(event) = self.set_cursor_position_listener.read().last() {
+    //         window.set_cursor_position(event.x, event.y);
+    //     }
+    // }
 }
