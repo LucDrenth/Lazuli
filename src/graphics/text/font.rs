@@ -12,8 +12,8 @@ impl Font {
     pub fn new(path: String, font_size: f32) -> Result<Self, String> {
         match load_font(&path) {
             Ok(font) => {
-                let bitmap = Bitmap::new(&font, 25.0, 2)?;
-                bitmap.save(&format!("{}.bitmap.png", path));
+                let bitmap = Bitmap::new(&font, 25.0, 0)?;
+                bitmap.save(&format!("{}.bitmap.png", path))?;
             },
             Err(err) => {
                 lz_core_err!("Failed to create font from path {}: {}", path, err);

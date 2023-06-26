@@ -1,15 +1,17 @@
-use image::{DynamicImage, Rgba, RgbaImage};
+use image::{DynamicImage, Rgba, RgbaImage, ImageBuffer};
+use rusttype::PositionedGlyph;
 
 pub struct Bitmap {
     image: RgbaImage,
+    characters: Vec<BitmapCharacter>,
 }
 
 impl Bitmap {
     pub fn new(font: &rusttype::Font<'static>, font_size: f32, padding: u32) -> Result<Bitmap, String> {
-        let image = create(font, font_size, padding).map_err(|err| {
+        let (image, characters) = create(font, font_size, padding).map_err(|err| {
             format!("Failed to create bitmap: {}", err)
         })?;
-        Ok(Self { image })
+        Ok(Self { image, characters })
     }
 
     /// save the bitmap image to a file
@@ -25,43 +27,53 @@ impl Bitmap {
     }
 }
 
-/// TODO - padding is not 100% accurate
-/// TODO - automatic size / wrapping
-pub fn create(font: &rusttype::Font<'static>, font_size: f32, padding: u32) -> Result<RgbaImage, String> {
-    let scale = rusttype::Scale::uniform(font_size);
-    let text = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!№;%:?*()_+-=.,/|\\\"'@#$^&{}[]";
-
-    let colour = (255, 255, 255); // white
-
-    let v_metrics = font.v_metrics(scale);
-
-    let glyphs: Vec<_> = font
-        .layout(text, scale, rusttype::point(padding as f32, padding as f32 + v_metrics.ascent))
-        .collect();
-
-    // work out the layout size
-    let glyphs_height = (v_metrics.ascent - v_metrics.descent).ceil() as u32;
-    let glyphs_width = {
-        let min_x = glyphs
-            .first()
-            .map(|g| g.pixel_bounding_box().unwrap().min.x)
-            .unwrap();
-        let max_x = glyphs
-            .last()
-            .map(|g| g.pixel_bounding_box().unwrap().max.x)
-            .unwrap();
-        (max_x - min_x) as u32
-    };
-
-    let mut image_buffer: image::ImageBuffer<Rgba<u8>, Vec<u8>> = DynamicImage::new_rgba8(glyphs_width + padding * 2, glyphs_height + padding * 2).to_rgba8();
-    write_glyphs(glyphs, &mut image_buffer, colour);
-
-    to_rgba_image(image_buffer)
+pub struct BitmapCharacter {
+    character: char,
+    start_x: i32,
+    start_y: i32,
+    width: i32,
 }
 
-fn write_glyphs(glyphs: Vec<rusttype::PositionedGlyph<'_>>, image_buffer: &mut image::ImageBuffer<Rgba<u8>, Vec<u8>>, colour: (u8, u8, u8)) {
-    for glyph in glyphs {
+pub fn create(font: &rusttype::Font<'static>, font_size: f32, padding: u32) -> Result<(RgbaImage, Vec<BitmapCharacter>), String> {
+    let text = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!№;%:?*()_+-=.,/|\\\"'@#$€^&{}[]";
+    let colour = (255, 255, 255); // white
+
+    let scale = rusttype::Scale::uniform(font_size);
+    let v_metrics = font.v_metrics(scale);
+    let start_point = rusttype::point(padding as f32, padding as f32 + v_metrics.ascent);
+    let glyphs: Vec<_> = font.layout(text, scale, start_point).collect();
+
+    let glyphs_width = glyphs.last().take().unwrap().pixel_bounding_box().unwrap().max.x as u32;
+    let glyphs_height = (v_metrics.ascent - v_metrics.descent).ceil() as u32;
+
+    let mut image_buffer: ImageBuffer<Rgba<u8>, Vec<u8>> = DynamicImage::new_rgba8(
+        glyphs_width + padding * 2, 
+        glyphs_height + padding * 2
+    ).to_rgba8();
+    let mut bitmap_characters: Vec<BitmapCharacter> = Vec::with_capacity(text.len());
+    write_glyphs(glyphs, text, &mut image_buffer, &mut bitmap_characters, colour, padding);
+
+    let rgba_image = to_rgba_image(image_buffer)?;
+    Ok((rgba_image, bitmap_characters))
+}
+
+fn write_glyphs(
+    glyphs: Vec<PositionedGlyph<'_>>, 
+    characters: &str, 
+    image_buffer: &mut ImageBuffer<Rgba<u8>, Vec<u8>>, 
+    bitmap_characters: &mut Vec<BitmapCharacter>,
+    colour: (u8, u8, u8),
+    padding: u32,
+) {
+    for (i, glyph) in glyphs.iter().enumerate() {
         if let Some(bounding_box) = glyph.pixel_bounding_box() {
+            bitmap_characters.push(BitmapCharacter {
+                character: characters.chars().nth(i).take().unwrap(),
+                start_x: bounding_box.min.x + padding as i32,
+                start_y: padding as i32,
+                width: bounding_box.max.x - bounding_box.min.x,
+            });
+
             glyph.draw(|x, y, v| {
                 image_buffer.put_pixel(
                     x + bounding_box.min.x as u32,
@@ -73,7 +85,7 @@ fn write_glyphs(glyphs: Vec<rusttype::PositionedGlyph<'_>>, image_buffer: &mut i
     }
 }
 
-fn to_rgba_image(image_buffer: image::ImageBuffer<Rgba<u8>, Vec<u8>>) -> Result<RgbaImage, String> {
+fn to_rgba_image(image_buffer: ImageBuffer<Rgba<u8>, Vec<u8>>) -> Result<RgbaImage, String> {
     let (width, height) = image_buffer.dimensions();
     let raw_pixels = image_buffer.into_raw();
     
