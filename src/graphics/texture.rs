@@ -42,7 +42,7 @@ impl Texture {
 
         match image::open(path) {
             Ok(img) => {
-                Self::upload(img.into_rgba8());
+                Self::upload(&img.into_rgba8());
             },
             Err(err) => {
                 lz_core_warn!("Failed to load texture image from path {:?}: {}", path, err);
@@ -50,12 +50,12 @@ impl Texture {
         }
     }
 
-    pub fn load_from_image(&self, img: RgbaImage) {
+    pub fn load_from_image(&self, img: &RgbaImage) {
         self.bind();
         Self::upload(img);
     }
 
-    fn upload(img: RgbaImage) {
+    fn upload(img: &RgbaImage) {
         unsafe {
             gl::TexImage2D(
                 gl::TEXTURE_2D,
