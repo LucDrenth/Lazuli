@@ -13,9 +13,15 @@ impl Bitmap {
     }
 
     /// save the bitmap image to a file
-    /// TODO - error handling
-    pub fn save(&self, path: &String) {
-        self.image.save(path).unwrap();
+    pub fn save(&self, path: &String) -> Result<(), String> {
+        let save_result = self.image.save(path).map_err(|err| {
+            format!("Failed to save bitmap image: {}", err)
+        });
+
+        match save_result {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
     }
 }
 
