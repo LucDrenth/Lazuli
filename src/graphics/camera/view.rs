@@ -1,7 +1,5 @@
 use glam::{Vec3, Mat4};
 
-use crate::lz_core_info;
-
 pub struct View {
     pub position: Vec3,
     pub pitch: f32, // horizontal rotation in degrees
