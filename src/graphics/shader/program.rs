@@ -104,7 +104,7 @@ impl ShaderProgram {
             return;
         }
         
-        let uniform_value = value.into();
+        let uniform_value: UniformValue = value.into();
         uniform_value.set_uniform(location);
         opengl::gl_check_errors();
     }
