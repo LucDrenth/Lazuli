@@ -1,28 +1,35 @@
 use std::{fs::File, io::Read};
 
+use image::RgbaImage;
+
 use crate::lz_core_err;
 
 use super::bitmap::{Bitmap, BitmapBuilder};
 
 pub struct Font {
-    pub font_size: f32,
+    bitmap: Bitmap,
 }
 
 impl Font {
-    pub fn new(path: String, font_size: f32) -> Result<Self, String> {
+    pub fn new(path: String, bitmap_builder: BitmapBuilder) -> Result<Self, String> {
         match load_font(&path) {
             Ok(font) => {
-                let bitmap = Bitmap::new(&font, BitmapBuilder::new().with_font_size(60.0))?;
+                let bitmap = Bitmap::new(&font, bitmap_builder)?;
                 bitmap.save(&format!("{}.bitmap.png", path))?;
+
+                Ok(Self { 
+                    bitmap
+                })
             },
             Err(err) => {
                 lz_core_err!("Failed to create font from path {}: {}", path, err);
+                Err(err)
             },
         }
+    }
 
-        Ok(Self { 
-            font_size
-        })
+    pub fn image(&self) -> &RgbaImage {
+        &self.bitmap.image()
     }
 }
 

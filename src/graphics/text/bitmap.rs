@@ -25,6 +25,10 @@ impl Bitmap {
             Err(e) => Err(e),
         }
     }
+
+    pub fn image(&self) -> &RgbaImage {
+        &self.image
+    }
 }
 
 pub struct BitmapBuilder {
