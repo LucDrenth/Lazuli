@@ -33,7 +33,7 @@ impl Material {
         self.add_texture(texture);
     }
 
-    pub fn add_texture_from_image(&mut self, img: RgbaImage) {
+    pub fn add_texture_from_image(&mut self, img: &RgbaImage) {
         let texture = Texture::new();
         texture.load_from_image(img);
         
