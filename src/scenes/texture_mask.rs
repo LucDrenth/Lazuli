@@ -14,8 +14,8 @@ impl Scene for TextureMask {
         let program_textured = ShaderProgram::new(PATH_TEXTURE_MASK_VERT, PATH_TEXTURE_MASK_FRAG).unwrap();
 
         let mut material_textured = Material::new(program_textured);
-        material_textured.add_texture(&Path::new("./assets/images/lazuli-rock.png"));
-        material_textured.add_texture(&Path::new("./assets/images/rust-logo.png"));
+        material_textured.add_texture_from_path(&Path::new("./assets/images/lazuli-rock.png"));
+        material_textured.add_texture_from_path(&Path::new("./assets/images/rust-logo.png"));
 
         let rectangle = Rectangle::new_textured(&material_textured.shader_program);
 

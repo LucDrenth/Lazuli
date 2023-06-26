@@ -14,7 +14,7 @@ impl Scene for HelloTexture {
         let program = ShaderProgram::new(PATH_TEXTURED_VERT, PATH_TEXTURED_FRAG).unwrap();
         let mut material = Material::new(program);
 
-        material.add_texture(&Path::new("./assets/images/pattern.png"));
+        material.add_texture_from_path(&Path::new("./assets/images/pattern.png"));
 
         let shape = Rectangle::new_textured(&material.shader_program);
 

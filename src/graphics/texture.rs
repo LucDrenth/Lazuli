@@ -37,7 +37,7 @@ impl Texture {
         opengl::gl_check_errors();
     }
 
-    pub fn load(&self, path: &Path) {
+    pub fn load_from_path(&self, path: &Path) {
         self.bind();
 
         match image::open(path) {
@@ -48,6 +48,11 @@ impl Texture {
                 lz_core_warn!("Failed to load texture image from path {:?}: {}", path, err);
             },
         }
+    }
+
+    pub fn load_from_image(&self, img: RgbaImage) {
+        self.bind();
+        Self::upload(img);
     }
 
     fn upload(img: RgbaImage) {
