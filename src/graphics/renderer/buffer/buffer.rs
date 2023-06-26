@@ -9,17 +9,21 @@ pub struct Buffer {
 }
 
 impl Buffer {
-    pub unsafe fn new_vbo() -> Self {
+    pub fn new_vbo() -> Self {
        return Buffer::new(gl::ARRAY_BUFFER)
     }
 
-    pub unsafe fn new_ebo() -> Self {
+    pub fn new_ebo() -> Self {
        return Buffer::new(gl::ELEMENT_ARRAY_BUFFER)
     }
 
-    unsafe fn new(target: GLuint) -> Self {
+    fn new(target: GLuint) -> Self {
         let mut id = 0;
-        gl::GenBuffers(1, &mut id);
+
+        unsafe {
+            gl::GenBuffers(1, &mut id);
+        }
+
         opengl::gl_check_errors();
         Self { 
             id, 
@@ -28,23 +32,29 @@ impl Buffer {
         }
     }
 
-    pub unsafe fn bind(&self) {
-        gl::BindBuffer(self.target, self.id);
+    pub fn bind(&self) {
+        unsafe {
+            gl::BindBuffer(self.target, self.id);
+        }
+
         opengl::gl_check_errors();
     }
 
     /// # Arguments
     ///
     /// * `usage` - one of: gl::STREAM_DRAW, gl::STATIC_DRAW, gl::DYNAMIC_DRAW
-    pub unsafe fn set_data<D>(&mut self, data: &[D], usage: GLuint) {
+    pub fn set_data<D>(&mut self, data: &[D], usage: GLuint) {
         self.bind();
-        let (_, data_bytes, _) = data.align_to::<u8>();
-        gl::BufferData(
-            self.target,
-            data_bytes.len() as GLsizeiptr,
-            data_bytes.as_ptr() as *const _,
-            usage,
-        );
+
+        unsafe {
+            let (_, data_bytes, _) = data.align_to::<u8>();
+            gl::BufferData(
+                self.target,
+                data_bytes.len() as GLsizeiptr,
+                data_bytes.as_ptr() as *const _,
+                usage,
+            );
+        }
 
         self.data_size = data.len() as i32;
     }

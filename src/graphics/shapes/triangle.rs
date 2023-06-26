@@ -15,33 +15,34 @@ pub struct Triangle {
 
 impl Triangle {
     pub fn new(program: &ShaderProgram) -> Self {
-        unsafe {
-            let mut vbo = Buffer::new_vbo();
-            vbo.set_data(&TRIANGLE_VERTICES, gl::STATIC_DRAW);
+        let mut vbo = Buffer::new_vbo();
+        vbo.set_data(&TRIANGLE_VERTICES, gl::STATIC_DRAW);
 
-            let vao = Vao::new();
+        let vao = Vao::new();
 
-            let position_attribute = program.get_attribute_location("position")
-                .expect("Could not get position attribute");
-            set_attribute!(vao, position_attribute, VertexColored::0);
+        let position_attribute = program.get_attribute_location("position")
+            .expect("Could not get position attribute");
+        set_attribute!(vao, position_attribute, VertexColored::0);
 
-            let color_attribute = program.get_attribute_location("color")
-                .expect("Could not get color attribute");
-            set_attribute!(vao, color_attribute, VertexColored::1);
+        let color_attribute = program.get_attribute_location("color")
+            .expect("Could not get color attribute");
+        set_attribute!(vao, color_attribute, VertexColored::1);
 
-            Self { 
-                vao, 
-                vbo
-            }
+        Self { 
+            vao, 
+            vbo
         }
     }
 }
 
 impl Shape for Triangle {
-    unsafe fn draw(&self, program: &ShaderProgram) {
+    fn draw(&self, program: &ShaderProgram) {
         program.apply();
         self.vao.bind();
-        gl::DrawArrays(gl::TRIANGLES, 0, self.vbo.data_size as i32);
+
+        unsafe {
+            gl::DrawArrays(gl::TRIANGLES, 0, self.vbo.data_size as i32);
+        }
 
         opengl::gl_check_errors();
     }

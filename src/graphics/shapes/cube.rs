@@ -57,38 +57,39 @@ pub struct Cube {
 
 impl Cube {
     pub fn new_colored(program: &ShaderProgram) -> Self {
-        unsafe {
-            let vao = Vao::new();
-            vao.bind();
-            
-            let mut vbo = Buffer::new_vbo();
-            vbo.set_data(&COLORED_CUBE_VERTICES, gl::STATIC_DRAW);
+        let vao = Vao::new();
+        vao.bind();
+        
+        let mut vbo = Buffer::new_vbo();
+        vbo.set_data(&COLORED_CUBE_VERTICES, gl::STATIC_DRAW);
 
-            let mut ebo = Buffer::new_ebo();
-            ebo.set_data(&CUBE_INDICES, gl::STATIC_DRAW);
+        let mut ebo = Buffer::new_ebo();
+        ebo.set_data(&CUBE_INDICES, gl::STATIC_DRAW);
 
-            let position_attribute = program.get_attribute_location("position")
-                .expect("Could not get position attribute");
-            set_attribute!(vao, position_attribute, VertexColored::0);
+        let position_attribute = program.get_attribute_location("position")
+            .expect("Could not get position attribute");
+        set_attribute!(vao, position_attribute, VertexColored::0);
 
-            let color_attribute = program.get_attribute_location("color")
-                .expect("Could not get color attribute");
-            set_attribute!(vao, color_attribute, VertexColored::1);
+        let color_attribute = program.get_attribute_location("color")
+            .expect("Could not get color attribute");
+        set_attribute!(vao, color_attribute, VertexColored::1);
 
-            Self { 
-                vao, 
-                _vbo: vbo,
-                ebo
-            }
+        Self { 
+            vao, 
+            _vbo: vbo,
+            ebo
         }
     }
 }
 
 impl Shape for Cube {
-    unsafe fn draw(&self, program: &ShaderProgram) {
+    fn draw(&self, program: &ShaderProgram) {
         program.apply();
         self.vao.bind();
-        gl::DrawElements(gl::TRIANGLES, self.ebo.data_size as i32, gl::UNSIGNED_INT, core::ptr::null());
+
+        unsafe {
+            gl::DrawElements(gl::TRIANGLES, self.ebo.data_size as i32, gl::UNSIGNED_INT, core::ptr::null());
+        }
 
         opengl::gl_check_errors();
     }

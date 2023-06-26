@@ -53,22 +53,24 @@ impl ShaderProgram {
         }
     }
 
-    pub unsafe fn get_attribute_location(&self, attribute: &str) -> Result<GLuint, String> {
+    pub fn get_attribute_location(&self, attribute: &str) -> Result<GLuint, String> {
         let attribute_as_cstring = CString::new(attribute).map_err(|err| {
             format!("failed to creating CString from attribute [{}]: {}", attribute, err.to_string())
         })?;
 
-        let result = gl::GetAttribLocation(self.id, attribute_as_cstring.as_ptr());
-
-        if result == -1 {
-            lz_core_err!("Could not find attribute location of \"{}\"", attribute);
-            opengl::gl_clear_errors();
-            return Err(format!("Could not find attribute location of {}", attribute));
+        unsafe {
+            let result = gl::GetAttribLocation(self.id, attribute_as_cstring.as_ptr());
+            
+            if result == -1 {
+                lz_core_err!("Could not find attribute location of \"{}\"", attribute);
+                opengl::gl_clear_errors();
+                return Err(format!("Could not find attribute location of {}", attribute));
+            }
+            
+            opengl::gl_check_errors();
+            
+            Ok(result as GLuint)
         }
-
-        opengl::gl_check_errors();
-
-        Ok(result as GLuint)
     }
 
     unsafe fn get_shader_program_error(&self) -> String {
