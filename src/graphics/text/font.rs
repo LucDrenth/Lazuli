@@ -2,7 +2,7 @@ use std::{fs::File, io::Read};
 
 use crate::lz_core_err;
 
-use super::bitmap::Bitmap;
+use super::bitmap::{Bitmap, BitmapBuilder};
 
 pub struct Font {
     pub font_size: f32,
@@ -12,7 +12,7 @@ impl Font {
     pub fn new(path: String, font_size: f32) -> Result<Self, String> {
         match load_font(&path) {
             Ok(font) => {
-                let bitmap = Bitmap::new(&font, 25.0, 0)?;
+                let bitmap = Bitmap::new(&font, BitmapBuilder::new().with_font_size(60.0))?;
                 bitmap.save(&format!("{}.bitmap.png", path))?;
             },
             Err(err) => {
