@@ -8,6 +8,9 @@ use super::{bitmap::{Bitmap, BitmapBuilder}, BitmapCharacter};
 
 pub struct Font {
     bitmap: Bitmap,
+
+    /// The width of the space (' ') character. the space is relative to the line height. So 0.5 is halve the line height. 
+    pub space_size: f32,
 }
 
 impl Font {
@@ -18,7 +21,8 @@ impl Font {
                 bitmap.save(&format!("{}.bitmap.png", path))?;
 
                 Ok(Self { 
-                    bitmap
+                    bitmap,
+                    space_size: 0.5,
                 })
             },
             Err(err) => {

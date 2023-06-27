@@ -14,8 +14,7 @@ impl Text {
     pub fn new(text: String, font: &Font, program: &ShaderProgram) -> Self {
         let mut glyphs: Vec::<Glyph> = Vec::new();
 
-        // TODO from TextBuilder param. Set to 0.05 and implement in Glyph position
-        let letter_spacing = 0.05;
+        let letter_spacing = 0.1;
 
         let total_width = Self::get_total_width(&text, &font, letter_spacing);
         let mut start_x: f32 = 0.0 - total_width / 2.0;
@@ -27,7 +26,12 @@ impl Text {
                     start_x += bitmap_character.width + letter_spacing;
                 },
                 None => {
-                    lz_core_warn!("font bitmap does not contain character [{}] for text [{}]", character, text);
+                    if character == ' ' {
+                        // the space character does not have a glyph
+                        start_x += font.space_size;
+                    } else {
+                        lz_core_warn!("font bitmap does not contain character [{}] for text [{}]", character, text);
+                    }
                 },
             }
         }
@@ -64,7 +68,12 @@ impl Text {
                     total_width += bitmap_character.width + letter_spacing;
                 },
                 None => {
-                    // character will not be rendered
+                    if character == ' ' {
+                        has_glyph_to_render = true;
+                        total_width += font.space_size;
+                    } else {
+                        // character will not be rendered
+                    }
                 },
             }
         }
