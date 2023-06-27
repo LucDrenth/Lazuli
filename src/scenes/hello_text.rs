@@ -16,14 +16,13 @@ impl Scene for HelloText {
         let mut material = Material::new(program);
         let font = Font::new("./assets/fonts/roboto.ttf".to_string(), 
             BitmapBuilder::new()
-            .with_characters("abcdABCD".to_string())
-            .with_font_size(100.0)
+            .with_font_size(300.0)
         )?;
         material.add_texture_from_image(&font.image());
 
         let bitmap_rectangle = Rectangle::new_textured(&material.shader_program);
         
-        let text = Text::new("dAbCdAbCaabb".to_string(), &font, &material.shader_program);
+        let text = Text::new("Luc".to_string(), &font, &material.shader_program);
         
         let result = Self { 
             material,

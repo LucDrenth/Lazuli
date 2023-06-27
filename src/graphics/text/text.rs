@@ -23,8 +23,8 @@ impl Text {
         for character in text.chars() {
             match font.get_bitmap_character(character) {
                 Some(bitmap_character) => {
-                    glyphs.push(Glyph::new(bitmap_character, start_x, start_x + bitmap_character.width(), program));
-                    start_x += bitmap_character.width() + letter_spacing;
+                    glyphs.push(Glyph::new(bitmap_character, start_x, start_x + bitmap_character.width, program));
+                    start_x += bitmap_character.width + letter_spacing;
                 },
                 None => {
                     lz_core_warn!("font bitmap does not contain character [{}] for text [{}]", character, text);
@@ -61,7 +61,7 @@ impl Text {
             match font.get_bitmap_character(character) {
                 Some(bitmap_character) => {
                     has_glyph_to_render = true;
-                    total_width += bitmap_character.width() + letter_spacing;
+                    total_width += bitmap_character.width + letter_spacing;
                 },
                 None => {
                     // character will not be rendered

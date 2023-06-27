@@ -11,6 +11,7 @@ use crate::lz_core_warn;
 pub struct Bitmap {
     pub image: RgbaImage,
     pub characters: HashMap<char, BitmapCharacter>,
+    pub line_height: f32,
 }
 
 impl Bitmap {
@@ -19,10 +20,10 @@ impl Bitmap {
             return Err("Failed to create bitmap: character set may not be empty".to_string());
         }
 
-        let (image, characters) = create(font, bitmap_builder).map_err(|err| {
+        let bitmap = Self::create(font, bitmap_builder).map_err(|err| {
             format!("Failed to create bitmap: {}", err)
         })?;
-        Ok(Self { image, characters })
+        Ok(bitmap)
     }
 
     /// save the bitmap image to a file
@@ -36,6 +37,32 @@ impl Bitmap {
             Err(e) => Err(e),
         }
     }
+
+    fn create(font: &rusttype::Font<'static>, bitmap_builder: BitmapBuilder) -> Result<Self, String> {
+        let scale = rusttype::Scale::uniform(bitmap_builder.font_size);
+        let v_metrics = font.v_metrics(scale);
+        let start_point = rusttype::point(bitmap_builder.padding as f32, bitmap_builder.padding as f32 + v_metrics.ascent);
+        let glyphs: Vec<_> = font.layout(&bitmap_builder.characters, scale, start_point).collect();
+
+        let total_glyphs_width = glyphs.last().take().unwrap().pixel_bounding_box().unwrap().max.x as u32;
+        let line_height = (v_metrics.ascent - v_metrics.descent).ceil() as u32;
+
+        let mut image_buffer: ImageBuffer<Rgba<u8>, Vec<u8>> = DynamicImage::new_rgba8(
+            total_glyphs_width + bitmap_builder.padding * 2, 
+            line_height + bitmap_builder.padding * 2
+        ).to_rgba8();
+        let mut bitmap_characters: HashMap<char, BitmapCharacter> = HashMap::new();
+        write_glyphs(glyphs, &bitmap_builder.characters, &mut image_buffer, &mut bitmap_characters, bitmap_builder.colour, bitmap_builder.padding, line_height as f32);
+
+        let rgba_image = to_rgba_image(image_buffer)?;
+
+        Ok(Self{ 
+            image: rgba_image, 
+            characters: bitmap_characters, 
+            line_height: line_height as f32,
+        })
+    }
+
 }
 
 pub struct BitmapBuilder {
@@ -78,40 +105,11 @@ impl BitmapBuilder {
 
 #[derive(Debug)]
 pub struct BitmapCharacter {
-    pub start_x: f32,
-    pub end_x: f32,
-    pub start_y: f32,
-    pub end_y: f32,
-}
-
-impl BitmapCharacter {
-    pub fn width(&self) -> f32 {
-        self.end_x - self.start_x
-    }
-
-    pub fn height(&self) -> f32 {
-        self.end_y - self.start_y
-    }
-}
-
-pub fn create(font: &rusttype::Font<'static>, bitmap_builder: BitmapBuilder) -> Result<(RgbaImage, HashMap<char, BitmapCharacter>), String> {
-    let scale = rusttype::Scale::uniform(bitmap_builder.font_size);
-    let v_metrics = font.v_metrics(scale);
-    let start_point = rusttype::point(bitmap_builder.padding as f32, bitmap_builder.padding as f32 + v_metrics.ascent);
-    let glyphs: Vec<_> = font.layout(&bitmap_builder.characters, scale, start_point).collect();
-
-    let glyphs_width = glyphs.last().take().unwrap().pixel_bounding_box().unwrap().max.x as u32;
-    let glyphs_height = (v_metrics.ascent - v_metrics.descent).ceil() as u32;
-
-    let mut image_buffer: ImageBuffer<Rgba<u8>, Vec<u8>> = DynamicImage::new_rgba8(
-        glyphs_width + bitmap_builder.padding * 2, 
-        glyphs_height + bitmap_builder.padding * 2
-    ).to_rgba8();
-    let mut bitmap_characters: HashMap<char, BitmapCharacter> = HashMap::new();
-    write_glyphs(glyphs, &bitmap_builder.characters, &mut image_buffer, &mut bitmap_characters, bitmap_builder.colour, bitmap_builder.padding);
-
-    let rgba_image = to_rgba_image(image_buffer)?;
-    Ok((rgba_image, bitmap_characters))
+    pub texture_start_x: f32,
+    pub texture_end_x: f32,
+    pub texture_start_y: f32,
+    pub texture_end_y: f32,
+    pub width: f32, // relative to the lineheight of the font
 }
 
 fn write_glyphs(
@@ -121,6 +119,7 @@ fn write_glyphs(
     bitmap_characters: &mut HashMap<char, BitmapCharacter>,
     colour: (u8, u8, u8),
     padding: u32,
+    line_height: f32,
 ) {
     for (i, glyph) in glyphs.iter().enumerate() {
         let bitmap_width = image_buffer.width() as f32;
@@ -136,10 +135,11 @@ fn write_glyphs(
                 },
                 std::collections::hash_map::Entry::Vacant(entry) => {
                     entry.insert(BitmapCharacter {
-                        start_x: (bounding_box.min.x + padding as i32) as f32 / bitmap_width,
-                        end_x: (bounding_box.max.x + padding as i32) as f32 / bitmap_width,
-                        start_y: 0.0,
-                        end_y: 1.0,
+                        texture_start_x: (bounding_box.min.x + padding as i32) as f32 / bitmap_width,
+                        texture_end_x: (bounding_box.max.x + padding as i32) as f32 / bitmap_width,
+                        texture_start_y: 0.0,
+                        texture_end_y: 1.0,
+                        width: (bounding_box.max.x - bounding_box.min.x) as f32 / line_height
                     });
                 },
             }
