@@ -1,11 +1,12 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, material::Material, mesh_renderer, shader::ShaderProgram, text::{Font, BitmapBuilder}, Rectangle}, event::EventSystem, input::Input};
+use crate::{graphics::{scene::Scene, material::Material, mesh_renderer, shader::ShaderProgram, font::{Font, BitmapBuilder}, Rectangle, text::Text}, event::EventSystem, input::Input};
 
 pub struct HelloText {
     material: Material,
     font: Font,
-    quad: Rectangle
+    bitmap_rectangle: Rectangle,
+    text: Text,
 }
 
 impl Scene for HelloText {
@@ -15,17 +16,20 @@ impl Scene for HelloText {
         let mut material = Material::new(program);
         let font = Font::new("./assets/fonts/roboto.ttf".to_string(), 
             BitmapBuilder::new()
-            .with_characters("ABC".to_string())
+            .with_characters("abcdABCD".to_string())
             .with_font_size(100.0)
         )?;
         material.add_texture_from_image(&font.image());
 
-        let quad = Rectangle::new_textured(&material.shader_program);
+        let bitmap_rectangle = Rectangle::new_textured(&material.shader_program);
+        
+        let text = Text::new("dAbCdAbCaabb".to_string(), &font, &material.shader_program);
         
         let result = Self { 
             material,
             font,
-            quad,
+            bitmap_rectangle,
+            text,
         };
 
         Ok(result)
@@ -34,6 +38,7 @@ impl Scene for HelloText {
     fn update(&mut self, _: &mut EventSystem, _input: &Input) {}
 
     unsafe fn draw(&self) {
-        mesh_renderer::draw_shape(&self.quad, &self.material);
+        // mesh_renderer::draw_shape(&self.bitmap_rectangle, &self.material);
+        self.text.draw(&self.material);
     }
 }

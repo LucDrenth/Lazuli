@@ -9,6 +9,7 @@ pub mod texture;
 pub mod material;
 pub mod scene;
 pub mod text;
+pub mod font;
 
 pub use shapes::*;
 pub use renderer::mesh_renderer;

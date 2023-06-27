@@ -1,6 +1,4 @@
-mod font;
 mod text;
-mod bitmap;
+mod glyph;
 
-pub use font::Font;
-pub use bitmap::BitmapBuilder;
+pub use text::Text;

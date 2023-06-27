@@ -4,7 +4,7 @@ use image::RgbaImage;
 
 use crate::lz_core_err;
 
-use super::bitmap::{Bitmap, BitmapBuilder};
+use super::{bitmap::{Bitmap, BitmapBuilder}, BitmapCharacter};
 
 pub struct Font {
     bitmap: Bitmap,
@@ -29,7 +29,11 @@ impl Font {
     }
 
     pub fn image(&self) -> &RgbaImage {
-        &self.bitmap.image()
+        &self.bitmap.image
+    }
+
+    pub fn get_bitmap_character(&self, character: char) -> Option<&BitmapCharacter> {
+        self.bitmap.characters.get(&character)
     }
 }
 
