@@ -19,7 +19,7 @@ impl Scene for HelloText {
         let mut material = Material::new(program);
         let font = Font::new("./assets/fonts/roboto.ttf".to_string(), 
             BitmapBuilder::new()
-            .with_font_size(100.0)
+            .with_font_size(200.0)
         )?;
 
         font.save_bitmap("./assets/fonts/roboto.ttf.bitmap.png".to_string())?;
@@ -28,7 +28,7 @@ impl Scene for HelloText {
         
         let bitmap_rectangle = Rectangle::new_textured(&material.shader_program);
         
-        let mut text = Text::new("Welcome to Lazuli Engine".to_string(), &font, 75.0, &material.shader_program);
+        let mut text = Text::new("Welcome to Lazuli Engine".to_string(), &font, 200.0, &material.shader_program);
         text.position.y = -200.0;
         text.position.x = 500.0;
         material.shader_program.set_uniform("worldPosition", text.position_for_shader());

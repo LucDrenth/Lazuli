@@ -44,6 +44,10 @@ impl Font {
     pub fn get_bitmap_character(&self, character: char) -> Option<&BitmapCharacter> {
         self.bitmap.characters.get(&character)
     }
+
+    pub fn line_height(&self) -> f32 {
+        self.bitmap.line_height
+    }
 }
 
 fn load_font(path: &String) -> Result<rusttype::Font<'static>, String> {

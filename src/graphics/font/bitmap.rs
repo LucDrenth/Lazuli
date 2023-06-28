@@ -3,11 +3,9 @@ use std::collections::HashMap;
 use image::{DynamicImage, Rgba, RgbaImage, ImageBuffer};
 use rusttype::PositionedGlyph;
 
-use crate::lz_core_warn;
+use crate::{lz_core_warn, lz_core_err};
 
-/// TODO - Spread glyphs over multiple lines. The advantages of this are:
-///         1. Prevent texture size limits
-///         2. More compact packing (glyphs can be put in any place there is space for it)
+/// TODO add space as characters to BitmapCharacter but don't add it to the bitmap (since it will just be an empty space)
 pub struct Bitmap {
     pub image: RgbaImage,
     pub characters: HashMap<char, BitmapCharacter>,
@@ -41,18 +39,28 @@ impl Bitmap {
     fn create(font: &rusttype::Font<'static>, bitmap_builder: BitmapBuilder) -> Result<Self, String> {
         let scale = rusttype::Scale::uniform(bitmap_builder.font_size);
         let v_metrics = font.v_metrics(scale);
-        let start_point = rusttype::point(bitmap_builder.padding as f32, bitmap_builder.padding as f32 + v_metrics.ascent);
+        let start_point = rusttype::point(bitmap_builder.padding_x as f32, bitmap_builder.padding_y as f32 + v_metrics.ascent);
         let glyphs: Vec<_> = font.layout(&bitmap_builder.characters, scale, start_point).collect();
 
-        let total_glyphs_width = glyphs.last().take().unwrap().pixel_bounding_box().unwrap().max.x as u32;
-        let line_height = (v_metrics.ascent - v_metrics.descent).ceil() as u32;
+        // TODO - order characters by glyphs height
+        // TODO - use highest character of the row for that whole row instead of the line height
+        // TODO - remove duplicates from bitmap_builder.characters (and add a warning if there is any duplicates)
 
-        let mut image_buffer: ImageBuffer<Rgba<u8>, Vec<u8>> = DynamicImage::new_rgba8(
-            total_glyphs_width + bitmap_builder.padding * 2, 
-            line_height + bitmap_builder.padding * 2
-        ).to_rgba8();
+        let line_height = (v_metrics.ascent - v_metrics.descent).ceil() as u32;
+        let (bitmap_width, bitmap_height) = calculate_image_size(&glyphs, line_height, bitmap_builder.padding_x, bitmap_builder.padding_y);
+
+        let mut image_buffer: ImageBuffer<Rgba<u8>, Vec<u8>> = DynamicImage::new_rgba8(bitmap_width, bitmap_height).to_rgba8();
         let mut bitmap_characters: HashMap<char, BitmapCharacter> = HashMap::new();
-        write_glyphs(glyphs, &bitmap_builder.characters, &mut image_buffer, &mut bitmap_characters, bitmap_builder.colour, bitmap_builder.padding, line_height as f32);
+        write_glyphs(
+            glyphs, 
+            &bitmap_builder.characters, 
+            &mut image_buffer, 
+            &mut bitmap_characters, 
+            bitmap_builder.colour, 
+            bitmap_builder.padding_x, 
+            bitmap_builder.padding_y, 
+            line_height as f32
+        );
 
         let rgba_image = to_rgba_image(image_buffer)?;
 
@@ -67,7 +75,8 @@ impl Bitmap {
 
 pub struct BitmapBuilder {
     colour: (u8, u8, u8),
-    padding: u32,
+    padding_x: u32,
+    padding_y: u32,
     font_size: f32,
     characters: String,
 }
@@ -76,7 +85,8 @@ impl BitmapBuilder {
     pub fn new() -> Self {
         Self {
             colour: (255, 255, 255),
-            padding: 0,
+            padding_x: 0,
+            padding_y: 0,
             font_size: 25.0,
             characters: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!№;%:?*()_+-=.,/|\\\"'@#$€^&{}[]".to_string(),
         }
@@ -87,8 +97,13 @@ impl BitmapBuilder {
         self
     }
 
-    pub fn with_padding(mut self, padding: u32) -> Self {
-        self.padding = padding;
+    pub fn with_padding_x(mut self, padding_x: u32) -> Self {
+        self.padding_x = padding_x;
+        self
+    }
+
+    pub fn with_padding_y(mut self, padding_y: u32) -> Self {
+        self.padding_y = padding_y;
         self
     }
 
@@ -112,21 +127,79 @@ pub struct BitmapCharacter {
     pub width: f32, // relative to the lineheight of the font
 }
 
+/// TODO - should we only do square images or can we also do rectangular images such as 256x512 ?
+/// Calculate the size that the bitmap needs to be, as a powers of 2. such as 256x256, 512x512 etc.
+fn calculate_image_size(glyphs: &Vec<PositionedGlyph<'_>>, line_height: u32, padding_x: u32, padding_y: u32,) -> (u32, u32) {
+    let mut current_size: u32 = 2_u32.pow(8); // start at 256x256
+
+    loop {
+        let width_to_fit = current_size - padding_x * 2;
+        let height_to_fit = current_size - padding_y * 2;
+        
+        if glyphs_fit_in(width_to_fit, height_to_fit, &glyphs, line_height) {
+            return (current_size, current_size)
+        }
+
+        current_size *= 2;
+    }
+}
+
+/// Check if the glyphs fit within a certain image size
+fn glyphs_fit_in(width: u32, height: u32, glyphs: &Vec<PositionedGlyph<'_>>, line_height: u32) -> bool {
+    let mut current_x: u32 = 0;
+    let mut current_y: u32 = 0;
+
+    for glyph in glyphs.iter() {
+        if let Some(bounding_box) = glyph.pixel_bounding_box() {
+            let character_width = (bounding_box.max.x - bounding_box.min.x) as u32;
+
+            if current_x + character_width >= width {
+                // go to next line
+                current_x = 0;
+                current_y += line_height;
+
+                if current_y >= height {
+                    return false;
+                }
+            } else {
+                current_x += character_width;
+            }
+        }
+    }
+
+    return true;
+}
+
+/// # Arguments
+/// 
+/// * `glyphs` - There exists a glyph for every character of the characters param, and no more
+/// * `characters` - 
+/// * `image_buffer` - 
+/// * `bitmap_characters` - 
+/// * `colour` - 
+/// * `padding_x` - 
+/// * `padding_y` - 
+/// * `line_height` - 
 fn write_glyphs(
     glyphs: Vec<PositionedGlyph<'_>>, 
-    characters: &str, 
+    characters: &str,
     image_buffer: &mut ImageBuffer<Rgba<u8>, Vec<u8>>, 
     bitmap_characters: &mut HashMap<char, BitmapCharacter>,
     colour: (u8, u8, u8),
-    padding: u32,
+    padding_x: u32,
+    padding_y: u32,
     line_height: f32,
 ) {
+    let mut current_x: u32 = padding_x;
+    let mut current_y: u32 = padding_y;
+
     for (i, glyph) in glyphs.iter().enumerate() {
-        let bitmap_width = image_buffer.width() as f32;
-        let bitmap_height = image_buffer.height() as f32;
+        let bitmap_width = image_buffer.width();
+        let bitmap_height = image_buffer.height();
 
         if let Some(bounding_box) = glyph.pixel_bounding_box() {
             let character: char = characters.chars().nth(i).take().unwrap();
+            let character_width = (bounding_box.max.x - bounding_box.min.x) as u32;
 
             match bitmap_characters.entry(character) {
                 std::collections::hash_map::Entry::Occupied(_) => {
@@ -135,22 +208,35 @@ fn write_glyphs(
                 },
                 std::collections::hash_map::Entry::Vacant(entry) => {
                     entry.insert(BitmapCharacter {
-                        texture_start_x: (bounding_box.min.x + padding as i32) as f32 / bitmap_width,
-                        texture_end_x: (bounding_box.max.x + padding as i32) as f32 / bitmap_width,
-                        texture_start_y: 0.0,
-                        texture_end_y: 1.0,
-                        width: (bounding_box.max.x - bounding_box.min.x) as f32 / line_height
+                        texture_start_x: (current_x as i32) as f32 / bitmap_width as f32,
+                        texture_end_x: (current_x + character_width) as f32 / bitmap_width as f32,
+                        texture_start_y: current_y as f32 / bitmap_height as f32,
+                        texture_end_y: (current_y as f32 + line_height) / bitmap_height as f32,
+                        width: (bounding_box.max.x - bounding_box.min.x) as f32 / line_height,
                     });
                 },
             }
 
+            if current_x + character_width >= bitmap_width - padding_x {
+                // go to next line
+                current_x = padding_x;
+                current_y += line_height as u32;
+
+                if current_y >= bitmap_height - padding_y {
+                    lz_core_err!("Failed to write glyphs to bitmap because it does not fit within the image");
+                    return;
+                }
+            }
+
             glyph.draw(|x, y, v| {
                 image_buffer.put_pixel(
-                    x + bounding_box.min.x as u32,
-                    y + bounding_box.min.y as u32,
+                    x + current_x,
+                    y + current_y + bounding_box.min.y as u32,
                     Rgba([colour.0, colour.1, colour.2, (v * 255.0) as u8]),
                 )
             });
+
+            current_x += character_width;
         }
     }
 }

@@ -20,10 +20,10 @@ pub struct Glyph {
 impl Glyph {
     pub fn new(bitmap_character: &BitmapCharacter, start_x: f32, end_x: f32, start_y: f32, end_y: f32, program: &ShaderProgram) -> Self {
         let vertices: [GlyphVertex; 4] = [
-            GlyphVertex([start_x, start_y, 0.0], [bitmap_character.texture_start_x, 1.0]), // bottom left
-            GlyphVertex([end_x,   start_y, 0.0], [bitmap_character.texture_end_x,   1.0]), // bottom right
-            GlyphVertex([end_x,   end_y,   0.0], [bitmap_character.texture_end_x,   0.0]), // top right
-            GlyphVertex([start_x, end_y,   0.0], [bitmap_character.texture_start_x, 0.0]) // top left
+            GlyphVertex([start_x, start_y, 0.0], [bitmap_character.texture_start_x, bitmap_character.texture_end_y]), // bottom left
+            GlyphVertex([end_x,   start_y, 0.0], [bitmap_character.texture_end_x,   bitmap_character.texture_end_y]), // bottom right
+            GlyphVertex([end_x,   end_y,   0.0], [bitmap_character.texture_end_x,   bitmap_character.texture_start_y]), // top right
+            GlyphVertex([start_x, end_y,   0.0], [bitmap_character.texture_start_x, bitmap_character.texture_start_y]) // top left
         ];
 
         let mut vbo = Buffer::new_vbo();
