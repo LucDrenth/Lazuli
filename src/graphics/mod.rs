@@ -8,7 +8,7 @@ pub mod window;
 pub mod texture;
 pub mod material;
 pub mod scene;
-pub mod text;
+pub mod ui;
 pub mod font;
 
 pub use shapes::*;

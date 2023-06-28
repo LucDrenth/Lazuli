@@ -1,4 +1,4 @@
-use crate::{graphics::{font::Font, Transform, material::Material, shader::ShaderProgram}, lz_core_warn, lz_core_info};
+use crate::{graphics::{font::Font, Transform, material::Material, shader::ShaderProgram}, lz_core_warn};
 
 use super::glyph::Glyph;
 
@@ -8,10 +8,12 @@ pub struct Text {
     pub transform: Transform,
     pub letter_spacing: f32,
     pub color: (u8, u8, u8),
+    total_width: f32,
+    text_size: f32,
 }
 
 impl Text {
-    pub fn new(text: String, font: &Font, program: &ShaderProgram) -> Self {
+    pub fn new(text: String, font: &Font, text_size: f32, program: &ShaderProgram) -> Self {
         let mut glyphs: Vec::<Glyph> = Vec::new();
 
         let letter_spacing = 0.1;
@@ -22,7 +24,12 @@ impl Text {
         for character in text.chars() {
             match font.get_bitmap_character(character) {
                 Some(bitmap_character) => {
-                    glyphs.push(Glyph::new(bitmap_character, start_x, start_x + bitmap_character.width, program));
+                    let glyph_start_x = start_x * text_size;
+                    let glyph_end_x = (start_x + bitmap_character.width) * text_size;
+                    let glyph_start_y = -1.0 * text_size;
+                    let glyph_end_y = 1.0 * text_size;
+                    
+                    glyphs.push(Glyph::new(bitmap_character, glyph_start_x, glyph_end_x, glyph_start_y, glyph_end_y, program));
                     start_x += bitmap_character.width + letter_spacing;
                 },
                 None => {
@@ -42,6 +49,8 @@ impl Text {
             transform: Transform::new(),
             letter_spacing,
             color: (255, 0, 0),
+            total_width,
+            text_size,
         }
     }
 

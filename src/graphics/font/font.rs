@@ -18,7 +18,6 @@ impl Font {
         match load_font(&path) {
             Ok(font) => {
                 let bitmap = Bitmap::new(&font, bitmap_builder)?;
-                bitmap.save(&format!("{}.bitmap.png", path))?;
 
                 Ok(Self { 
                     bitmap,
