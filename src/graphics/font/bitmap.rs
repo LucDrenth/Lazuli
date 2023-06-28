@@ -133,6 +133,11 @@ fn calculate_image_size(glyphs: &Vec<PositionedGlyph<'_>>, line_height: u32, pad
     let mut current_size: u32 = 2_u32.pow(8); // start at 256x256
 
     loop {
+        if padding_x * 2 >= current_size || padding_y * 2 >= current_size {
+            current_size *= 2;
+            continue;
+        }
+        
         let width_to_fit = current_size - padding_x * 2;
         let height_to_fit = current_size - padding_y * 2;
         
@@ -212,7 +217,7 @@ fn write_glyphs(
                         texture_end_x: (current_x + character_width) as f32 / bitmap_width as f32,
                         texture_start_y: current_y as f32 / bitmap_height as f32,
                         texture_end_y: (current_y as f32 + line_height) / bitmap_height as f32,
-                        width: (bounding_box.max.x - bounding_box.min.x) as f32 / line_height,
+                        width: character_width as f32 / line_height,
                     });
                 },
             }
@@ -231,7 +236,7 @@ fn write_glyphs(
             glyph.draw(|x, y, v| {
                 image_buffer.put_pixel(
                     x + current_x,
-                    y + current_y + bounding_box.min.y as u32,
+                    y + current_y + bounding_box.min.y as u32 - padding_y,
                     Rgba([colour.0, colour.1, colour.2, (v * 255.0) as u8]),
                 )
             });
