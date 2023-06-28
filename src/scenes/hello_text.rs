@@ -21,6 +21,9 @@ impl Scene for HelloText {
             BitmapBuilder::new()
             .with_font_size(100.0)
         )?;
+
+        font.save_bitmap("./assets/fonts/roboto.ttf.bitmap.png".to_string())?;
+
         material.add_texture_from_image(&font.image());
         
         let bitmap_rectangle = Rectangle::new_textured(&material.shader_program);

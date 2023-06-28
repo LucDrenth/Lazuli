@@ -31,6 +31,12 @@ impl Font {
         }
     }
 
+    pub fn save_bitmap(&self, path: String) -> Result<(), String> {
+        self.bitmap.image.save(path).map_err(|err| {
+            format!("Failed to save bitmap: {}", err)
+        }) 
+    }
+
     pub fn image(&self) -> &RgbaImage {
         &self.bitmap.image
     }
