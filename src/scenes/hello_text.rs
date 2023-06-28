@@ -22,11 +22,14 @@ impl Scene for HelloText {
             .with_font_size(100.0)
         )?;
         material.add_texture_from_image(&font.image());
-        material.shader_program.set_uniform("view", ui::view::for_shader(window_size.x, window_size.y));
-
+        
         let bitmap_rectangle = Rectangle::new_textured(&material.shader_program);
         
-        let text = Text::new("Welcome to Lazuli Engine".to_string(), &font, 75.0, &material.shader_program);
+        let mut text = Text::new("Welcome to Lazuli Engine".to_string(), &font, 75.0, &material.shader_program);
+        text.position.y = -200.0;
+        text.position.x = 500.0;
+        material.shader_program.set_uniform("worldPosition", text.position_for_shader());
+        material.shader_program.set_uniform("view", ui::view::for_shader(window_size.x, window_size.y));
         
         let result = Self { 
             material,

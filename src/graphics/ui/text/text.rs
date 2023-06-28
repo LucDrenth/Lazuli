@@ -1,3 +1,5 @@
+use glam::Vec2;
+
 use crate::{graphics::{font::Font, Transform, material::Material, shader::ShaderProgram}, lz_core_warn};
 
 use super::glyph::Glyph;
@@ -9,10 +11,17 @@ pub struct Text {
     pub letter_spacing: f32,
     pub color: (u8, u8, u8),
     total_width: f32,
-    text_size: f32,
+    text_size: f32, // font size in pixels
+    pub position: Vec2, // position in pixels from the center of the screen
 }
 
 impl Text {
+    /// # Arguments
+    /// 
+    /// * `text`:
+    /// * `font`:
+    /// * `text_size`: The size in pixels
+    /// * `program`:
     pub fn new(text: String, font: &Font, text_size: f32, program: &ShaderProgram) -> Self {
         let mut glyphs: Vec::<Glyph> = Vec::new();
 
@@ -51,7 +60,12 @@ impl Text {
             color: (255, 0, 0),
             total_width,
             text_size,
+            position: Vec2::ZERO,
         }
+    }
+
+    pub fn position_for_shader(&self) -> (f32, f32) {
+        (self.position.x, self.position.y)
     }
 
     pub fn draw(&self, material: &Material) {
