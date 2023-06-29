@@ -5,7 +5,6 @@ use rusttype::PositionedGlyph;
 
 use crate::{lz_core_warn, lz_core_err};
 
-/// TODO add space as characters to BitmapCharacter but don't add it to the bitmap (since it will just be an empty space)
 pub struct Bitmap {
     pub image: RgbaImage,
     pub characters: HashMap<char, BitmapCharacter>,
@@ -163,7 +162,7 @@ fn glyphs_fit_in(width: u32, height: u32, glyphs: &Vec<PositionedGlyph<'_>>, lin
                 current_x = 0;
                 current_y += line_height;
 
-                if current_y >= height {
+                if current_y + line_height >= height {
                     return false;
                 }
             } else {
