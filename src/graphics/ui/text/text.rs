@@ -73,9 +73,6 @@ impl Text {
     pub fn draw(&self, material: &Material) {
         material.activate();
 
-        // TODO apply program in material.activate and remove program.apply calls in shapes
-        material.shader_program.apply();
-
         for glyph in &self.glyphs {
             glyph.draw();
         }

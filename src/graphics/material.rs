@@ -41,6 +41,8 @@ impl Material {
     }
 
     pub fn activate(&self) {
+        self.shader_program.apply();
+        
         for (index, texture) in self.textures.iter().enumerate() {
             texture.activate(index);
         }
