@@ -22,10 +22,7 @@ impl Text {
     /// * `font`:
     /// * `text_size`: The size in pixels
     /// * `program`:
-    pub fn new(text: String, font: &Font, mut text_size: f32, program: &ShaderProgram) -> Self {
-        // TODO there is a bug somewhere here that makes the text_size 4 times as small as intended. This is a temporary fix.
-        text_size *= 4.0;
-
+    pub fn new(text: String, font: &Font, text_size: f32, program: &ShaderProgram) -> Self {
         let mut glyphs: Vec::<Glyph> = Vec::new();
 
         let letter_spacing = 0.08;
@@ -36,11 +33,12 @@ impl Text {
         for character in text.chars() {
             match font.get_bitmap_character(character) {
                 Some(bitmap_character) => {
-                    // these values range from -window_width to window width and -window_height to window_height
-                    let glyph_start_x = start_x * text_size;
-                    let glyph_end_x = (start_x + bitmap_character.width) * text_size;
-                    let glyph_start_y = -1.0 * text_size / 2.0;
-                    let glyph_end_y = 1.0 * text_size / 2.0;
+                    // These values range from -window_width to window width and -window_height to window_height.
+                    // TODO - why do we need to multiple the x by 4 and y by 2? Could this pixel density for the x2 and y2, but what about the other x2?
+                    let glyph_start_x = start_x * text_size * 4.0;
+                    let glyph_end_x = (start_x + bitmap_character.width) * text_size * 4.0;
+                    let glyph_start_y = -1.0 * text_size * 2.0;
+                    let glyph_end_y = 1.0 * text_size * 2.0;
                     
                     glyphs.push(Glyph::new(bitmap_character, glyph_start_x, glyph_end_x, glyph_start_y, glyph_end_y, program));
                     start_x += bitmap_character.width + letter_spacing;
