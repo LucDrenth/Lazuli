@@ -205,6 +205,17 @@ fn write_glyphs(
             let character: char = characters.chars().nth(i).take().unwrap();
             let character_width = (bounding_box.max.x - bounding_box.min.x) as u32;
 
+            if current_x + character_width >= bitmap_width - padding_x {
+                // go to next line
+                current_x = padding_x;
+                current_y += line_height as u32;
+
+                if current_y >= bitmap_height - padding_y {
+                    lz_core_err!("Failed to write glyphs to bitmap because it does not fit within the image");
+                    return;
+                }
+            }
+
             match bitmap_characters.entry(character) {
                 std::collections::hash_map::Entry::Occupied(_) => {
                     lz_core_warn!("Encountered duplicate character [{}] while writing glyphs for characters [{}] to bitmap", character, characters);
@@ -219,17 +230,6 @@ fn write_glyphs(
                         width: character_width as f32 / line_height,
                     });
                 },
-            }
-
-            if current_x + character_width >= bitmap_width - padding_x {
-                // go to next line
-                current_x = padding_x;
-                current_y += line_height as u32;
-
-                if current_y >= bitmap_height - padding_y {
-                    lz_core_err!("Failed to write glyphs to bitmap because it does not fit within the image");
-                    return;
-                }
             }
 
             glyph.draw(|x, y, v| {
