@@ -1,4 +1,4 @@
-use crate::{graphics::{renderer::buffer::{Vao, Buffer}, font::BitmapCharacter, shader::ShaderProgram}, error::opengl, set_attribute, lz_core_info};
+use crate::{graphics::{renderer::buffer::{Vao, Buffer}, font::BitmapCharacter, shader::ShaderProgram}, error::opengl, set_attribute};
 
 type Position = [f32; 3];
 type TextureCoordinates = [f32; 2];

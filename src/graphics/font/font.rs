@@ -21,7 +21,7 @@ impl Font {
 
                 Ok(Self { 
                     bitmap,
-                    space_size: 0.5,
+                    space_size: 0.215,
                 })
             },
             Err(err) => {

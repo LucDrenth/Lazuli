@@ -28,7 +28,7 @@ impl Scene for HelloText {
         
         let bitmap_rectangle = Rectangle::new_textured(&material.shader_program);
         
-        let mut text = Text::new("Welcome to Lazuli Engine".to_string(), &font, 200.0, &material.shader_program);
+        let mut text = Text::new("Welcome to Lazuli Engine".to_string(), &font, 30.0, &material.shader_program);
         text.position.y = -200.0;
         text.position.x = 500.0;
         material.shader_program.set_uniform("worldPosition", text.position_for_shader());

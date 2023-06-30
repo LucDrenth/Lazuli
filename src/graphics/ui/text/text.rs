@@ -22,10 +22,13 @@ impl Text {
     /// * `font`:
     /// * `text_size`: The size in pixels
     /// * `program`:
-    pub fn new(text: String, font: &Font, text_size: f32, program: &ShaderProgram) -> Self {
+    pub fn new(text: String, font: &Font, mut text_size: f32, program: &ShaderProgram) -> Self {
+        // TODO there is a bug somewhere here that makes the text_size 4 times as small as intended. This is a temporary fix.
+        text_size *= 4.0;
+
         let mut glyphs: Vec::<Glyph> = Vec::new();
 
-        let letter_spacing = 0.1;
+        let letter_spacing = 0.08;
 
         let total_width = Self::get_total_width(&text, &font, letter_spacing);
         let mut start_x: f32 = 0.0 - total_width / 2.0;
@@ -36,8 +39,8 @@ impl Text {
                     // these values range from -window_width to window width and -window_height to window_height
                     let glyph_start_x = start_x * text_size;
                     let glyph_end_x = (start_x + bitmap_character.width) * text_size;
-                    let glyph_start_y = -1.0 * text_size;
-                    let glyph_end_y = 1.0 * text_size;
+                    let glyph_start_y = -1.0 * text_size / 2.0;
+                    let glyph_end_y = 1.0 * text_size / 2.0;
                     
                     glyphs.push(Glyph::new(bitmap_character, glyph_start_x, glyph_end_x, glyph_start_y, glyph_end_y, program));
                     start_x += bitmap_character.width + letter_spacing;
