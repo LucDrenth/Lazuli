@@ -33,6 +33,7 @@ impl Text {
         for character in text.chars() {
             match font.get_bitmap_character(character) {
                 Some(bitmap_character) => {
+                    // these values range from -window_width to window width and -window_height to window_height
                     let glyph_start_x = start_x * text_size;
                     let glyph_end_x = (start_x + bitmap_character.width) * text_size;
                     let glyph_start_y = -1.0 * text_size;
