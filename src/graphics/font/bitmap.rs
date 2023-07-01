@@ -126,25 +126,41 @@ pub struct BitmapCharacter {
     pub width: f32, // relative to the lineheight of the font
 }
 
-/// TODO - should we only do square images or can we also do rectangular images such as 256x512 ?
 /// Calculate the size that the bitmap needs to be, as a powers of 2. such as 256x256, 512x512 etc.
 fn calculate_image_size(glyphs: &Vec<PositionedGlyph<'_>>, line_height: u32, padding_x: u32, padding_y: u32,) -> (u32, u32) {
-    let mut current_size: u32 = 2_u32.pow(8); // start at 256x256
+    // start at 128x128
+    let mut current_width: u32 = 2_u32.pow(7);
+    let mut current_height: u32 = 2_u32.pow(7); 
+
+    let mut update_width = true; // if true, increase current_width. If false, increase current_height
 
     loop {
-        if padding_x * 2 >= current_size || padding_y * 2 >= current_size {
-            current_size *= 2;
+        if padding_x * 2 >= current_width || padding_y * 2 >= current_height {
+            if update_width {
+                current_width *= 2; 
+                update_width = false;
+            } else { 
+                current_height *= 2; 
+                update_width = true;
+            }
+
             continue;
         }
         
-        let width_to_fit = current_size - padding_x * 2;
-        let height_to_fit = current_size - padding_y * 2;
+        let width_to_fit = current_width - padding_x * 2;
+        let height_to_fit = current_height - padding_y * 2;
         
         if glyphs_fit_in(width_to_fit, height_to_fit, &glyphs, line_height) {
-            return (current_size, current_size)
+            return (current_width, current_height)
         }
 
-        current_size *= 2;
+        if update_width {
+            current_width *= 2; 
+            update_width = false;
+        } else { 
+           current_height *= 2; 
+           update_width = true;
+        }
     }
 }
 
