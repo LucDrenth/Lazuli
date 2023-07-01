@@ -1,3 +1,4 @@
+use gl::types::GLuint;
 use glam::Mat4;
 
 pub enum UniformValue {
@@ -9,6 +10,10 @@ pub enum UniformValue {
     Int2(i32, i32),
     Int3(i32, i32, i32),
     Int4(i32, i32, i32, i32),
+    U8_1(u8),
+    U8_2(u8, u8),
+    U8_3(u8, u8, u8),
+    U8_4(u8, u8, u8, u8),
     Mat4(Mat4),
 }
 
@@ -60,6 +65,30 @@ impl From<(i32, i32, i32, i32)> for UniformValue {
     }
 }
 
+impl From<u8> for UniformValue {
+    fn from(value: u8) -> Self {
+        UniformValue::U8_1(value)
+    }
+}
+
+impl From<(u8, u8)> for UniformValue {
+    fn from(value: (u8, u8)) -> Self {
+        UniformValue::U8_2(value.0, value.1)
+    }
+}
+
+impl From<(u8, u8, u8)> for UniformValue {
+    fn from(value: (u8, u8, u8)) -> Self {
+        UniformValue::U8_3(value.0, value.1, value.2)
+    }
+}
+
+impl From<(u8, u8, u8, u8)> for UniformValue {
+    fn from(value: (u8, u8, u8, u8)) -> Self {
+        UniformValue::U8_4(value.0, value.1, value.2, value.3)
+    }
+}
+
 impl From<Mat4> for UniformValue {
     fn from(value: Mat4) -> Self {
         UniformValue::Mat4(value)
@@ -93,6 +122,18 @@ impl UniformValue {
                 },
                 UniformValue::Int4(value1, value2, value3, value4) => {
                     gl::Uniform4i(location, *value1, *value2, *value3, *value4);
+                },
+                UniformValue::U8_1(value) => {
+                    gl::Uniform1ui(location, *value as GLuint);
+                },
+                UniformValue::U8_2(value1, value2) => {
+                    gl::Uniform2ui(location, *value1 as GLuint, *value2 as GLuint);
+                },
+                UniformValue::U8_3(value1, value2, value3) => {
+                    gl::Uniform3ui(location, *value1 as GLuint, *value2 as GLuint, *value3 as GLuint);
+                },
+                UniformValue::U8_4(value1, value2, value3, value4) => {
+                    gl::Uniform4ui(location, *value1 as GLuint, *value2 as GLuint, *value3 as GLuint, *value4 as GLuint);
                 },
                 UniformValue::Mat4(mat) => {
                     let ptr: *const f32 = std::mem::transmute(mat);

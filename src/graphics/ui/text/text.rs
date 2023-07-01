@@ -16,13 +16,7 @@ pub struct Text {
 }
 
 impl Text {
-    /// # Arguments
-    /// 
-    /// * `text`:
-    /// * `font`:
-    /// * `text_size`: The size in pixels
-    /// * `program`:
-    pub fn new(text: String, font: &Font, text_size: f32, program: &ShaderProgram) -> Self {
+    pub fn new(text: String, font: &Font, program: &ShaderProgram, text_builder: &TextBuilder) -> Self {
         let mut glyphs: Vec::<Glyph> = Vec::new();
 
         let letter_spacing = 0.08;
@@ -35,10 +29,10 @@ impl Text {
                 Some(bitmap_character) => {
                     // These values range from -window_width to window width and -window_height to window_height.
                     // TODO - why do we need to multiple the x by 4 and y by 2? Could this pixel density for the x2 and y2, but what about the other x2?
-                    let glyph_start_x = start_x * text_size * 4.0;
-                    let glyph_end_x = (start_x + bitmap_character.width) * text_size * 4.0;
-                    let glyph_start_y = -1.0 * text_size * 2.0;
-                    let glyph_end_y = 1.0 * text_size * 2.0;
+                    let glyph_start_x = start_x * text_builder.text_size * 4.0;
+                    let glyph_end_x = (start_x + bitmap_character.width) * text_builder.text_size * 4.0;
+                    let glyph_start_y = -1.0 * text_builder.text_size * 2.0;
+                    let glyph_end_y = 1.0 * text_builder.text_size * 2.0;
                     
                     glyphs.push(Glyph::new(bitmap_character, glyph_start_x, glyph_end_x, glyph_start_y, glyph_end_y, program));
                     start_x += bitmap_character.width + letter_spacing;
@@ -59,9 +53,9 @@ impl Text {
             glyphs,
             transform: Transform::new(),
             letter_spacing,
-            color: (255, 0, 0),
+            color: text_builder.color,
             total_width,
-            text_size,
+            text_size: text_builder.text_size,
             position: Vec2::ZERO,
         }
     }
@@ -72,6 +66,11 @@ impl Text {
 
     pub fn draw(&self, material: &Material) {
         material.activate();
+        material.shader_program.set_uniform("color", (
+            (self.color.0 as f32 / 255.0),
+            (self.color.1 as f32 / 255.0),
+            (self.color.2 as f32 / 255.0),
+        ));
 
         for glyph in &self.glyphs {
             glyph.draw();
@@ -105,5 +104,29 @@ impl Text {
         }
 
         return total_width - letter_spacing;
+    }
+}
+
+pub struct TextBuilder {
+    text_size: f32, // size in pixels
+    color: (u8, u8, u8),
+}
+
+impl TextBuilder {
+    pub fn new() -> Self {
+        TextBuilder { 
+            text_size: 20.0,
+            color: (255, 255, 255),
+        }
+    }
+
+    pub fn with_text_size(mut self, text_size: f32) -> Self {
+        self.text_size = text_size;
+        self
+    }
+
+    pub fn with_color(mut self, color: (u8, u8, u8)) -> Self {
+        self.color = color;
+        self
     }
 }

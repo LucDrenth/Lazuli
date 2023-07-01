@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, material::Material, mesh_renderer, shader::ShaderProgram, font::{Font, BitmapBuilder}, Rectangle, ui::{Text, self}}, event::{EventSystem, WindowResizeEvent, EventReader}, input::Input};
+use crate::{graphics::{scene::Scene, material::Material, mesh_renderer, shader::ShaderProgram, font::{Font, BitmapBuilder}, Rectangle, ui::{Text, self, TextBuilder}}, event::{EventSystem, WindowResizeEvent, EventReader}, input::Input};
 
 pub struct HelloText {
     material: Material,
@@ -28,7 +28,10 @@ impl Scene for HelloText {
         
         let bitmap_rectangle = Rectangle::new_textured(&material.shader_program);
         
-        let mut text = Text::new("Welcome to Lazuli Engine".to_string(), &font, 30.0, &material.shader_program);
+        let mut text = Text::new("Welcome to Lazuli Engine".to_string(), &font, &material.shader_program, &TextBuilder::new()
+            .with_text_size(40.0)
+            .with_color((89, 4, 49))
+        );
         text.position.y = -200.0;
         text.position.x = 500.0;
         material.shader_program.set_uniform("worldPosition", text.position_for_shader());
