@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use image::{DynamicImage, Rgba, RgbaImage, ImageBuffer};
+use image::{DynamicImage, Rgba, RgbaImage};
 use rusttype::PositionedGlyph;
 
 use crate::{lz_core_warn, lz_core_err};
@@ -25,14 +25,9 @@ impl Bitmap {
 
     /// save the bitmap image to a file
     pub fn save(&self, path: &String) -> Result<(), String> {
-        let save_result = self.image.save(path).map_err(|err| {
+        self.image.save(path).map_err(|err| {
             format!("Failed to save bitmap image: {}", err)
-        });
-
-        match save_result {
-            Ok(_) => Ok(()),
-            Err(e) => Err(e),
-        }
+        })
     }
 
     fn create(font: &rusttype::Font<'static>, bitmap_builder: BitmapBuilder) -> Result<Self, String> {
@@ -48,7 +43,7 @@ impl Bitmap {
         let line_height = (v_metrics.ascent - v_metrics.descent).ceil() as u32;
         let (bitmap_width, bitmap_height) = calculate_image_size(&glyphs, line_height, bitmap_builder.padding_x, bitmap_builder.padding_y);
 
-        let mut image_buffer: ImageBuffer<Rgba<u8>, Vec<u8>> = DynamicImage::new_rgba8(bitmap_width, bitmap_height).to_rgba8();
+        let mut image_buffer: RgbaImage = DynamicImage::new_rgba8(bitmap_width, bitmap_height).to_rgba8();
         let mut bitmap_characters: HashMap<char, BitmapCharacter> = HashMap::new();
         write_glyphs(
             glyphs, 
@@ -61,10 +56,8 @@ impl Bitmap {
             line_height as f32
         );
 
-        let rgba_image = to_rgba_image(image_buffer)?;
-
         Ok(Self{ 
-            image: rgba_image, 
+            image: image_buffer, 
             characters: bitmap_characters, 
             line_height: line_height as f32,
         })
@@ -203,7 +196,7 @@ fn glyphs_fit_in(width: u32, height: u32, glyphs: &Vec<PositionedGlyph<'_>>, lin
 fn write_glyphs(
     glyphs: Vec<PositionedGlyph<'_>>, 
     characters: &str,
-    image_buffer: &mut ImageBuffer<Rgba<u8>, Vec<u8>>, 
+    image_buffer: &mut RgbaImage, 
     bitmap_characters: &mut HashMap<char, BitmapCharacter>,
     colour: (u8, u8, u8),
     padding_x: u32,
@@ -258,15 +251,5 @@ fn write_glyphs(
 
             current_x += character_width;
         }
-    }
-}
-
-fn to_rgba_image(image_buffer: ImageBuffer<Rgba<u8>, Vec<u8>>) -> Result<RgbaImage, String> {
-    let (width, height) = image_buffer.dimensions();
-    let raw_pixels = image_buffer.into_raw();
-    
-    match RgbaImage::from_raw(width, height, raw_pixels) {
-        Some(img) => Ok(img),
-        None => Err(format!("Could not create RgbaImage")),
     }
 }
