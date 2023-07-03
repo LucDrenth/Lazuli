@@ -50,7 +50,7 @@ impl Font {
     }
 }
 
-fn load_font(path: &String) -> Result<rusttype::Font<'static>, String> {
+pub fn load_font(path: &String) -> Result<rusttype::Font<'static>, String> {
     let mut file = File::open(path).map_err(|err| {
         format!("Failed to open file: {}", err.to_string())
     })?;

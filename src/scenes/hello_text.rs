@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, material::Material, mesh_renderer, shader::ShaderProgram, font::{Font, BitmapBuilder}, Rectangle, ui::{Text, self, TextBuilder}}, event::{EventSystem, WindowResizeEvent, EventReader}, input::Input};
+use crate::{graphics::{scene::Scene, material::Material, mesh_renderer, shader::ShaderProgram, font::{Font, BitmapBuilder, SdfBitmap, SdfBitmapBuilder, self}, Rectangle, ui::{Text, self, TextBuilder}}, event::{EventSystem, WindowResizeEvent, EventReader}, input::Input};
 
 pub struct HelloText {
     material: Material,
@@ -19,10 +19,16 @@ impl Scene for HelloText {
         let mut material = Material::new(program);
         let font = Font::new("./assets/fonts/roboto.ttf".to_string(), 
             BitmapBuilder::new()
-            .with_font_size(200.0)
+            .with_font_size(40.0)
         )?;
 
         font.save_bitmap("./assets/fonts/roboto.ttf.bitmap.png".to_string())?;
+
+        let binary_bitmap = SdfBitmap::new(
+            &font::load_font(&"./assets/fonts/roboto.ttf".to_string()).unwrap(), 
+            SdfBitmapBuilder::new().with_font_size(40.0).with_spread(40)
+        )?;
+        binary_bitmap.save(&"./assets/fonts/roboto-binary-bitmap.png".to_string())?;
 
         material.add_texture_from_image(&font.image());
         
