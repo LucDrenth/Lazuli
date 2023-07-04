@@ -5,10 +5,7 @@ use rusttype::PositionedGlyph;
 
 use crate::{lz_core_warn, lz_core_err};
 
-/// Signed distance field font bitmap. 
-/// 
-/// When creating one, we first make a binary image (grayscale with pixels that are either 0 or 255). We then use that
-/// binary image to create the (scaled down) signed distance field.
+/// Signed distance field font bitmap
 pub struct SdfBitmap {
     pub image: GrayImage,
     pub characters: HashMap<char, BitmapCharacter>,
@@ -45,27 +42,11 @@ impl SdfBitmap {
         // TODO - remove duplicates from bitmap_builder.characters (and add a warning if there is any duplicates)
 
         let line_height = (v_metrics.ascent - v_metrics.descent).ceil() as u32;
-        let (bitmap_width, bitmap_height) = calculate_image_size(
-            &glyphs, 
-            line_height, 
-            bitmap_builder.padding_x, 
-            bitmap_builder.padding_y, 
-            bitmap_builder.spread
-        );
+        let (bitmap_width, bitmap_height) = calculate_image_size(&glyphs, line_height, &bitmap_builder);
 
         let mut image_buffer: GrayImage = DynamicImage::new_luma8(bitmap_width, bitmap_height).to_luma8();
         let mut bitmap_characters: HashMap<char, BitmapCharacter> = HashMap::new();
-        write_glyphs(
-            glyphs, 
-            &bitmap_builder.characters, 
-            &mut image_buffer, 
-            &mut bitmap_characters, 
-            bitmap_builder.padding_x, 
-            bitmap_builder.padding_y, 
-            line_height as f32,
-            bitmap_builder.pixel_boundry,
-            bitmap_builder.spread as u32,
-        );
+        write_glyphs(glyphs, &bitmap_builder, &mut image_buffer, &mut bitmap_characters, line_height as f32);
 
         Ok(Self{ 
             image: image_buffer, 
@@ -138,7 +119,7 @@ pub struct BitmapCharacter {
 }
 
 /// Calculate the size that the bitmap needs to be, as a powers of 2. such as 256x256, 512x512 etc.
-fn calculate_image_size(glyphs: &Vec<PositionedGlyph<'_>>, line_height: u32, padding_x: u32, padding_y: u32, spread: u8) -> (u32, u32) {
+fn calculate_image_size(glyphs: &Vec<PositionedGlyph<'_>>, line_height: u32, bitmap_builder: &SdfBitmapBuilder) -> (u32, u32) {
     // start at 128x128
     let mut current_width: u32 = 2_u32.pow(7);
     let mut current_height: u32 = 2_u32.pow(7); 
@@ -146,7 +127,7 @@ fn calculate_image_size(glyphs: &Vec<PositionedGlyph<'_>>, line_height: u32, pad
     let mut update_width = true; // if true, increase current_width. If false, increase current_height
 
     loop {
-        if padding_x * 2 >= current_width || padding_y * 2 >= current_height {
+        if bitmap_builder.padding_x * 2 >= current_width || bitmap_builder.padding_y * 2 >= current_height {
             if update_width {
                 current_width *= 2; 
                 update_width = false;
@@ -158,10 +139,10 @@ fn calculate_image_size(glyphs: &Vec<PositionedGlyph<'_>>, line_height: u32, pad
             continue;
         }
         
-        let width_to_fit = current_width - padding_x * 2;
-        let height_to_fit = current_height - padding_y * 2;
+        let width_to_fit = current_width - bitmap_builder.padding_x * 2;
+        let height_to_fit = current_height - bitmap_builder.padding_y * 2;
         
-        if glyphs_fit_in(width_to_fit, height_to_fit, &glyphs, line_height, spread as u32) {
+        if glyphs_fit_in(width_to_fit, height_to_fit, &glyphs, line_height, bitmap_builder.spread as u32) {
             return (current_width, current_height)
         }
 
@@ -203,69 +184,47 @@ fn glyphs_fit_in(width: u32, height: u32, glyphs: &Vec<PositionedGlyph<'_>>, lin
     return true;
 }
 
-/// TODO take in SdfBitmapBuilder
 /// # Arguments
 /// 
 /// * `glyphs` - There exists a glyph for every character of the characters param, and no more
-/// * `characters` - 
+/// * `bitmap_builder` - 
 /// * `image_buffer` - 
 /// * `bitmap_characters` - 
-/// * `padding_x` - 
-/// * `padding_y` - 
 /// * `line_height` - 
-/// * `pixel_boundry` - a value between 0 and 1. If the alpha value of a glyph is equal or higher than this image, draw a pixel
-/// * `spread`
 fn write_glyphs(
     glyphs: Vec<PositionedGlyph<'_>>, 
-    characters: &str,
+    bitmap_builder: &SdfBitmapBuilder,
     image_buffer: &mut GrayImage, 
     bitmap_characters: &mut HashMap<char, BitmapCharacter>,
-    padding_x: u32,
-    padding_y: u32,
     line_height: f32,
-    pixel_boundry: f32,
-    spread: u32,
 ) {
-    let mut current_x: u32 = padding_x;
-    let mut current_y: u32 = padding_y;
+    let mut current_x: u32 = bitmap_builder.padding_x;
+    let mut current_y: u32 = bitmap_builder.padding_y;
+    let spread = bitmap_builder.spread as u32;
 
     for (i, glyph) in glyphs.iter().enumerate() {
         let bitmap_width = image_buffer.width();
         let bitmap_height = image_buffer.height();
 
         if let Some(bounding_box) = glyph.pixel_bounding_box() {
-            let character: char = characters.chars().nth(i).take().unwrap();
+            let character: char = bitmap_builder.characters.chars().nth(i).take().unwrap();
             let character_width = (bounding_box.max.x - bounding_box.min.x) as u32 + spread * 2;
             let character_height = (bounding_box.max.y - bounding_box.min.y) as u32 + spread * 2;
 
-            if current_x + character_width >= bitmap_width - padding_x {
+            if current_x + character_width >= bitmap_width - bitmap_builder.padding_x {
                 // go to next line
-                current_x = padding_x;
+                current_x = bitmap_builder.padding_x;
                 current_y += line_height as u32 + spread * 2;
 
-                if current_y >= bitmap_height - padding_y {
+                if current_y >= bitmap_height - bitmap_builder.padding_y {
                     lz_core_err!("Failed to write glyphs to bitmap because it does not fit within the image");
                     return;
                 }
             }
 
-            match bitmap_characters.entry(character) {
-                std::collections::hash_map::Entry::Occupied(_) => {
-                    lz_core_warn!("Encountered duplicate character [{}] while writing glyphs for characters [{}] to bitmap", character, characters);
-                    continue;
-                },
-                std::collections::hash_map::Entry::Vacant(entry) => {
-                    entry.insert(BitmapCharacter {
-                        texture_start_x: (current_x as i32) as f32 / bitmap_width as f32,
-                        texture_end_x: (current_x + character_width) as f32 / bitmap_width as f32,
-                        texture_start_y: current_y as f32 / bitmap_height as f32,
-                        texture_end_y: (current_y as f32 + line_height) / bitmap_height as f32,
-                        width: character_width as f32 / line_height,
-                    });
-                },
-            }
+            register_bitmap_character(bitmap_characters, character, bitmap_builder, current_x, current_y, bitmap_width, bitmap_height, character_width, line_height);
 
-            let glyph_buffer = create_glyph_binary_map(glyph, character_width as usize, character_height as usize, spread, pixel_boundry);
+            let glyph_buffer = create_glyph_binary_map(glyph, character_width as usize, character_height as usize, bitmap_builder);
 
             for x in 0..glyph_buffer.len() {
                 for y in 0..glyph_buffer[x].len() {
@@ -273,7 +232,7 @@ fn write_glyphs(
                     if glyph_buffer[x][y] {
                         image_buffer.put_pixel(
                             x as u32 + current_x,
-                            y as u32 + current_y + bounding_box.min.y as u32 - padding_y,
+                            y as u32 + current_y + bounding_box.min.y as u32 - bitmap_builder.padding_y,
                             Luma([255]),
                         )
                     }
@@ -285,18 +244,46 @@ fn write_glyphs(
     }
 }
 
+pub fn register_bitmap_character(
+    bitmap_characters: &mut HashMap<char, BitmapCharacter>, 
+    character: char, 
+    bitmap_builder: &SdfBitmapBuilder, 
+    current_x: u32, 
+    current_y: u32,
+    bitmap_width: u32,
+    bitmap_height: u32,
+    character_width: u32,
+    line_height: f32,
+) {
+    match bitmap_characters.entry(character) {
+        std::collections::hash_map::Entry::Occupied(_) => {
+            lz_core_warn!("Encountered duplicate character [{}] while writing glyphs for characters [{}] to bitmap", character, bitmap_builder.characters);
+            return;
+        },
+        std::collections::hash_map::Entry::Vacant(entry) => {
+            entry.insert(BitmapCharacter {
+                texture_start_x: (current_x as i32) as f32 / bitmap_width as f32,
+                texture_end_x: (current_x + character_width) as f32 / bitmap_width as f32,
+                texture_start_y: current_y as f32 / bitmap_height as f32,
+                texture_end_y: (current_y as f32 + line_height) / bitmap_height as f32,
+                width: character_width as f32 / line_height,
+            });
+        },
+    }
+}
+
 /// Create a binary bitmap for the glyph with empty space for the spread.
-pub fn create_glyph_binary_map(glyph: &PositionedGlyph<'_>, character_width: usize, character_height: usize, spread: u32, pixel_boundry: f32) -> Vec<Vec<bool>> {
+pub fn create_glyph_binary_map(glyph: &PositionedGlyph<'_>, character_width: usize, character_height: usize, bitmap_builder: &SdfBitmapBuilder) -> Vec<Vec<bool>> {
     // A 2d vec that says where the pixels of the glyph are
     let mut glyph_pixels: Vec<Vec<bool>> = vec![vec![false; character_height]; character_width];
 
     glyph.draw(|x, y, v| {
-        if v < pixel_boundry {
+        if v < bitmap_builder.pixel_boundry {
             return;
         }
 
-        let index_x = (x + spread) as usize;
-        let index_y = (y + spread) as usize;
+        let index_x = (x + bitmap_builder.spread as u32) as usize;
+        let index_y = (y + bitmap_builder.spread as u32) as usize;
 
         glyph_pixels[index_x][index_y] = true;
     });
