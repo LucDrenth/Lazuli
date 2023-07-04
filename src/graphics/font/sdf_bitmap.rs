@@ -228,12 +228,11 @@ fn write_glyphs(
 
             for x in 0..glyph_buffer.len() {
                 for y in 0..glyph_buffer[x].len() {
-                    // TODO value based on range from border
-                    if glyph_buffer[x][y] {
+                    if is_border_pixel(&glyph_buffer, x, y) {
                         image_buffer.put_pixel(
                             x as u32 + current_x,
                             y as u32 + current_y + bounding_box.min.y as u32 - bitmap_builder.padding_y,
-                            Luma([255]),
+                            Luma([127]),
                         )
                     }
                 }
@@ -244,7 +243,15 @@ fn write_glyphs(
     }
 }
 
-pub fn register_bitmap_character(
+fn is_border_pixel(glyph: &Vec<Vec<bool>>, x: usize, y: usize) -> bool {
+    if !glyph[x][y] {
+        return false;
+    }
+
+    return !glyph[x - 1][y] || !glyph[x + 1][y] || !glyph[x][y - 1] || !glyph[x][y + 1];
+}
+
+fn register_bitmap_character(
     bitmap_characters: &mut HashMap<char, BitmapCharacter>, 
     character: char, 
     bitmap_builder: &SdfBitmapBuilder, 
@@ -273,7 +280,7 @@ pub fn register_bitmap_character(
 }
 
 /// Create a binary bitmap for the glyph with empty space for the spread.
-pub fn create_glyph_binary_map(glyph: &PositionedGlyph<'_>, character_width: usize, character_height: usize, bitmap_builder: &SdfBitmapBuilder) -> Vec<Vec<bool>> {
+fn create_glyph_binary_map(glyph: &PositionedGlyph<'_>, character_width: usize, character_height: usize, bitmap_builder: &SdfBitmapBuilder) -> Vec<Vec<bool>> {
     // A 2d vec that says where the pixels of the glyph are
     let mut glyph_pixels: Vec<Vec<bool>> = vec![vec![false; character_height]; character_width];
 

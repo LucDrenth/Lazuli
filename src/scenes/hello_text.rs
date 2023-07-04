@@ -26,7 +26,7 @@ impl Scene for HelloText {
 
         let sdf_bitmap = SdfBitmap::new(
             &font::load_font(&"./assets/fonts/roboto.ttf".to_string()).unwrap(), 
-            SdfBitmapBuilder::new().with_font_size(40.0).with_spread(40)
+            SdfBitmapBuilder::new().with_font_size(80.0).with_spread(8)
         )?;
         sdf_bitmap.save(&"./assets/fonts/roboto-sdf-bitmap.png".to_string())?;
 
