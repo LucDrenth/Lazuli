@@ -24,11 +24,11 @@ impl Scene for HelloText {
 
         font.save_bitmap("./assets/fonts/roboto.ttf.bitmap.png".to_string())?;
 
-        let binary_bitmap = SdfBitmap::new(
+        let sdf_bitmap = SdfBitmap::new(
             &font::load_font(&"./assets/fonts/roboto.ttf".to_string()).unwrap(), 
             SdfBitmapBuilder::new().with_font_size(40.0).with_spread(40)
         )?;
-        binary_bitmap.save(&"./assets/fonts/roboto-binary-bitmap.png".to_string())?;
+        sdf_bitmap.save(&"./assets/fonts/roboto-sdf-bitmap.png".to_string())?;
 
         material.add_texture_from_image(&font.image());
         

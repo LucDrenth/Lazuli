@@ -227,7 +227,7 @@ fn write_glyphs(
     spread: u32,
 ) {
     let mut current_x: u32 = padding_x;
-    let mut current_y: u32 = padding_y + spread;
+    let mut current_y: u32 = padding_y;
 
     for (i, glyph) in glyphs.iter().enumerate() {
         let bitmap_width = image_buffer.width();
@@ -236,6 +236,7 @@ fn write_glyphs(
         if let Some(bounding_box) = glyph.pixel_bounding_box() {
             let character: char = characters.chars().nth(i).take().unwrap();
             let character_width = (bounding_box.max.x - bounding_box.min.x) as u32 + spread * 2;
+            let character_height = (bounding_box.max.y - bounding_box.min.y) as u32 + spread * 2;
 
             if current_x + character_width >= bitmap_width - padding_x {
                 // go to next line
@@ -247,8 +248,6 @@ fn write_glyphs(
                     return;
                 }
             }
-
-            current_x += spread;
 
             match bitmap_characters.entry(character) {
                 std::collections::hash_map::Entry::Occupied(_) => {
@@ -266,20 +265,41 @@ fn write_glyphs(
                 },
             }
 
-            // TODO draw the glyph to a glyph buffer and then use that to draw the SDF glyph to the image_buffer
-            glyph.draw(|x, y, v| {
-                if v < pixel_boundry {
-                    return;
+            let glyph_buffer = create_glyph_binary_map(glyph, character_width as usize, character_height as usize, spread, pixel_boundry);
+
+            for x in 0..glyph_buffer.len() {
+                for y in 0..glyph_buffer[x].len() {
+                    // TODO value based on range from border
+                    if glyph_buffer[x][y] {
+                        image_buffer.put_pixel(
+                            x as u32 + current_x,
+                            y as u32 + current_y + bounding_box.min.y as u32 - padding_y,
+                            Luma([255]),
+                        )
+                    }
                 }
+            }
 
-                image_buffer.put_pixel(
-                    x + current_x,
-                    y + current_y + bounding_box.min.y as u32 - padding_y,
-                    Luma([255]),
-                )
-            });
-
-            current_x += character_width - spread;
+            current_x += character_width;
         }
     }
+}
+
+/// Create a binary bitmap for the glyph with empty space for the spread.
+pub fn create_glyph_binary_map(glyph: &PositionedGlyph<'_>, character_width: usize, character_height: usize, spread: u32, pixel_boundry: f32) -> Vec<Vec<bool>> {
+    // A 2d vec that says where the pixels of the glyph are
+    let mut glyph_pixels: Vec<Vec<bool>> = vec![vec![false; character_height]; character_width];
+
+    glyph.draw(|x, y, v| {
+        if v < pixel_boundry {
+            return;
+        }
+
+        let index_x = (x + spread) as usize;
+        let index_y = (y + spread) as usize;
+
+        glyph_pixels[index_x][index_y] = true;
+    });
+
+    glyph_pixels
 }
