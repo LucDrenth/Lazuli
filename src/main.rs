@@ -9,6 +9,7 @@ mod log;
 mod event;
 mod input;
 mod time;
+mod math;
 
 mod app;
 

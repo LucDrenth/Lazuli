@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use image::{DynamicImage, Luma, GrayImage};
 use rusttype::PositionedGlyph;
 
-use crate::{lz_core_warn, lz_core_err};
+use crate::{lz_core_warn, lz_core_err, math, lz_core_info};
 
 /// Signed distance field font bitmap
 pub struct SdfBitmap {
@@ -225,15 +225,19 @@ fn write_glyphs(
             register_bitmap_character(bitmap_characters, character, bitmap_builder, current_x, current_y, bitmap_width, bitmap_height, character_width, line_height);
 
             let glyph_buffer = create_glyph_binary_map(glyph, character_width as usize, character_height as usize, bitmap_builder);
+            let border_pixels: Vec<(usize, usize)> = get_border_pixels(&glyph_buffer);
 
             for x in 0..glyph_buffer.len() {
                 for y in 0..glyph_buffer[x].len() {
-                    if is_border_pixel(&glyph_buffer, x, y) {
-                        image_buffer.put_pixel(
-                            x as u32 + current_x,
-                            y as u32 + current_y + bounding_box.min.y as u32 - bitmap_builder.padding_y,
-                            Luma([127]),
-                        )
+                    match get_pixel_value(&glyph_buffer, &border_pixels, x, y, spread as f32) {
+                        Ok(v) => {
+                            image_buffer.put_pixel(
+                                x as u32 + current_x,
+                                y as u32 + current_y + bounding_box.min.y as u32 - bitmap_builder.padding_y,
+                                Luma([v]),
+                            )
+                        },
+                        Err(_) => (),
                     }
                 }
             }
@@ -296,4 +300,52 @@ fn create_glyph_binary_map(glyph: &PositionedGlyph<'_>, character_width: usize, 
     });
 
     glyph_pixels
+}
+
+fn get_distance_to_closest_border_pixel(border_pixels: &Vec<(usize, usize)>, target_x: usize, target_y: usize) -> f32 {
+    let mut closest: f32 = f32::MAX;
+
+    for coordinate in border_pixels.iter() {
+        let distance = math::distance(target_x, target_y, coordinate.0, coordinate.1);
+                
+        if distance < closest {
+            closest = distance;
+        }
+    }
+
+    closest
+}
+
+fn get_border_pixels(glyph_pixels: &Vec<Vec<bool>>) -> Vec<(usize, usize)> {
+    let mut result = vec![];
+    
+    for x in 0..glyph_pixels.len() {
+        for y in 0..glyph_pixels[x].len() {
+            if is_border_pixel(glyph_pixels, x, y) {
+                result.push((x, y));
+            }
+
+        }
+    }
+
+    result
+}
+
+fn get_pixel_value(glyph_pixels: &Vec<Vec<bool>>,  border_pixels: &Vec<(usize, usize)>, x: usize, y: usize, spread: f32) -> Result<u8, ()> {
+    if is_border_pixel(&glyph_pixels, x, y) {
+        return Ok(127);
+    } 
+
+    let distance = get_distance_to_closest_border_pixel(&border_pixels, x, y);
+
+    if distance > spread as f32 {
+        return Err(());
+    }
+
+    if glyph_pixels[x][y] {
+        return Ok(127 + (distance / spread as f32 * 128.0) as u8);
+    } else {
+        return Ok(127 - (distance / spread as f32 * 127.0) as u8);
+    }
+    
 }
