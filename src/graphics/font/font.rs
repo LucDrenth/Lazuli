@@ -1,23 +1,23 @@
 use std::{fs::File, io::Read};
 
-use image::RgbaImage;
+use image::GrayImage;
 
 use crate::lz_core_err;
 
-use super::{bitmap::{Bitmap, BitmapBuilder}, BitmapCharacter};
+use super::{SdfBitmap, SdfBitmapBuilder, sdf_bitmap::BitmapCharacter};
 
 pub struct Font {
-    bitmap: Bitmap,
+    bitmap: SdfBitmap,
 
     /// The width of the space (' ') character. the space is relative to the line height. So 0.5 is halve the line height. 
     pub space_size: f32,
 }
 
 impl Font {
-    pub fn new(path: String, bitmap_builder: BitmapBuilder) -> Result<Self, String> {
+    pub fn new(path: String, bitmap_builder: SdfBitmapBuilder) -> Result<Self, String> {
         match load_font(&path) {
             Ok(font) => {
-                let bitmap = Bitmap::new(&font, bitmap_builder)?;
+                let bitmap = SdfBitmap::new(&font, bitmap_builder)?;
 
                 Ok(Self { 
                     bitmap,
@@ -37,7 +37,7 @@ impl Font {
         }) 
     }
 
-    pub fn image(&self) -> &RgbaImage {
+    pub fn image(&self) -> &GrayImage {
         &self.bitmap.image
     }
 

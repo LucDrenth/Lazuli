@@ -2,7 +2,7 @@ use std::path::Path;
 
 use image::RgbaImage;
 
-use super::{shader::ShaderProgram, texture::Texture};
+use super::{shader::ShaderProgram, texture::{Texture, TextureImage}};
 
 pub struct Material {
     pub shader_program: ShaderProgram,
@@ -33,7 +33,7 @@ impl Material {
         self.add_texture(texture);
     }
 
-    pub fn add_texture_from_image(&mut self, img: &RgbaImage) {
+    pub fn add_texture_from_image<T: Into<TextureImage>>(&mut self, img: T) {
         let texture = Texture::new();
         texture.load_from_image(img);
         

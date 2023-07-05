@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use image::{DynamicImage, Luma, GrayImage};
 use rusttype::PositionedGlyph;
 
-use crate::{lz_core_warn, lz_core_err, math, lz_core_info};
+use crate::{lz_core_warn, lz_core_err, math};
 
 /// Signed distance field font bitmap
 pub struct SdfBitmap {
@@ -271,7 +271,7 @@ fn register_bitmap_character(
             lz_core_warn!("Encountered duplicate character [{}] while writing glyphs for characters [{}] to bitmap", character, bitmap_builder.characters);
             return;
         },
-        std::collections::hash_map::Entry::Vacant(entry) => {
+        std::collections::hash_map::Entry::Vacant(entry) => {            
             entry.insert(BitmapCharacter {
                 texture_start_x: (current_x as i32) as f32 / bitmap_width as f32,
                 texture_end_x: (current_x + character_width) as f32 / bitmap_width as f32,

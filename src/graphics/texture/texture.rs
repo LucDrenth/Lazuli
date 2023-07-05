@@ -5,6 +5,8 @@ use image::{EncodableLayout, RgbaImage};
 
 use crate::{error::opengl, lz_core_warn};
 
+use super::TextureImage;
+
 pub struct Texture {
     pub id: GLuint,
 }
@@ -50,23 +52,25 @@ impl Texture {
         }
     }
 
-    pub fn load_from_image(&self, img: &RgbaImage) {
+    pub fn load_from_image<T: Into<TextureImage>>(&self, img: T) {
         self.bind();
         Self::upload(img);
     }
 
-    fn upload(img: &RgbaImage) {
+    fn upload<T: Into<TextureImage>>(texture_image: T) {
+        let img: TextureImage = texture_image.into();
+
         unsafe {
             gl::TexImage2D(
                 gl::TEXTURE_2D,
                 0,
-                gl::RGBA as i32,
-                img.width() as i32,
-                img.height() as i32,
+                img.format as i32,
+                img.width as i32,
+                img.height as i32,
                 0,
-                gl::RGBA,
+                img.format,
                 gl::UNSIGNED_BYTE,
-                img.as_bytes().as_ptr() as *const _,
+                img.bytes as *const _,
             );
             
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
