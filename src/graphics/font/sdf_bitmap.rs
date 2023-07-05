@@ -339,7 +339,11 @@ fn get_pixel_value(glyph_pixels: &Vec<Vec<bool>>,  border_pixels: &Vec<(usize, u
     let distance = get_distance_to_closest_border_pixel(&border_pixels, x, y);
 
     if distance > spread as f32 {
-        return Err(());
+        if glyph_pixels[x][y] {
+            return Ok(255);
+        } else {
+            return Err(());
+        }
     }
 
     if glyph_pixels[x][y] {
