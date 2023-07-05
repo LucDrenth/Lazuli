@@ -1,7 +1,5 @@
 use std::path::Path;
 
-use image::RgbaImage;
-
 use super::{shader::ShaderProgram, texture::{Texture, TextureImage}};
 
 pub struct Material {

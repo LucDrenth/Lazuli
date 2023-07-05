@@ -1,7 +1,6 @@
 use std::path::Path;
 
 use gl::{types::{GLuint, GLenum}};
-use image::{EncodableLayout, RgbaImage};
 
 use crate::{error::opengl, lz_core_warn};
 
