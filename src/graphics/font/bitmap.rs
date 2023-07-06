@@ -168,7 +168,7 @@ fn glyphs_fit_in(width: u32, height: u32, glyphs: &Vec<PositionedGlyph<'_>>, lin
 
             if current_x + character_width >= width {
                 // go to next line
-                current_x = 0;
+                current_x = character_width;
                 current_y += line_height;
 
                 if current_y + line_height >= height {

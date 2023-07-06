@@ -151,7 +151,7 @@ fn calculate_image_size(glyphs: &Vec<PositionedGlyph<'_>>, line_height: u32, bit
         let width_to_fit = current_width - bitmap_builder.padding_x * 2;
         let height_to_fit = current_height - bitmap_builder.padding_y * 2;
                 
-        if glyphs_fit_in(width_to_fit, height_to_fit, &glyphs, line_height, bitmap_builder.spread as u32) {
+        if glyphs_fit_in(width_to_fit, height_to_fit, &glyphs, line_height, (bitmap_builder.spread * bitmap_builder.super_sampling_factor) as u32) {
             return (current_width, current_height)
         }
 
@@ -209,7 +209,7 @@ fn write_glyphs(
 ) {
     let mut current_x: u32 = bitmap_builder.padding_x;
     let mut current_y: u32 = bitmap_builder.padding_y;
-    let spread = bitmap_builder.spread as u32;
+    let spread = (bitmap_builder.spread * bitmap_builder.super_sampling_factor) as u32;
 
     for (i, glyph) in glyphs.iter().enumerate() {
         let bitmap_width = image_buffer.width();
@@ -297,13 +297,15 @@ fn create_glyph_binary_map(glyph: &PositionedGlyph<'_>, character_width: usize, 
     // A 2d vec that says where the pixels of the glyph are
     let mut glyph_pixels: Vec<Vec<bool>> = vec![vec![false; character_height]; character_width];
 
+    let spread = (bitmap_builder.spread * bitmap_builder.super_sampling_factor) as u32;
+
     glyph.draw(|x, y, v| {
         if v < bitmap_builder.pixel_boundry {
             return;
         }
 
-        let index_x = (x + bitmap_builder.spread as u32) as usize;
-        let index_y = (y + bitmap_builder.spread as u32) as usize;
+        let index_x = (x + spread) as usize;
+        let index_y = (y + spread) as usize;
 
         glyph_pixels[index_x][index_y] = true;
     });
