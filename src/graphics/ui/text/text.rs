@@ -19,9 +19,11 @@ impl Text {
     pub fn new(text: String, font: &Font, program: &ShaderProgram, text_builder: &TextBuilder) -> Self {
         let mut glyphs: Vec::<Glyph> = Vec::new();
 
+        // TODO letter_spacing in pixels. And remove spread_factor usage and also use spread as pixels.
         let letter_spacing = 0.08;
+        let bitmap_spread = 0.03 * (font.bitmap_spread() as f32);
 
-        let total_width = Self::get_total_width(&text, &font, letter_spacing);
+        let total_width = Self::get_total_width(&text, &font, letter_spacing, bitmap_spread);
         let mut start_x: f32 = 0.0 - total_width / 2.0;
 
         for character in text.chars() {
@@ -35,7 +37,7 @@ impl Text {
                     let glyph_end_y = 1.0 * text_builder.text_size * 2.0;
                     
                     glyphs.push(Glyph::new(bitmap_character, glyph_start_x, glyph_end_x, glyph_start_y, glyph_end_y, program));
-                    start_x += bitmap_character.width + letter_spacing;
+                    start_x += bitmap_character.width + letter_spacing - bitmap_spread;
                 },
                 None => {
                     if character == ' ' {
@@ -78,7 +80,7 @@ impl Text {
     }
 
     /// Calculate the total width of the text, ignoring characters that do not have a glyph
-    pub fn get_total_width(text: &String, font: &Font, letter_spacing: f32) -> f32 {
+    pub fn get_total_width(text: &String, font: &Font, letter_spacing: f32, spread: f32) -> f32 {
         let mut total_width = 0.0;
         let mut has_glyph_to_render = false;
         
@@ -86,7 +88,7 @@ impl Text {
             match font.get_bitmap_character(character) {
                 Some(bitmap_character) => {
                     has_glyph_to_render = true;
-                    total_width += bitmap_character.width + letter_spacing;
+                    total_width += bitmap_character.width + letter_spacing - spread;;
                 },
                 None => {
                     if character == ' ' {
@@ -103,7 +105,7 @@ impl Text {
             return 0.0
         }
 
-        return total_width - letter_spacing;
+        return total_width - letter_spacing + spread;
     }
 }
 

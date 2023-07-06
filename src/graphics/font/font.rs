@@ -48,6 +48,10 @@ impl Font {
     pub fn line_height(&self) -> f32 {
         self.bitmap.line_height
     }
+
+    pub fn bitmap_spread(&self) -> u8 {
+        self.bitmap.spread
+    }
 }
 
 pub fn load_font(path: &String) -> Result<rusttype::Font<'static>, String> {

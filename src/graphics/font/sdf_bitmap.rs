@@ -10,6 +10,7 @@ pub struct SdfBitmap {
     pub image: GrayImage,
     pub characters: HashMap<char, BitmapCharacter>,
     pub line_height: f32,
+    pub spread: u8,
 }
 
 impl SdfBitmap {
@@ -52,6 +53,7 @@ impl SdfBitmap {
             image: image_buffer, 
             characters: bitmap_characters, 
             line_height: line_height as f32,
+            spread: bitmap_builder.spread,
         })
     }
 }
