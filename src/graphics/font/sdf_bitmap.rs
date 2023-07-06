@@ -231,7 +231,18 @@ fn write_glyphs(
                 }
             }
 
-            register_bitmap_character(bitmap_characters, character, bitmap_builder, current_x, current_y, bitmap_width, bitmap_height, character_width, line_height);
+            register_bitmap_character(
+                bitmap_characters, 
+                character, 
+                bitmap_builder, 
+                current_x, 
+                current_y, 
+                bitmap_width, 
+                bitmap_height, 
+                character_width, 
+                line_height, 
+                spread as f32
+            );
 
             let glyph_buffer = create_glyph_binary_map(glyph, character_width as usize, character_height as usize, bitmap_builder);
             let border_pixels: Vec<(usize, usize)> = get_border_pixels(&glyph_buffer);
@@ -274,6 +285,7 @@ fn register_bitmap_character(
     bitmap_height: u32,
     character_width: u32,
     line_height: f32,
+    spread: f32,
 ) {
     match bitmap_characters.entry(character) {
         std::collections::hash_map::Entry::Occupied(_) => {
@@ -285,7 +297,7 @@ fn register_bitmap_character(
                 texture_start_x: (current_x as i32) as f32 / bitmap_width as f32,
                 texture_end_x: (current_x + character_width) as f32 / bitmap_width as f32,
                 texture_start_y: current_y as f32 / bitmap_height as f32,
-                texture_end_y: (current_y as f32 + line_height) / bitmap_height as f32,
+                texture_end_y: (current_y as f32 + line_height + spread * 2.0) / bitmap_height as f32,
                 width: character_width as f32 / line_height,
             });
         },

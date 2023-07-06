@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{font::Font, Transform, material::Material, shader::ShaderProgram}, lz_core_warn};
+use crate::{graphics::{font::Font, Transform, material::Material, shader::ShaderProgram}, lz_core_warn, lz_core_info};
 
 use super::glyph::Glyph;
 
@@ -19,12 +19,8 @@ impl Text {
     pub fn new(text: String, font: &Font, program: &ShaderProgram, text_builder: &TextBuilder) -> Self {
         let mut glyphs: Vec::<Glyph> = Vec::new();
 
-        // TODO letter_spacing in pixels. And remove spread_factor usage and also use spread as pixels.
-        let letter_spacing = 0.08;
-        // let bitmap_spread = 0.02 * (font.bitmap_spread() as f32);
-        let bitmap_spread = 0.0;
-
-        let total_width = Self::get_total_width(&text, &font, letter_spacing, bitmap_spread);
+        let bitmap_spread = (font.bitmap_spread() as f32) * 2.0 / font.line_height() as f32;
+        let total_width = Self::get_total_width(&text, &font, text_builder.letter_spacing, bitmap_spread);
         let mut start_x: f32 = 0.0 - total_width / 2.0;
 
         for character in text.chars() {
@@ -38,7 +34,7 @@ impl Text {
                     let glyph_end_y = 1.0 * text_builder.text_size * 2.0;
                     
                     glyphs.push(Glyph::new(bitmap_character, glyph_start_x, glyph_end_x, glyph_start_y, glyph_end_y, program));
-                    start_x += bitmap_character.width + letter_spacing - bitmap_spread;
+                    start_x += bitmap_character.width + text_builder.letter_spacing - bitmap_spread;
                 },
                 None => {
                     if character == ' ' {
@@ -55,7 +51,7 @@ impl Text {
             text, 
             glyphs,
             transform: Transform::new(),
-            letter_spacing,
+            letter_spacing: text_builder.letter_spacing,
             color: text_builder.color,
             total_width,
             text_size: text_builder.text_size,
@@ -113,6 +109,7 @@ impl Text {
 pub struct TextBuilder {
     text_size: f32, // size in pixels
     color: (u8, u8, u8),
+    letter_spacing: f32,
 }
 
 impl TextBuilder {
@@ -120,6 +117,7 @@ impl TextBuilder {
         TextBuilder { 
             text_size: 20.0,
             color: (255, 255, 255),
+            letter_spacing: 0.04,
         }
     }
 
@@ -130,6 +128,11 @@ impl TextBuilder {
 
     pub fn with_color(mut self, color: (u8, u8, u8)) -> Self {
         self.color = color;
+        self
+    }
+
+    pub fn with_letter_spacing(mut self, letter_spacing: f32) -> Self {
+        self.letter_spacing = letter_spacing;
         self
     }
 }

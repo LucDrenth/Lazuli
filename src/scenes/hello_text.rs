@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, material::Material, mesh_renderer, shader::ShaderProgram, font::{Font, SdfBitmapBuilder}, Rectangle, ui::{Text, self, TextBuilder}, texture::downsample_gray_image}, event::{EventSystem, WindowResizeEvent, EventReader}, input::Input};
+use crate::{graphics::{scene::Scene, material::Material, mesh_renderer, shader::ShaderProgram, font::{Font, SdfBitmapBuilder}, Rectangle, ui::{Text, self, TextBuilder}}, event::{EventSystem, WindowResizeEvent, EventReader}, input::Input};
 
 pub struct HelloText {
     material: Material,
@@ -19,17 +19,19 @@ impl Scene for HelloText {
         let mut material = Material::new(program);
         let font = Font::new("./assets/fonts/roboto.ttf".to_string(), 
             SdfBitmapBuilder::new()
-            .with_font_size(25.0).with_spread(4)
+            .with_font_size(50.0)
+            .with_spread(4)
+            .with_super_sampling_factor(2)
         )?;
 
-        font.save_bitmap("./assets/fonts/roboto.ttf.bitmap.png".to_string())?;
+        font.save_bitmap("./assets/fonts/roboto-1-bitmap.png".to_string())?;
 
         material.add_texture_from_image(font.image());
         
         let bitmap_rectangle = Rectangle::new_textured(&material.shader_program);
         
-        let text = Text::new("Lazuli".to_string(), &font, &material.shader_program, &TextBuilder::new()
-            .with_text_size(250.0)
+        let text = Text::new("Welcome to Lazuli engine".to_string(), &font, &material.shader_program, &TextBuilder::new()
+            .with_text_size(35.0)
             .with_color((255, 255, 255))
         );
 
