@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use image::{DynamicImage, Luma, GrayImage};
 use rusttype::PositionedGlyph;
 
-use crate::{lz_core_warn, lz_core_err, math};
+use crate::{lz_core_warn, lz_core_err, math, graphics::texture::downsample_gray_image};
 
 /// Signed distance field font bitmap
 pub struct SdfBitmap {
@@ -33,7 +33,7 @@ impl SdfBitmap {
     }
 
     fn create(font: &rusttype::Font<'static>, bitmap_builder: SdfBitmapBuilder) -> Result<Self, String> {
-        let scale = rusttype::Scale::uniform(bitmap_builder.font_size);
+        let scale = rusttype::Scale::uniform(bitmap_builder.font_size * bitmap_builder.super_sampling_factor as f32);
         let v_metrics = font.v_metrics(scale);
         let start_point = rusttype::point(bitmap_builder.padding_x as f32, bitmap_builder.padding_y as f32 + v_metrics.ascent);
         let glyphs: Vec<_> = font.layout(&bitmap_builder.characters, scale, start_point).collect();
@@ -50,7 +50,7 @@ impl SdfBitmap {
         write_glyphs(glyphs, &bitmap_builder, &mut image_buffer, &mut bitmap_characters, line_height as f32);
 
         Ok(Self{ 
-            image: image_buffer, 
+            image: downsample_gray_image(&image_buffer, bitmap_builder.super_sampling_factor as u32), 
             characters: bitmap_characters, 
             line_height: line_height as f32,
             spread: bitmap_builder.spread,
@@ -65,6 +65,7 @@ pub struct SdfBitmapBuilder {
     characters: String,
     pixel_boundry: f32, // a value between 0 and 1. If the alpha value of a glyph is equal or higher than this image, draw a pixel
     spread: u8, // the amount of padding (in pixels) each glyph from the binary image gets. Increase for better quality.
+    super_sampling_factor: u8,
 }
 
 impl SdfBitmapBuilder {
@@ -76,6 +77,7 @@ impl SdfBitmapBuilder {
             characters: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!;%:?*()_+-=.,/|\\\"'@#$€^&{}[]".to_string(),
             pixel_boundry: 0.5,
             spread: 4,
+            super_sampling_factor: 4,
         }
     }
 
@@ -107,6 +109,11 @@ impl SdfBitmapBuilder {
 
     pub fn with_spread(mut self, spread: u8) -> Self {
         self.spread = spread;
+        self
+    }
+
+    pub fn with_super_sampling_factor(mut self, super_sampling_factor: u8) -> Self {
+        self.super_sampling_factor = super_sampling_factor;
         self
     }
 }
@@ -143,7 +150,7 @@ fn calculate_image_size(glyphs: &Vec<PositionedGlyph<'_>>, line_height: u32, bit
         
         let width_to_fit = current_width - bitmap_builder.padding_x * 2;
         let height_to_fit = current_height - bitmap_builder.padding_y * 2;
-        
+                
         if glyphs_fit_in(width_to_fit, height_to_fit, &glyphs, line_height, bitmap_builder.spread as u32) {
             return (current_width, current_height)
         }
@@ -165,16 +172,16 @@ fn glyphs_fit_in(width: u32, height: u32, glyphs: &Vec<PositionedGlyph<'_>>, lin
 
     let max_character_height = line_height + spread * 2;
 
-    for glyph in glyphs.iter() {
+    for (_, glyph) in glyphs.iter().enumerate() {
         if let Some(bounding_box) = glyph.pixel_bounding_box() {
             let character_width = (bounding_box.max.x - bounding_box.min.x) as u32 + spread * 2;
 
-            if current_x + character_width >= width {
+            if current_x + character_width > width {
                 // go to next line
-                current_x = 0;
+                current_x = character_width;
                 current_y += max_character_height;
 
-                if current_y + max_character_height >= height {
+                if current_y + max_character_height > height {
                     return false;
                 }
             } else {

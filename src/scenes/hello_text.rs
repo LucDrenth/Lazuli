@@ -19,7 +19,7 @@ impl Scene for HelloText {
         let mut material = Material::new(program);
         let font = Font::new("./assets/fonts/roboto.ttf".to_string(), 
             SdfBitmapBuilder::new()
-            .with_font_size(50.0).with_spread(8)
+            .with_font_size(25.0).with_spread(4)
         )?;
 
         font.save_bitmap("./assets/fonts/roboto.ttf.bitmap.png".to_string())?;
@@ -29,19 +29,12 @@ impl Scene for HelloText {
         let bitmap_rectangle = Rectangle::new_textured(&material.shader_program);
         
         let text = Text::new("Lazuli".to_string(), &font, &material.shader_program, &TextBuilder::new()
-            .with_text_size(150.0)
+            .with_text_size(250.0)
             .with_color((255, 255, 255))
         );
 
         material.shader_program.set_uniform("worldPosition", text.position_for_shader());
         material.shader_program.set_uniform("view", ui::view::for_shader(window_size.x, window_size.y));
-
-
-
-        // TODO implement in sdf_bitmap
-        let downsampled_image = downsample_gray_image(font.image(), 4);
-        downsampled_image.save("./assets/fonts/roboto-downsampled.png").unwrap();
-
 
         
         let result = Self { 

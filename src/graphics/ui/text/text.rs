@@ -21,7 +21,8 @@ impl Text {
 
         // TODO letter_spacing in pixels. And remove spread_factor usage and also use spread as pixels.
         let letter_spacing = 0.08;
-        let bitmap_spread = 0.02 * (font.bitmap_spread() as f32);
+        // let bitmap_spread = 0.02 * (font.bitmap_spread() as f32);
+        let bitmap_spread = 0.0;
 
         let total_width = Self::get_total_width(&text, &font, letter_spacing, bitmap_spread);
         let mut start_x: f32 = 0.0 - total_width / 2.0;
@@ -88,7 +89,7 @@ impl Text {
             match font.get_bitmap_character(character) {
                 Some(bitmap_character) => {
                     has_glyph_to_render = true;
-                    total_width += bitmap_character.width + letter_spacing - spread;;
+                    total_width += bitmap_character.width + letter_spacing - spread;
                 },
                 None => {
                     if character == ' ' {
