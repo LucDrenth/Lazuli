@@ -2,9 +2,9 @@ use std::{fs::File, io::Read};
 
 use image::GrayImage;
 
-use crate::lz_core_err;
+use crate::{lz_core_err, lz_core_warn};
 
-use super::{SdfBitmap, SdfBitmapBuilder, sdf_bitmap::BitmapCharacter};
+use super::{SdfBitmap, SdfBitmapBuilder, sdf_bitmap::BitmapCharacter, sdf_bitmap_cache};
 
 pub struct Font {
     bitmap: SdfBitmap,
@@ -17,7 +17,22 @@ impl Font {
     pub fn new(path: String, bitmap_builder: SdfBitmapBuilder) -> Result<Self, String> {
         match load_font(&path) {
             Ok(font) => {
-                let bitmap = SdfBitmap::new(&font, bitmap_builder)?;
+                let bitmap: SdfBitmap;
+
+                if let Some(existing_bitmap) = sdf_bitmap_cache::load(&path, &bitmap_builder) {
+                    bitmap = existing_bitmap;
+                } else {
+                    bitmap = SdfBitmap::new(&font, &bitmap_builder)?;
+
+                    if bitmap_builder.cache {
+                        match sdf_bitmap_cache::save(&path, &bitmap_builder, &bitmap) {
+                            Ok(_) => (),
+                            Err(err) => {
+                                lz_core_warn!("Failed to save sdf font bitmap cache: {}", err); 
+                            }
+                        }
+                    }
+                }
 
                 Ok(Self { 
                     bitmap,

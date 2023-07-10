@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use image::{DynamicImage, Luma, GrayImage};
 use rusttype::PositionedGlyph;
+use serde::{Serialize, Deserialize};
 
 use crate::{lz_core_warn, lz_core_err, math, graphics::texture::downsample_gray_image};
 
@@ -14,7 +15,7 @@ pub struct SdfBitmap {
 }
 
 impl SdfBitmap {
-    pub fn new(font: &rusttype::Font<'static>, bitmap_builder: SdfBitmapBuilder) -> Result<SdfBitmap, String> {
+    pub fn new(font: &rusttype::Font<'static>, bitmap_builder: &SdfBitmapBuilder) -> Result<SdfBitmap, String> {
         if bitmap_builder.characters.len() == 0 {
             return Err("Failed to create bitmap: character set may not be empty".to_string());
         }
@@ -32,7 +33,7 @@ impl SdfBitmap {
         })
     }
 
-    fn create(font: &rusttype::Font<'static>, bitmap_builder: SdfBitmapBuilder) -> Result<Self, String> {
+    fn create(font: &rusttype::Font<'static>, bitmap_builder: &SdfBitmapBuilder) -> Result<Self, String> {
         let scale = rusttype::Scale::uniform(bitmap_builder.font_size * bitmap_builder.super_sampling_factor as f32);
         let v_metrics = font.v_metrics(scale);
         let start_point = rusttype::point(bitmap_builder.padding_x as f32, bitmap_builder.padding_y as f32 + v_metrics.ascent);
@@ -58,6 +59,7 @@ impl SdfBitmap {
     }
 }
 
+#[derive(Serialize)]
 pub struct SdfBitmapBuilder {
     padding_x: u32,
     padding_y: u32,
@@ -66,6 +68,7 @@ pub struct SdfBitmapBuilder {
     pixel_boundry: f32, // a value between 0 and 1. If the alpha value of a glyph is equal or higher than this image, draw a pixel
     spread: u8, // the amount of padding (in pixels) each glyph from the binary image gets. Increase for better quality.
     super_sampling_factor: u8,
+    pub cache: bool,
 }
 
 impl SdfBitmapBuilder {
@@ -78,6 +81,7 @@ impl SdfBitmapBuilder {
             pixel_boundry: 0.5,
             spread: 4,
             super_sampling_factor: 4,
+            cache: true,
         }
     }
 
@@ -116,9 +120,16 @@ impl SdfBitmapBuilder {
         self.super_sampling_factor = super_sampling_factor;
         self
     }
+
+    pub fn with_cache(mut self, cache: bool) -> Self {
+        self.cache = cache;
+        self
+    }
 }
 
+#[derive(Serialize, Deserialize)]
 #[derive(Debug)]
+#[derive(Clone)]
 pub struct BitmapCharacter {
     pub texture_start_x: f32,
     pub texture_end_x: f32,

@@ -17,22 +17,20 @@ impl Scene for HelloText {
 
         let program = ShaderProgram::new("./assets/shaders/text-ui.vert", "./assets/shaders/text-ui.frag").unwrap();
         let mut material = Material::new(program);
-        let font = Font::new("./assets/fonts/roboto.ttf".to_string(), 
-            SdfBitmapBuilder::new()
+        let font = Font::new("./assets/fonts/roboto.ttf".to_string(), SdfBitmapBuilder::new()
             .with_font_size(50.0)
-            .with_spread(4)
-            .with_super_sampling_factor(2)
+            .with_spread(8)
+            .with_super_sampling_factor(4)
         )?;
-
-        font.save_bitmap("./assets/fonts/roboto-1-bitmap.png".to_string())?;
 
         material.add_texture_from_image(font.image());
         
         let bitmap_rectangle = Rectangle::new_textured(&material.shader_program);
         
         let text = Text::new("Welcome to Lazuli engine".to_string(), &font, &material.shader_program, &TextBuilder::new()
-            .with_text_size(35.0)
+            .with_text_size(25.0)
             .with_color((255, 255, 255))
+            .with_letter_spacing(0.0)
         );
 
         material.shader_program.set_uniform("worldPosition", text.position_for_shader());
