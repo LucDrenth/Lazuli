@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, material::Material, mesh_renderer, shader::ShaderProgram, font::{Font, SdfBitmapBuilder}, Rectangle, ui::{Text, self, TextBuilder}}, event::{EventSystem, WindowResizeEvent, EventReader}, input::Input};
+use crate::{graphics::{scene::Scene, material::Material, mesh_renderer, shader::ShaderProgram, font::{Font, SdfBitmapBuilder, PlainBitmapBuilder}, Rectangle, ui::{Text, self, TextBuilder}}, event::{EventSystem, WindowResizeEvent, EventReader}, input::Input};
 
 pub struct HelloText {
     material: Material,
@@ -17,11 +17,17 @@ impl Scene for HelloText {
 
         let program = ShaderProgram::new("./assets/shaders/text-ui.vert", "./assets/shaders/text-ui.frag").unwrap();
         let mut material = Material::new(program);
-        let font = Font::new("./assets/fonts/roboto.ttf".to_string(), SdfBitmapBuilder::new()
+        
+        let plain_font = Font::new("./assets/fonts/roboto.ttf".to_string(), PlainBitmapBuilder::new()
+            .with_font_size(50.0)
+        )?;
+        let sdf_font = Font::new("./assets/fonts/roboto.ttf".to_string(), SdfBitmapBuilder::new()
             .with_font_size(50.0)
             .with_spread(8)
             .with_super_sampling_factor(4)
         )?;
+
+        let font = plain_font;
 
         material.add_texture_from_image(font.image());
         
@@ -30,7 +36,7 @@ impl Scene for HelloText {
         let text = Text::new("Welcome to Lazuli engine".to_string(), &font, &material.shader_program, &TextBuilder::new()
             .with_text_size(25.0)
             .with_color((255, 255, 255))
-            .with_letter_spacing(0.0)
+            .with_letter_spacing(0.05)
         );
 
         material.shader_program.set_uniform("worldPosition", text.position_for_shader());

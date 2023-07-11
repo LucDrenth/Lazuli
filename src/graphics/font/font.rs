@@ -2,7 +2,7 @@ use std::{fs::File, io::Read};
 
 use crate::{lz_core_err, lz_core_warn, graphics::texture::ImageType};
 
-use super::{SdfBitmapBuilder, sdf_bitmap_cache, BitmapCharacter, sdf_bitmap::SdfBitmap, Bitmap};
+use super::{BitmapCharacter, Bitmap, bitmap::BitmapBuilder, bitmap_cache};
 
 pub struct Font {
     bitmap: Box<dyn Bitmap>,
@@ -12,7 +12,7 @@ pub struct Font {
 }
 
 impl Font {
-    pub fn new(path: String, bitmap_builder: SdfBitmapBuilder) -> Result<Self, String> {
+    pub fn new(path: String, bitmap_builder: impl BitmapBuilder) -> Result<Self, String> {
         match load_font(&path) {
             Ok(font) => {
                 Ok(Self { 
@@ -47,22 +47,22 @@ impl Font {
         self.bitmap.spread()
     }
 
-    fn get_bitmap(font: rusttype::Font<'static>, path: &String, bitmap_builder: &SdfBitmapBuilder) -> Result<Box<dyn Bitmap>, String> {
-        if let Some(existing_bitmap) = sdf_bitmap_cache::load(&path, &bitmap_builder) {
-            return Ok(Box::new(existing_bitmap));
+    fn get_bitmap(font: rusttype::Font<'static>, path: &String, bitmap_builder: &impl BitmapBuilder) -> Result<Box<dyn Bitmap>, String> {
+        if let Some(existing_bitmap) = bitmap_cache::load(&path, bitmap_builder) {
+            return Ok(Box::new(existing_bitmap))
         } else {
-            let bitmap = SdfBitmap::new(&font, &bitmap_builder)?;
+            let new_bitmap = bitmap_builder.build(&font)?;
 
-            if bitmap_builder.cache {
-                match sdf_bitmap_cache::save(&path, &bitmap_builder, &bitmap) {
+            if bitmap_builder.do_cache() {
+                match bitmap_cache::save(path, bitmap_builder, &new_bitmap) {
                     Ok(_) => (),
                     Err(err) => {
-                        lz_core_warn!("Failed to save sdf font bitmap cache: {}", err); 
-                    }
+                        lz_core_warn!("Failed to save sdf font bitmap cache: {}", err);
+                    },
                 }
             }
 
-            return Ok(Box::new(bitmap));
+            return Ok(new_bitmap);
         }
     }
 }

@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::{HashMap, hash_map::DefaultHasher}, hash::{Hash, Hasher}};
 
 use image::{DynamicImage, Luma, GrayImage};
 use rusttype::PositionedGlyph;
@@ -6,7 +6,7 @@ use serde::Serialize;
 
 use crate::{lz_core_warn, lz_core_err, math, graphics::texture::{downsample_gray_image, ImageType}};
 
-use super::{BitmapCharacter, Bitmap};
+use super::{BitmapCharacter, Bitmap, bitmap::BitmapBuilder, bitmap_cache::{self, SdfBitmapCache}};
 
 /// Signed distance field font bitmap
 pub struct SdfBitmap {
@@ -37,6 +37,14 @@ impl Bitmap for SdfBitmap {
 
     fn spread(&self) -> u8 {
         self.spread
+    }
+
+    fn to_json_cache(&self) -> Result<String, String> {
+        let bitmap_cache = SdfBitmapCache::from(&self);
+
+        serde_json::to_string(&bitmap_cache).map_err(|err| {
+            format!("failed to serialize bitmap cache: {}", err)
+        })
     }
 }
 
@@ -89,7 +97,31 @@ pub struct SdfBitmapBuilder {
     pixel_boundry: f32, // a value between 0 and 1. If the alpha value of a glyph is equal or higher than this image, draw a pixel
     spread: u8, // the amount of padding (in pixels) each glyph from the binary image gets. Increase for better quality.
     super_sampling_factor: u8,
-    pub cache: bool,
+    cache: bool,
+}
+
+impl BitmapBuilder for SdfBitmapBuilder {
+    fn build(&self, font: &rusttype::Font<'static>) -> Result<Box<dyn Bitmap>, String> {
+        match SdfBitmap::new(font, &self) {
+            Ok(bitmap) => return Ok(Box::new(bitmap)),
+            Err(err) => Err(err),
+        }
+    }
+
+    fn do_cache(&self) -> bool {
+        self.cache
+    }
+
+    fn get_hash(&self) -> Result<String, String> {
+        match serde_json::to_string(&self) {
+            Ok(bitmap_builder_string) => {
+                let mut hasher = DefaultHasher::new();
+                bitmap_builder_string.hash(&mut hasher);
+                Ok(hasher.finish().to_string())
+            },
+            Err(err) => Err(err.to_string()),
+        }
+    }
 }
 
 impl SdfBitmapBuilder {

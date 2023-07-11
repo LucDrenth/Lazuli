@@ -5,7 +5,9 @@ use serde::{Serialize, Deserialize};
 
 use crate::{lz_core_err, graphics::texture::ImageType};
 
-use super::{SdfBitmapBuilder, BitmapCharacter, sdf_bitmap::SdfBitmap, Bitmap};
+use super::{SdfBitmapBuilder, BitmapCharacter, sdf_bitmap::SdfBitmap, Bitmap, plain_bitmap::PlainBitmap, bitmap::BitmapBuilder};
+
+pub trait BitmapCache {}
 
 #[derive(Serialize, Deserialize)]
 pub struct SdfBitmapCache {
@@ -14,12 +16,14 @@ pub struct SdfBitmapCache {
     pub spread: u8,
 }
 
+impl BitmapCache for SdfBitmapCache {}
+
 impl SdfBitmapCache {
     pub fn from(bitmap: &SdfBitmap) -> Self {
         let mut bitmap_cache_characters: HashMap<char, BitmapCharacter> = HashMap::new();
         bitmap_cache_characters.clone_from(&bitmap.characters());
     
-        SdfBitmapCache {
+        Self {
             characters: bitmap_cache_characters,
             line_height: bitmap.line_height,
             spread: bitmap.spread,
@@ -27,9 +31,31 @@ impl SdfBitmapCache {
     }
 }
 
-pub fn load(font_path: &String, bitmap_builder: &SdfBitmapBuilder) -> Option<SdfBitmap> {
+
+#[derive(Serialize, Deserialize)]
+pub struct PlainBitmapCache {
+    pub characters: HashMap<char, BitmapCharacter>,
+    pub line_height: f32,
+}
+
+impl BitmapCache for PlainBitmapCache {}
+
+impl PlainBitmapCache {
+    pub fn from(bitmap: &PlainBitmap) -> Self {
+        let mut bitmap_cache_characters: HashMap<char, BitmapCharacter> = HashMap::new();
+        bitmap_cache_characters.clone_from(&bitmap.characters());
+    
+        Self {
+            characters: bitmap_cache_characters,
+            line_height: bitmap.line_height,
+        }
+    }
+}
+
+
+pub fn load(font_path: &String, bitmap_builder: &impl BitmapBuilder) -> Option<SdfBitmap> {
     let bitmap_builder_hash: String;
-    match get_bitmap_builder_hash(bitmap_builder) {
+    match bitmap_builder.get_hash() {
         Ok(hash) => bitmap_builder_hash = hash,
         Err(err) => {
             lz_core_err!("failed to check sdf bitmap cache because bitmap_builder hash could not be created: {}", err);
@@ -48,15 +74,12 @@ pub fn load(font_path: &String, bitmap_builder: &SdfBitmapBuilder) -> Option<Sdf
     });
 }
 
-pub fn save(font_path: &String, bitmap_builder: &SdfBitmapBuilder, bitmap: &SdfBitmap) -> Result<(), String> {
-    let bitmap_builder_hash = get_bitmap_builder_hash(bitmap_builder)?;
+pub fn save(font_path: &String, bitmap_builder: &impl BitmapBuilder, bitmap: &Box<dyn Bitmap>) -> Result<(), String> {
+    let bitmap_builder_hash = bitmap_builder.get_hash()?;
 
     bitmap.save(&format!("{}.{}-texture.png", font_path, bitmap_builder_hash))?;
 
-    let bitmap_cache = SdfBitmapCache::from(bitmap);
-    let json = serde_json::to_string(&bitmap_cache).map_err(|err| {
-        format!("failed to serialize bitmap cache: {}", err)
-    })?;
+    let json: String = bitmap.to_json_cache()?;
     let path = format!("{}.{}-data.json", font_path, bitmap_builder_hash);
     fs::write(Path::new(&path), json).map_err(|err| {
         format!("failed to save bitmap cache to file: {}", err)

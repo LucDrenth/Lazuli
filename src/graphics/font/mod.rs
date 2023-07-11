@@ -4,9 +4,9 @@ pub use font::load_font;
 
 
 mod bitmap;
+mod bitmap_cache;
 mod plain_bitmap;
 mod sdf_bitmap;
-mod sdf_bitmap_cache;
 
 mod bitmap_character;
 pub use bitmap_character::BitmapCharacter;

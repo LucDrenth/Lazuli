@@ -1,11 +1,12 @@
-use std::collections::HashMap;
+use std::{collections::{HashMap, hash_map::DefaultHasher}, hash::{Hash, Hasher}};
 
-use image::{DynamicImage, Rgba, RgbaImage};
+use image::{DynamicImage, GrayImage, Luma};
 use rusttype::PositionedGlyph;
+use serde::Serialize;
 
 use crate::{lz_core_warn, lz_core_err, graphics::texture::ImageType};
 
-use super::{BitmapCharacter, Bitmap};
+use super::{BitmapCharacter, Bitmap, bitmap::BitmapBuilder, bitmap_cache::PlainBitmapCache};
 
 pub struct PlainBitmap {
     pub image: ImageType,
@@ -35,10 +36,18 @@ impl Bitmap for PlainBitmap {
     fn spread(&self) -> u8 {
         0
     }
+
+    fn to_json_cache(&self) -> Result<String, String> {
+        let bitmap_cache = PlainBitmapCache::from(&self);
+
+        serde_json::to_string(&bitmap_cache).map_err(|err| {
+            format!("failed to serialize bitmap cache: {}", err)
+        })
+    }
 }
 
 impl PlainBitmap {
-    pub fn new(font: &rusttype::Font<'static>, bitmap_builder: PlainBitmapBuilder) -> Result<PlainBitmap, String> {
+    pub fn new(font: &rusttype::Font<'static>, bitmap_builder: &PlainBitmapBuilder) -> Result<PlainBitmap, String> {
         if bitmap_builder.characters.len() == 0 {
             return Err("Failed to create bitmap: character set may not be empty".to_string());
         }
@@ -49,7 +58,7 @@ impl PlainBitmap {
         Ok(bitmap)
     }
 
-    fn create(font: &rusttype::Font<'static>, bitmap_builder: PlainBitmapBuilder) -> Result<Self, String> {
+    fn create(font: &rusttype::Font<'static>, bitmap_builder: &PlainBitmapBuilder) -> Result<Self, String> {
         let scale = rusttype::Scale::uniform(bitmap_builder.font_size);
         let v_metrics = font.v_metrics(scale);
         let start_point = rusttype::point(bitmap_builder.padding_x as f32, bitmap_builder.padding_y as f32 + v_metrics.ascent);
@@ -62,21 +71,20 @@ impl PlainBitmap {
         let line_height = (v_metrics.ascent - v_metrics.descent).ceil() as u32;
         let (bitmap_width, bitmap_height) = calculate_image_size(&glyphs, line_height, bitmap_builder.padding_x, bitmap_builder.padding_y);
 
-        let mut image_buffer: RgbaImage = DynamicImage::new_rgba8(bitmap_width, bitmap_height).to_rgba8();
+        let mut image_buffer: GrayImage = DynamicImage::new_luma8(bitmap_width, bitmap_height).to_luma8();
         let mut bitmap_characters: HashMap<char, BitmapCharacter> = HashMap::new();
         write_glyphs(
             glyphs, 
             &bitmap_builder.characters, 
             &mut image_buffer, 
             &mut bitmap_characters, 
-            bitmap_builder.colour, 
             bitmap_builder.padding_x, 
             bitmap_builder.padding_y, 
             line_height as f32
         );
 
         Ok(Self{ 
-            image: ImageType::RgbaImage(image_buffer), 
+            image: ImageType::GrayImage(image_buffer), 
             characters: bitmap_characters, 
             line_height: line_height as f32,
         })
@@ -84,28 +92,50 @@ impl PlainBitmap {
 
 }
 
+#[derive(Serialize)]
 pub struct PlainBitmapBuilder {
-    colour: (u8, u8, u8),
     padding_x: u32,
     padding_y: u32,
     font_size: f32,
     characters: String,
+    cache: bool,
+}
+
+impl BitmapBuilder for PlainBitmapBuilder {
+    fn do_cache(&self) -> bool {
+        self.cache
+    }
+
+    fn build(&self, font: &rusttype::Font<'static>) -> Result<Box<dyn Bitmap>, String> {
+        match PlainBitmap::new(font, &self) {
+            Ok(bitmap) => return Ok(Box::new(bitmap)),
+            Err(err) => Err(err),
+        }
+    }
+
+    fn get_hash(&self) -> Result<String, String> {
+        match serde_json::to_string(&self) {
+            Ok(bitmap_builder_string) => {
+                let mut hasher = DefaultHasher::new();
+                bitmap_builder_string.hash(&mut hasher);
+                Ok(hasher.finish().to_string())
+            },
+            Err(err) => Err(err.to_string()),
+        }
+    }
+
+    
 }
 
 impl PlainBitmapBuilder {
     pub fn new() -> Self {
         Self {
-            colour: (255, 255, 255),
             padding_x: 0,
             padding_y: 0,
             font_size: 25.0,
             characters: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!;%:?*()_+-=.,/|\\\"'@#$€^&{}[]".to_string(),
+            cache: true,
         }
-    }
-
-    pub fn with_colour(mut self, colour: (u8, u8, u8)) -> Self {
-        self.colour = colour;
-        self
     }
 
     pub fn with_padding_x(mut self, padding_x: u32) -> Self {
@@ -125,6 +155,11 @@ impl PlainBitmapBuilder {
 
     pub fn with_characters(mut self, characters: String) -> Self {
         self.characters = characters;
+        self
+    }
+
+    pub fn with_cache(mut self, cache: bool) -> Self {
+        self.cache = cache;
         self
     }
 }
@@ -199,16 +234,14 @@ fn glyphs_fit_in(width: u32, height: u32, glyphs: &Vec<PositionedGlyph<'_>>, lin
 /// * `characters` - 
 /// * `image_buffer` - 
 /// * `bitmap_characters` - 
-/// * `colour` - 
 /// * `padding_x` - 
 /// * `padding_y` - 
 /// * `line_height` - 
 fn write_glyphs(
     glyphs: Vec<PositionedGlyph<'_>>, 
     characters: &str,
-    image_buffer: &mut RgbaImage, 
+    image_buffer: &mut GrayImage, 
     bitmap_characters: &mut HashMap<char, BitmapCharacter>,
-    colour: (u8, u8, u8),
     padding_x: u32,
     padding_y: u32,
     line_height: f32,
@@ -255,7 +288,7 @@ fn write_glyphs(
                 image_buffer.put_pixel(
                     x + current_x,
                     y + current_y + bounding_box.min.y as u32 - padding_y,
-                    Rgba([colour.0, colour.1, colour.2, (v * 255.0) as u8]),
+                    Luma([(v * 255.0) as u8]),
                 )
             });
 
