@@ -11,7 +11,7 @@ pub struct HelloTexture {
 
 impl Scene for HelloTexture {
     fn new(_event_system: &mut EventSystem, _window_size: Vec2) -> Result<Self, String> {
-        let program = ShaderProgram::new(PATH_TEXTURED_VERT, PATH_TEXTURED_FRAG).unwrap();
+        let program = ShaderProgram::new(&PATH_TEXTURED_VERT.to_string(), &PATH_TEXTURED_FRAG.to_string())?;
         let mut material = Material::new(program);
 
         material.add_texture_from_path(&Path::new("./assets/images/pattern.png"));

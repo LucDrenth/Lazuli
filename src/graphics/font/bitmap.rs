@@ -15,7 +15,9 @@ pub trait Bitmap {
 
 pub trait BitmapBuilder {
     fn build(&self, font: &rusttype::Font<'static>) -> Result<Box<dyn Bitmap>, String>;
-    fn do_cache(&self) -> bool;
     fn get_hash(&self) -> Result<String, String>;
     fn cache_from_json(&self, data: String) -> Option<Box<dyn BitmapCache>>;
+    fn do_cache(&self) -> bool;
+    fn vertex_shader_path(&self) -> &String;
+    fn fragment_shader_path(&self) -> &String;
 }

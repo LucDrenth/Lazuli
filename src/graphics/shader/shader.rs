@@ -19,7 +19,7 @@ pub struct Shader {
 }
 
 impl Shader {
-    pub fn new(path: &str, shader_type: GLenum) -> Result<Self, String> {
+    pub fn new(path: &String, shader_type: GLenum) -> Result<Self, String> {
         let source_code = load_shader_source(path)?;
 
         unsafe {
@@ -78,7 +78,7 @@ impl Drop for Shader {
 }
 
 /// TODO cache result for if we reuse the shader source
-fn load_shader_source(path: &str) -> Result<CString, String> {
+fn load_shader_source(path: &String) -> Result<CString, String> {
     let source_code = fs::read_to_string(path).map_err(|err| {
         format!("failed to read file [{}]: {}", path, err.to_string())
     })?;

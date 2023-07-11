@@ -11,7 +11,7 @@ pub struct ShaderProgram {
 }
 
 impl ShaderProgram {
-    pub fn new(path_vert: &str, path_frag: &str) -> Result<Self, String> {
+    pub fn new(path_vert: &String, path_frag: &String) -> Result<Self, String> {
         let vertex_shader = Shader::new(path_vert, gl::VERTEX_SHADER)?;
         let fragment_shader = Shader::new(path_frag, gl::FRAGMENT_SHADER)?;
         return Self::from_shaders(&[vertex_shader, fragment_shader]);

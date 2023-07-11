@@ -99,6 +99,8 @@ pub struct PlainBitmapBuilder {
     font_size: f32,
     characters: String,
     cache: bool,
+    vertex_shader_path: String,
+    fragment_shader_path: String,
 }
 
 impl BitmapBuilder for PlainBitmapBuilder {
@@ -136,6 +138,14 @@ impl BitmapBuilder for PlainBitmapBuilder {
             },
         }
     }
+
+    fn vertex_shader_path(&self) -> &String {
+        &self.vertex_shader_path
+    }
+
+    fn fragment_shader_path(&self) -> &String {
+        &self.fragment_shader_path
+    }
 }
 
 impl PlainBitmapBuilder {
@@ -146,6 +156,8 @@ impl PlainBitmapBuilder {
             font_size: 25.0,
             characters: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!;%:?*()_+-=.,/|\\\"'@#$€^&{}[]".to_string(),
             cache: true,
+            vertex_shader_path: "./assets/shaders/text-ui.vert".to_string(),
+            fragment_shader_path: "./assets/shaders/text-ui.frag".to_string(),
         }
     }
 

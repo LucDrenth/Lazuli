@@ -22,7 +22,7 @@ impl Scene for CoordinateSystem {
         event_system.send(event::HideCursor{});
 
 
-        let program = ShaderProgram::new("./assets/shaders/with-camera.vert", PATH_COLORED_FRAG).unwrap();
+        let program = ShaderProgram::new(&"./assets/shaders/with-camera.vert".to_string(), &PATH_COLORED_FRAG.to_string()).unwrap();
         let material = Material::new(program);
 
         let mut cubes = vec![];

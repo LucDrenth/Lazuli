@@ -9,7 +9,7 @@ pub struct HelloTriangle {
 
 impl Scene for HelloTriangle {
     fn new(_event_system: &mut EventSystem, _window_size: Vec2) -> Result<Self, String> {
-        let program = ShaderProgram::new(PATH_MOVING_TRIANGLE_VERT, PATH_MOVING_TRIANGLE_FRAG).unwrap();
+        let program = ShaderProgram::new(&PATH_MOVING_TRIANGLE_VERT.to_string(), &PATH_MOVING_TRIANGLE_FRAG.to_string())?;
         let material = Material::new(program);
 
         let triangle = Triangle::new(&material.shader_program);

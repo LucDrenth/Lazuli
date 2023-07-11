@@ -11,7 +11,7 @@ pub struct TextureMask {
 
 impl Scene for TextureMask {
     fn new(_event_system: &mut EventSystem, _window_size: Vec2) -> Result<Self, String> {
-        let program_textured = ShaderProgram::new(PATH_TEXTURE_MASK_VERT, PATH_TEXTURE_MASK_FRAG).unwrap();
+        let program_textured = ShaderProgram::new(&PATH_TEXTURE_MASK_VERT.to_string(), &PATH_TEXTURE_MASK_FRAG.to_string())?;
 
         let mut material_textured = Material::new(program_textured);
         material_textured.add_texture_from_path(&Path::new("./assets/images/lazuli-rock.png"));

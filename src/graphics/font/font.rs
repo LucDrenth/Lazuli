@@ -1,6 +1,6 @@
 use std::{fs::File, io::Read};
 
-use crate::{lz_core_err, lz_core_warn, graphics::texture::ImageType};
+use crate::{lz_core_err, lz_core_warn, graphics::{texture::ImageType, shader::ShaderProgram, material::Material}};
 
 use super::{BitmapCharacter, Bitmap, bitmap::BitmapBuilder, bitmap_cache};
 
@@ -9,15 +9,23 @@ pub struct Font {
 
     /// The width of the space (' ') character. the space is relative to the line height. So 0.5 is halve the line height. 
     pub space_size: f32,
+    pub material: Material,
 }
 
 impl Font {
     pub fn new(path: String, bitmap_builder: impl BitmapBuilder) -> Result<Self, String> {
         match load_font(&path) {
             Ok(font) => {
+                let bitmap = Self::get_bitmap(font, &path, &bitmap_builder)?;
+            
+                let program = ShaderProgram::new(bitmap_builder.vertex_shader_path(), bitmap_builder.fragment_shader_path())?;
+                let mut material = Material::new(program);
+                material.add_texture_from_image(bitmap.image());
+
                 Ok(Self { 
-                    bitmap: Self::get_bitmap(font, &path, &bitmap_builder)?,
+                    bitmap,
                     space_size: 0.215,
+                    material,
                 })
             },
             Err(err) => {

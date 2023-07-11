@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{font::Font, Transform, material::Material, shader::ShaderProgram}, lz_core_warn};
+use crate::{graphics::{font::Font, Transform, material::Material, ui::{ui_element::UiElement, Interface}}, lz_core_warn};
 
 use super::glyph::Glyph;
 
@@ -13,10 +13,37 @@ pub struct Text {
     total_width: f32,
     text_size: f32, // font size in pixels
     pub position: Vec2, // position in pixels from the center of the screen
+    pub font_id: u16,
+}
+
+impl UiElement for Text {
+    fn material<'a>(&'a self, interface: &'a Interface) -> Option<&Material> {
+        match interface.get_font(self.font_id) {
+            Some(font) => {
+                Some(&font.material)
+            },
+            None => None,
+        }
+    }
+
+    fn draw(&self, material: &Material) {        
+        material.activate();
+        material.shader_program.set_uniform("color", (
+            (self.color.0 as f32 / 255.0),
+            (self.color.1 as f32 / 255.0),
+            (self.color.2 as f32 / 255.0),
+        ));
+
+        material.shader_program.set_uniform("worldPosition", self.position_for_shader());
+
+        for glyph in &self.glyphs {
+            glyph.draw();
+        }
+    }
 }
 
 impl Text {
-    pub fn new(text: String, font: &Font, program: &ShaderProgram, text_builder: &TextBuilder) -> Self {
+    pub fn new(text: String, font: &Font, font_id: u16, text_builder: &TextBuilder) -> Self {
         let mut glyphs: Vec::<Glyph> = Vec::new();
 
         let bitmap_spread = (font.bitmap_spread() as f32) * 2.0 / font.line_height() as f32;
@@ -33,7 +60,7 @@ impl Text {
                     let glyph_start_y = -1.0 * text_builder.text_size * 2.0;
                     let glyph_end_y = 1.0 * text_builder.text_size * 2.0;
                     
-                    glyphs.push(Glyph::new(bitmap_character, glyph_start_x, glyph_end_x, glyph_start_y, glyph_end_y, program));
+                    glyphs.push(Glyph::new(bitmap_character, glyph_start_x, glyph_end_x, glyph_start_y, glyph_end_y, &font.material.shader_program));
                     start_x += bitmap_character.width + text_builder.letter_spacing - bitmap_spread;
                 },
                 None => {
@@ -56,24 +83,12 @@ impl Text {
             total_width,
             text_size: text_builder.text_size,
             position: Vec2::ZERO,
+            font_id,
         }
     }
 
     pub fn position_for_shader(&self) -> (f32, f32) {
         (self.position.x, self.position.y)
-    }
-
-    pub fn draw(&self, material: &Material) {
-        material.activate();
-        material.shader_program.set_uniform("color", (
-            (self.color.0 as f32 / 255.0),
-            (self.color.1 as f32 / 255.0),
-            (self.color.2 as f32 / 255.0),
-        ));
-
-        for glyph in &self.glyphs {
-            glyph.draw();
-        }
     }
 
     /// Calculate the total width of the text, ignoring characters that do not have a glyph

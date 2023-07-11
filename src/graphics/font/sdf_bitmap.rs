@@ -98,6 +98,8 @@ pub struct SdfBitmapBuilder {
     spread: u8, // the amount of padding (in pixels) each glyph from the binary image gets. Increase for better quality.
     super_sampling_factor: u8,
     cache: bool,
+    vertex_shader_path: String,
+    fragment_shader_path: String,
 }
 
 impl BitmapBuilder for SdfBitmapBuilder {
@@ -134,7 +136,17 @@ impl BitmapBuilder for SdfBitmapBuilder {
                 return None;
             },
         }
-    } 
+    }
+
+    fn vertex_shader_path(&self) -> &String {
+        &self.vertex_shader_path
+    }
+
+    fn fragment_shader_path(&self) -> &String {
+        &self.fragment_shader_path
+    }
+
+    
 }
 
 impl SdfBitmapBuilder {
@@ -148,6 +160,8 @@ impl SdfBitmapBuilder {
             spread: 4,
             super_sampling_factor: 4,
             cache: true,
+            vertex_shader_path: "./assets/shaders/text-ui.vert".to_string(),
+            fragment_shader_path: "./assets/shaders/text-ui.frag".to_string(),
         }
     }
 
