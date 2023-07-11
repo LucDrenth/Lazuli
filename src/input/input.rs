@@ -227,6 +227,7 @@ pub enum Key {
 
     Cmd = 59,
     BackTick = 60,
+    Enter = 61,
 }
 
 impl Key {
