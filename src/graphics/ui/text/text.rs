@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{font::Font, Transform, material::Material, shader::ShaderProgram}, lz_core_warn, lz_core_info};
+use crate::{graphics::{font::Font, Transform, material::Material, shader::ShaderProgram}, lz_core_warn};
 
 use super::glyph::Glyph;
 

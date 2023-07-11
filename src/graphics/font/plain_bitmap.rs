@@ -7,14 +7,14 @@ use crate::{lz_core_warn, lz_core_err};
 
 use super::BitmapCharacter;
 
-pub struct Bitmap {
+pub struct PlainBitmap {
     pub image: RgbaImage,
     pub characters: HashMap<char, BitmapCharacter>,
     pub line_height: f32,
 }
 
-impl Bitmap {
-    pub fn new(font: &rusttype::Font<'static>, bitmap_builder: BitmapBuilder) -> Result<Bitmap, String> {
+impl PlainBitmap {
+    pub fn new(font: &rusttype::Font<'static>, bitmap_builder: PlainBitmapBuilder) -> Result<PlainBitmap, String> {
         if bitmap_builder.characters.len() == 0 {
             return Err("Failed to create bitmap: character set may not be empty".to_string());
         }
@@ -32,7 +32,7 @@ impl Bitmap {
         })
     }
 
-    fn create(font: &rusttype::Font<'static>, bitmap_builder: BitmapBuilder) -> Result<Self, String> {
+    fn create(font: &rusttype::Font<'static>, bitmap_builder: PlainBitmapBuilder) -> Result<Self, String> {
         let scale = rusttype::Scale::uniform(bitmap_builder.font_size);
         let v_metrics = font.v_metrics(scale);
         let start_point = rusttype::point(bitmap_builder.padding_x as f32, bitmap_builder.padding_y as f32 + v_metrics.ascent);
@@ -67,7 +67,7 @@ impl Bitmap {
 
 }
 
-pub struct BitmapBuilder {
+pub struct PlainBitmapBuilder {
     colour: (u8, u8, u8),
     padding_x: u32,
     padding_y: u32,
@@ -75,7 +75,7 @@ pub struct BitmapBuilder {
     characters: String,
 }
 
-impl BitmapBuilder {
+impl PlainBitmapBuilder {
     pub fn new() -> Self {
         Self {
             colour: (255, 255, 255),
