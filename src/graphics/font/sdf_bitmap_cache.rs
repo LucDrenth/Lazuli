@@ -3,9 +3,9 @@ use std::{fs, collections::{hash_map::DefaultHasher, HashMap}, hash::{Hash, Hash
 use image::GrayImage;
 use serde::{Serialize, Deserialize};
 
-use crate::lz_core_err;
+use crate::{lz_core_err, graphics::texture::ImageType};
 
-use super::{SdfBitmapBuilder, SdfBitmap, BitmapCharacter};
+use super::{SdfBitmapBuilder, BitmapCharacter, sdf_bitmap::SdfBitmap};
 
 #[derive(Serialize, Deserialize)]
 pub struct SdfBitmapCache {
@@ -41,7 +41,7 @@ pub fn load(font_path: &String, bitmap_builder: &SdfBitmapBuilder) -> Option<Sdf
     let texture: GrayImage = read_texture(&font_path, &bitmap_builder_hash)?;
 
     return Some(SdfBitmap {
-        image: texture,
+        image: ImageType::GrayImage(texture),
         characters: bitmap_data.characters,
         line_height: bitmap_data.line_height,
         spread: bitmap_data.spread,

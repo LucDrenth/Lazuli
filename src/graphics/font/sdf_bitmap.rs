@@ -4,13 +4,13 @@ use image::{DynamicImage, Luma, GrayImage};
 use rusttype::PositionedGlyph;
 use serde::Serialize;
 
-use crate::{lz_core_warn, lz_core_err, math, graphics::texture::downsample_gray_image};
+use crate::{lz_core_warn, lz_core_err, math, graphics::texture::{downsample_gray_image, ImageType}};
 
 use super::BitmapCharacter;
 
 /// Signed distance field font bitmap
 pub struct SdfBitmap {
-    pub image: GrayImage,
+    pub image: ImageType,
     pub characters: HashMap<char, BitmapCharacter>,
     pub line_height: f32,
     pub spread: u8,
@@ -52,8 +52,10 @@ impl SdfBitmap {
         let mut bitmap_characters: HashMap<char, BitmapCharacter> = HashMap::new();
         write_glyphs(glyphs, &bitmap_builder, &mut image_buffer, &mut bitmap_characters, line_height as f32);
 
+        let gray_image = downsample_gray_image(&image_buffer, bitmap_builder.super_sampling_factor as u32);
+
         Ok(Self{ 
-            image: downsample_gray_image(&image_buffer, bitmap_builder.super_sampling_factor as u32), 
+            image: ImageType::GrayImage(gray_image), 
             characters: bitmap_characters, 
             line_height: line_height as f32,
             spread: bitmap_builder.spread,

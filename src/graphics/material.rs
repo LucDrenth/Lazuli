@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use super::{shader::ShaderProgram, texture::{Texture, TextureImage}};
+use super::{shader::ShaderProgram, texture::{Texture, TextureImage, ImageType}};
 
 pub struct Material {
     pub shader_program: ShaderProgram,
@@ -31,8 +31,9 @@ impl Material {
         self.add_texture(texture);
     }
 
-    pub fn add_texture_from_image<T: Into<TextureImage>>(&mut self, img: T) {
+    pub fn add_texture_from_image(&mut self, img: &ImageType) {
         let texture = Texture::new();
+
         texture.load_from_image(img);
         
         self.add_texture(texture);

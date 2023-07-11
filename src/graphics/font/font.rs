@@ -1,10 +1,8 @@
 use std::{fs::File, io::Read};
 
-use image::GrayImage;
+use crate::{lz_core_err, lz_core_warn, graphics::texture::ImageType};
 
-use crate::{lz_core_err, lz_core_warn};
-
-use super::{SdfBitmap, SdfBitmapBuilder, sdf_bitmap_cache, BitmapCharacter};
+use super::{SdfBitmapBuilder, sdf_bitmap_cache, BitmapCharacter, sdf_bitmap::SdfBitmap};
 
 pub struct Font {
     bitmap: SdfBitmap,
@@ -47,12 +45,10 @@ impl Font {
     }
 
     pub fn save_bitmap(&self, path: String) -> Result<(), String> {
-        self.bitmap.image.save(path).map_err(|err| {
-            format!("Failed to save bitmap: {}", err)
-        }) 
+        self.bitmap.save(&path)
     }
 
-    pub fn image(&self) -> &GrayImage {
+    pub fn image(&self) -> &ImageType {
         &self.bitmap.image
     }
 
