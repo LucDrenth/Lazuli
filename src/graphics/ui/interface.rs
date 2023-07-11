@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, graphics::font::Font, lz_core_err};
 
-use super::ui_element::UiElement;
+use super::{ui_element::UiElement, TextBuilder, Text};
 
 pub struct Interface {
     window_resize_listener: EventReader<WindowResizeEvent>,
@@ -67,6 +67,18 @@ impl Interface {
                 entry.insert(element);
                 return self.current_element_id;
             }
+        }
+    }
+
+    pub fn add_text(&mut self, text: String, font_id: u16, text_builder: &TextBuilder) -> u32 {
+        match self.get_font(font_id) {
+            Some(font) => {
+                return self.add_element(Box::new(Text::new(text, font, font_id, text_builder)));
+            },
+            None => {
+                lz_core_err!("Failed to add interface text because font with id {} was not found", font_id);
+                return 0;
+            },
         }
     }
 

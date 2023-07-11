@@ -15,13 +15,14 @@ impl Scene for HelloText {
         let plain_font_id = interface.add_font(Font::new("./assets/fonts/roboto.ttf".to_string(), PlainBitmapBuilder::new()
             .with_font_size(50.0)
         )?);
-        let mut plain_text = Text::new("Welcome to Lazuli engine".to_string(), &interface.get_font(plain_font_id).unwrap(), plain_font_id, &TextBuilder::new()
+
+        // First we of creating a text is with a funciton from Interface
+        interface.add_text("Welcome to Lazuli engine".to_string(), plain_font_id, &TextBuilder::new()
             .with_text_size(25.0)
             .with_color((255, 255, 255))
             .with_letter_spacing(0.05)
+            .with_position_y(100.0)
         );
-        plain_text.position.y += 250.0;
-        interface.add_element(Box::new(plain_text));
 
 
         let sdf_font_id = interface.add_font(Font::new("./assets/fonts/roboto.ttf".to_string(), SdfBitmapBuilder::new()
@@ -29,10 +30,12 @@ impl Scene for HelloText {
             .with_spread(8)
             .with_super_sampling_factor(4)
         )?);
+        // Second way of creating a text is creating one ourselves and adding it to the Interface
         let sdf_text = Text::new("Welcome to Lazuli engine".to_string(), &interface.get_font(sdf_font_id).unwrap(), sdf_font_id, &TextBuilder::new()
             .with_text_size(25.0)
             .with_color((255, 255, 255))
             .with_letter_spacing(0.05)
+            .with_position_y(-100.0)
         );
         interface.add_element(Box::new(sdf_text));
         

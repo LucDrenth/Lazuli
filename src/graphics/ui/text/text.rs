@@ -82,7 +82,7 @@ impl Text {
             color: text_builder.color,
             total_width,
             text_size: text_builder.text_size,
-            position: Vec2::ZERO,
+            position: Vec2{x: text_builder.position_x, y: text_builder.position_y},
             font_id,
         }
     }
@@ -125,6 +125,8 @@ pub struct TextBuilder {
     text_size: f32, // size in pixels
     color: (u8, u8, u8),
     letter_spacing: f32,
+    position_x: f32,
+    position_y: f32,
 }
 
 impl TextBuilder {
@@ -133,6 +135,8 @@ impl TextBuilder {
             text_size: 20.0,
             color: (255, 255, 255),
             letter_spacing: 0.04,
+            position_x: 0.0,
+            position_y: 0.0,
         }
     }
 
@@ -148,6 +152,16 @@ impl TextBuilder {
 
     pub fn with_letter_spacing(mut self, letter_spacing: f32) -> Self {
         self.letter_spacing = letter_spacing;
+        self
+    }
+
+    pub fn with_position_x(mut self, position_x: f32) -> Self {
+        self.position_x = position_x;
+        self
+    }
+
+    pub fn with_position_y(mut self, position_y: f32) -> Self {
+        self.position_y = position_y;
         self
     }
 }
