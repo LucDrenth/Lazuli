@@ -7,7 +7,9 @@ use crate::{lz_core_err, graphics::texture::ImageType};
 
 use super::{SdfBitmapBuilder, BitmapCharacter, sdf_bitmap::SdfBitmap, Bitmap, plain_bitmap::PlainBitmap, bitmap::BitmapBuilder};
 
-pub trait BitmapCache {}
+pub trait BitmapCache {
+    fn build(&self, texture: GrayImage) -> Box<dyn Bitmap>;
+}
 
 #[derive(Serialize, Deserialize)]
 pub struct SdfBitmapCache {
@@ -16,7 +18,19 @@ pub struct SdfBitmapCache {
     pub spread: u8,
 }
 
-impl BitmapCache for SdfBitmapCache {}
+impl BitmapCache for SdfBitmapCache {
+    fn build(&self, texture: GrayImage) -> Box<dyn Bitmap> {
+        let mut characters: HashMap<char, BitmapCharacter> = HashMap::new();
+        characters.clone_from(&self.characters);
+
+        return Box::new(SdfBitmap {
+            image: ImageType::GrayImage(texture),
+            characters: characters,
+            line_height: self.line_height,
+            spread: self.spread,
+        });
+    }
+}
 
 impl SdfBitmapCache {
     pub fn from(bitmap: &SdfBitmap) -> Self {
@@ -38,7 +52,18 @@ pub struct PlainBitmapCache {
     pub line_height: f32,
 }
 
-impl BitmapCache for PlainBitmapCache {}
+impl BitmapCache for PlainBitmapCache {
+    fn build(&self, texture: GrayImage) -> Box<dyn Bitmap> {
+        let mut characters: HashMap<char, BitmapCharacter> = HashMap::new();
+        characters.clone_from(&self.characters);
+
+        return Box::new(PlainBitmap {
+            image: ImageType::GrayImage(texture),
+            characters: characters,
+            line_height: self.line_height,
+        });
+    }
+}
 
 impl PlainBitmapCache {
     pub fn from(bitmap: &PlainBitmap) -> Self {
@@ -53,7 +78,7 @@ impl PlainBitmapCache {
 }
 
 
-pub fn load(font_path: &String, bitmap_builder: &impl BitmapBuilder) -> Option<SdfBitmap> {
+pub fn load(font_path: &String, bitmap_builder: &impl BitmapBuilder) -> Option<Box<dyn Bitmap>> {
     let bitmap_builder_hash: String;
     match bitmap_builder.get_hash() {
         Ok(hash) => bitmap_builder_hash = hash,
@@ -63,15 +88,10 @@ pub fn load(font_path: &String, bitmap_builder: &impl BitmapBuilder) -> Option<S
         },
     }
 
-    let bitmap_data = read_character_data(&font_path, &bitmap_builder_hash)?;
+    let bitmap_cache = read_character_data(bitmap_builder, &font_path, &bitmap_builder_hash)?;
     let texture: GrayImage = read_texture(&font_path, &bitmap_builder_hash)?;
 
-    return Some(SdfBitmap {
-        image: ImageType::GrayImage(texture),
-        characters: bitmap_data.characters,
-        line_height: bitmap_data.line_height,
-        spread: bitmap_data.spread,
-    });
+    return Some(bitmap_cache.build(texture));
 }
 
 pub fn save(font_path: &String, bitmap_builder: &impl BitmapBuilder, bitmap: &Box<dyn Bitmap>) -> Result<(), String> {
@@ -99,17 +119,10 @@ fn get_bitmap_builder_hash(bitmap_builder: &SdfBitmapBuilder) -> Result<String, 
     }
 }
 
-fn read_character_data(font_path: &String, bitmap_builder_hash: &String) -> Option<SdfBitmapCache> {
+fn read_character_data(bitmap_builder: &impl BitmapBuilder, font_path: &String, bitmap_builder_hash: &String) -> Option<Box<dyn BitmapCache>> {
     match fs::read_to_string(format!("{}.{}-data.json", font_path, bitmap_builder_hash)) {
         Ok(data) => {
-            match serde_json::from_str(&data) {
-                Ok(cache) => return Some(cache),
-                Err(err) => {
-                    // cache exists but is not valid
-                    lz_core_err!("Failed to read data from sdf bitmap cache: {}", err.to_string());
-                    return None;
-                },
-            }
+            return bitmap_builder.cache_from_json(data);
         },
         Err(_) => {
             // cache does not exist

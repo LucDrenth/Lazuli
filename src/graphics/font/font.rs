@@ -49,7 +49,7 @@ impl Font {
 
     fn get_bitmap(font: rusttype::Font<'static>, path: &String, bitmap_builder: &impl BitmapBuilder) -> Result<Box<dyn Bitmap>, String> {
         if let Some(existing_bitmap) = bitmap_cache::load(&path, bitmap_builder) {
-            return Ok(Box::new(existing_bitmap))
+            return Ok(existing_bitmap)
         } else {
             let new_bitmap = bitmap_builder.build(&font)?;
 

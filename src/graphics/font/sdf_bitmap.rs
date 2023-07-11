@@ -122,6 +122,19 @@ impl BitmapBuilder for SdfBitmapBuilder {
             Err(err) => Err(err.to_string()),
         }
     }
+
+    fn cache_from_json(&self, data: String) -> Option<Box<dyn bitmap_cache::BitmapCache>> {
+        let bitmap_cache: Result<SdfBitmapCache, serde_json::error::Error> = serde_json::from_str(&data);
+
+        match bitmap_cache {
+            Ok(cache) => return Some(Box::new(cache)),
+            Err(err) => {
+                // cache exists but is not valid
+                lz_core_err!("Failed to read data from sdf bitmap cache: {}", err.to_string());
+                return None;
+            },
+        }
+    } 
 }
 
 impl SdfBitmapBuilder {

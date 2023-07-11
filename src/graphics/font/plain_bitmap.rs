@@ -124,7 +124,18 @@ impl BitmapBuilder for PlainBitmapBuilder {
         }
     }
 
-    
+    fn cache_from_json(&self, data: String) -> Option<Box<dyn super::bitmap_cache::BitmapCache>> {
+        let bitmap_cache: Result<PlainBitmapCache, serde_json::error::Error> = serde_json::from_str(&data);
+
+        match bitmap_cache {
+            Ok(cache) => return Some(Box::new(cache)),
+            Err(err) => {
+                // cache exists but is not valid
+                lz_core_err!("Failed to read data from plain bitmap cache: {}", err.to_string());
+                return None;
+            },
+        }
+    }
 }
 
 impl PlainBitmapBuilder {
