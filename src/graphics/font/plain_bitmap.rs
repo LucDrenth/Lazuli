@@ -3,14 +3,38 @@ use std::collections::HashMap;
 use image::{DynamicImage, Rgba, RgbaImage};
 use rusttype::PositionedGlyph;
 
-use crate::{lz_core_warn, lz_core_err};
+use crate::{lz_core_warn, lz_core_err, graphics::texture::ImageType};
 
-use super::BitmapCharacter;
+use super::{BitmapCharacter, Bitmap};
 
 pub struct PlainBitmap {
-    pub image: RgbaImage,
+    pub image: ImageType,
     pub characters: HashMap<char, BitmapCharacter>,
     pub line_height: f32,
+}
+
+impl Bitmap for PlainBitmap {
+    fn image(&self) -> &crate::graphics::texture::ImageType {
+        &self.image
+    }
+
+    fn save(&self, path: &String) -> Result<(), String> {
+        self.image.save(path).map_err(|err| {
+            format!("Failed to save bitmap image: {}", err)
+        })
+    }
+
+    fn characters(&self) -> &HashMap<char, BitmapCharacter> {
+        &self.characters
+    }
+
+    fn line_height(&self) -> f32 {
+        self.line_height
+    }
+
+    fn spread(&self) -> u8 {
+        0
+    }
 }
 
 impl PlainBitmap {
@@ -23,13 +47,6 @@ impl PlainBitmap {
             format!("Failed to create bitmap: {}", err)
         })?;
         Ok(bitmap)
-    }
-
-    /// save the bitmap image to a file
-    pub fn save(&self, path: &String) -> Result<(), String> {
-        self.image.save(path).map_err(|err| {
-            format!("Failed to save bitmap image: {}", err)
-        })
     }
 
     fn create(font: &rusttype::Font<'static>, bitmap_builder: PlainBitmapBuilder) -> Result<Self, String> {
@@ -59,7 +76,7 @@ impl PlainBitmap {
         );
 
         Ok(Self{ 
-            image: image_buffer, 
+            image: ImageType::RgbaImage(image_buffer), 
             characters: bitmap_characters, 
             line_height: line_height as f32,
         })

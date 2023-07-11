@@ -5,7 +5,7 @@ use serde::{Serialize, Deserialize};
 
 use crate::{lz_core_err, graphics::texture::ImageType};
 
-use super::{SdfBitmapBuilder, BitmapCharacter, sdf_bitmap::SdfBitmap};
+use super::{SdfBitmapBuilder, BitmapCharacter, sdf_bitmap::SdfBitmap, Bitmap};
 
 #[derive(Serialize, Deserialize)]
 pub struct SdfBitmapCache {
@@ -17,7 +17,7 @@ pub struct SdfBitmapCache {
 impl SdfBitmapCache {
     pub fn from(bitmap: &SdfBitmap) -> Self {
         let mut bitmap_cache_characters: HashMap<char, BitmapCharacter> = HashMap::new();
-        bitmap_cache_characters.clone_from(&bitmap.characters);
+        bitmap_cache_characters.clone_from(&bitmap.characters());
     
         SdfBitmapCache {
             characters: bitmap_cache_characters,

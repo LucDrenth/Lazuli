@@ -6,7 +6,7 @@ use serde::Serialize;
 
 use crate::{lz_core_warn, lz_core_err, math, graphics::texture::{downsample_gray_image, ImageType}};
 
-use super::BitmapCharacter;
+use super::{BitmapCharacter, Bitmap};
 
 /// Signed distance field font bitmap
 pub struct SdfBitmap {
@@ -14,6 +14,30 @@ pub struct SdfBitmap {
     pub characters: HashMap<char, BitmapCharacter>,
     pub line_height: f32,
     pub spread: u8,
+}
+
+impl Bitmap for SdfBitmap {
+    fn image(&self) -> &ImageType {
+        &self.image
+    }
+
+    fn save(&self, path: &String) -> Result<(), String> {
+        self.image.save(path).map_err(|err| {
+            format!("Failed to save sdf bitmap image: {}", err)
+        })
+    }
+
+    fn characters(&self) -> &HashMap<char, BitmapCharacter> {
+        &self.characters
+    }
+
+    fn line_height(&self) -> f32 {
+        self.line_height
+    }
+
+    fn spread(&self) -> u8 {
+        self.spread
+    }
 }
 
 impl SdfBitmap {
@@ -26,13 +50,6 @@ impl SdfBitmap {
             format!("Failed to create bitmap: {}", err)
         })?;
         Ok(bitmap)
-    }
-
-    /// save the bitmap image to a file
-    pub fn save(&self, path: &String) -> Result<(), String> {
-        self.image.save(path).map_err(|err| {
-            format!("Failed to save bitmap image: {}", err)
-        })
     }
 
     fn create(font: &rusttype::Font<'static>, bitmap_builder: &SdfBitmapBuilder) -> Result<Self, String> {

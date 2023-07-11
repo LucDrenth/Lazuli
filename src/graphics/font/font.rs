@@ -2,10 +2,10 @@ use std::{fs::File, io::Read};
 
 use crate::{lz_core_err, lz_core_warn, graphics::texture::ImageType};
 
-use super::{SdfBitmapBuilder, sdf_bitmap_cache, BitmapCharacter, sdf_bitmap::SdfBitmap};
+use super::{SdfBitmapBuilder, sdf_bitmap_cache, BitmapCharacter, sdf_bitmap::SdfBitmap, Bitmap};
 
 pub struct Font {
-    bitmap: SdfBitmap,
+    bitmap: Box<dyn Bitmap>,
 
     /// The width of the space (' ') character. the space is relative to the line height. So 0.5 is halve the line height. 
     pub space_size: f32,
@@ -15,25 +15,8 @@ impl Font {
     pub fn new(path: String, bitmap_builder: SdfBitmapBuilder) -> Result<Self, String> {
         match load_font(&path) {
             Ok(font) => {
-                let bitmap: SdfBitmap;
-
-                if let Some(existing_bitmap) = sdf_bitmap_cache::load(&path, &bitmap_builder) {
-                    bitmap = existing_bitmap;
-                } else {
-                    bitmap = SdfBitmap::new(&font, &bitmap_builder)?;
-
-                    if bitmap_builder.cache {
-                        match sdf_bitmap_cache::save(&path, &bitmap_builder, &bitmap) {
-                            Ok(_) => (),
-                            Err(err) => {
-                                lz_core_warn!("Failed to save sdf font bitmap cache: {}", err); 
-                            }
-                        }
-                    }
-                }
-
                 Ok(Self { 
-                    bitmap,
+                    bitmap: Self::get_bitmap(font, &path, &bitmap_builder)?,
                     space_size: 0.215,
                 })
             },
@@ -49,19 +32,38 @@ impl Font {
     }
 
     pub fn image(&self) -> &ImageType {
-        &self.bitmap.image
+        &self.bitmap.image()
     }
 
     pub fn get_bitmap_character(&self, character: char) -> Option<&BitmapCharacter> {
-        self.bitmap.characters.get(&character)
+        self.bitmap.characters().get(&character)
     }
 
     pub fn line_height(&self) -> f32 {
-        self.bitmap.line_height
+        self.bitmap.line_height()
     }
 
     pub fn bitmap_spread(&self) -> u8 {
-        self.bitmap.spread
+        self.bitmap.spread()
+    }
+
+    fn get_bitmap(font: rusttype::Font<'static>, path: &String, bitmap_builder: &SdfBitmapBuilder) -> Result<Box<dyn Bitmap>, String> {
+        if let Some(existing_bitmap) = sdf_bitmap_cache::load(&path, &bitmap_builder) {
+            return Ok(Box::new(existing_bitmap));
+        } else {
+            let bitmap = SdfBitmap::new(&font, &bitmap_builder)?;
+
+            if bitmap_builder.cache {
+                match sdf_bitmap_cache::save(&path, &bitmap_builder, &bitmap) {
+                    Ok(_) => (),
+                    Err(err) => {
+                        lz_core_warn!("Failed to save sdf font bitmap cache: {}", err); 
+                    }
+                }
+            }
+
+            return Ok(Box::new(bitmap));
+        }
     }
 }
 

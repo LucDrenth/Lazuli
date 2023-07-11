@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use super::{shader::ShaderProgram, texture::{Texture, TextureImage, ImageType}};
+use super::{shader::ShaderProgram, texture::{Texture, ImageType}};
 
 pub struct Material {
     pub shader_program: ShaderProgram,
