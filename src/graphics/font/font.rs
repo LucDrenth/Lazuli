@@ -4,7 +4,7 @@ use image::GrayImage;
 
 use crate::{lz_core_err, lz_core_warn};
 
-use super::{SdfBitmap, SdfBitmapBuilder, sdf_bitmap::BitmapCharacter, sdf_bitmap_cache};
+use super::{SdfBitmap, SdfBitmapBuilder, sdf_bitmap_cache, BitmapCharacter};
 
 pub struct Font {
     bitmap: SdfBitmap,

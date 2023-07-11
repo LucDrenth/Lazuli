@@ -5,6 +5,8 @@ use rusttype::PositionedGlyph;
 
 use crate::{lz_core_warn, lz_core_err};
 
+use super::BitmapCharacter;
+
 pub struct Bitmap {
     pub image: RgbaImage,
     pub characters: HashMap<char, BitmapCharacter>,
@@ -108,15 +110,6 @@ impl BitmapBuilder {
         self.characters = characters;
         self
     }
-}
-
-#[derive(Debug)]
-pub struct BitmapCharacter {
-    pub texture_start_x: f32,
-    pub texture_end_x: f32,
-    pub texture_start_y: f32,
-    pub texture_end_y: f32,
-    pub width: f32, // relative to the lineheight of the font
 }
 
 /// Calculate the size that the bitmap needs to be, as a powers of 2. such as 256x256, 512x512 etc.

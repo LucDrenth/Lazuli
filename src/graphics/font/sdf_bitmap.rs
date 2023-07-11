@@ -2,9 +2,11 @@ use std::collections::HashMap;
 
 use image::{DynamicImage, Luma, GrayImage};
 use rusttype::PositionedGlyph;
-use serde::{Serialize, Deserialize};
+use serde::Serialize;
 
 use crate::{lz_core_warn, lz_core_err, math, graphics::texture::downsample_gray_image};
+
+use super::BitmapCharacter;
 
 /// Signed distance field font bitmap
 pub struct SdfBitmap {
@@ -125,17 +127,6 @@ impl SdfBitmapBuilder {
         self.cache = cache;
         self
     }
-}
-
-#[derive(Serialize, Deserialize)]
-#[derive(Debug)]
-#[derive(Clone)]
-pub struct BitmapCharacter {
-    pub texture_start_x: f32,
-    pub texture_end_x: f32,
-    pub texture_start_y: f32,
-    pub texture_end_y: f32,
-    pub width: f32, // relative to the lineheight of the font
 }
 
 /// Calculate the size that the bitmap needs to be, as a powers of 2. such as 256x256, 512x512 etc.
