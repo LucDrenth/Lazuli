@@ -2,7 +2,7 @@ use std::{collections::hash_map::DefaultHasher, hash::{Hash, Hasher}};
 
 use serde::Serialize;
 
-use crate::lz_core_err;
+use crate::{lz_core_err, graphics::shader::ShaderBuilder};
 
 use super::{bitmap::BitmapBuilder, Bitmap, sdf_bitmap::SdfBitmap, bitmap_cache::{SdfBitmapCache, self}};
 
@@ -16,8 +16,6 @@ pub struct SdfBitmapBuilder {
     pub spread: u8, // the amount of padding (in pixels) each glyph from the binary image gets. Increase for better quality.
     pub super_sampling_factor: u8,
     pub cache: bool,
-    pub vertex_shader_path: String,
-    pub fragment_shader_path: String,
 }
 
 impl BitmapBuilder for SdfBitmapBuilder {
@@ -56,15 +54,11 @@ impl BitmapBuilder for SdfBitmapBuilder {
         }
     }
 
-    fn vertex_shader_path(&self) -> &String {
-        &self.vertex_shader_path
+    fn default_shader_builder(&self) -> ShaderBuilder {
+        ShaderBuilder::new()
+            .with_vertex_shader_path("./assets/shaders/text-ui.vert".to_string())
+            .with_fragment_shader_path("./assets/shaders/text-ui-sdf.frag".to_string())
     }
-
-    fn fragment_shader_path(&self) -> &String {
-        &self.fragment_shader_path
-    }
-
-    
 }
 
 impl SdfBitmapBuilder {
@@ -78,8 +72,6 @@ impl SdfBitmapBuilder {
             spread: 4,
             super_sampling_factor: 4,
             cache: true,
-            vertex_shader_path: "./assets/shaders/text-ui.vert".to_string(),
-            fragment_shader_path: "./assets/shaders/text-ui-sdf.frag".to_string(),
         }
     }
 
@@ -121,16 +113,6 @@ impl SdfBitmapBuilder {
 
     pub fn with_cache(mut self, cache: bool) -> Self {
         self.cache = cache;
-        self
-    }
-
-    pub fn with_vertex_shader_path(mut self, path: String) -> Self {
-        self.vertex_shader_path = path;
-        self
-    }
-
-    pub fn with_fragment_shader_path(mut self, path: String) -> Self {
-        self.fragment_shader_path = path;
         self
     }
 }

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::graphics::texture::ImageType;
+use crate::graphics::{texture::ImageType, shader::ShaderBuilder};
 
 use super::{BitmapCharacter, bitmap_cache::BitmapCache};
 
@@ -18,6 +18,6 @@ pub trait BitmapBuilder {
     fn get_hash(&self) -> Result<String, String>;
     fn cache_from_json(&self, data: String) -> Option<Box<dyn BitmapCache>>;
     fn do_cache(&self) -> bool;
-    fn vertex_shader_path(&self) -> &String;
-    fn fragment_shader_path(&self) -> &String;
+
+    fn default_shader_builder(&self) -> ShaderBuilder;
 }

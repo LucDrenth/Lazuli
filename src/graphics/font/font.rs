@@ -1,6 +1,6 @@
 use std::{fs::File, io::Read};
 
-use crate::{lz_core_err, lz_core_warn, graphics::{texture::ImageType, shader::ShaderProgram, material::Material}};
+use crate::{lz_core_err, lz_core_warn, graphics::{texture::ImageType, shader::ShaderBuilder, material::Material}};
 
 use super::{BitmapCharacter, Bitmap, bitmap::BitmapBuilder, bitmap_cache};
 
@@ -12,13 +12,22 @@ pub struct Font {
     pub material: Material,
 }
 
+/// # Arguments
+/// 
+/// * `path` - Path to a .ttf file
+/// * `bitmap_builder` -
+/// * `shader` - None to use the default text shader
 impl Font {
-    pub fn new(path: String, bitmap_builder: impl BitmapBuilder) -> Result<Self, String> {
+    pub fn new(path: String, bitmap_builder: impl BitmapBuilder, shader: Option<ShaderBuilder>) -> Result<Self, String> {
         match load_font(&path) {
             Ok(font) => {
                 let bitmap = Self::get_bitmap(font, &path, &bitmap_builder)?;
-            
-                let program = ShaderProgram::new(bitmap_builder.vertex_shader_path(), bitmap_builder.fragment_shader_path())?;
+                
+                let program = match shader {
+                    Some(shader_builder) => shader_builder.build(),
+                    None => bitmap_builder.default_shader_builder().build(),
+                }?;
+
                 let mut material = Material::new(program);
                 material.add_texture_from_image(bitmap.image());
 

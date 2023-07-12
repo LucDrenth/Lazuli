@@ -2,7 +2,7 @@ use std::{collections::hash_map::DefaultHasher, hash::{Hash, Hasher}};
 
 use serde::Serialize;
 
-use crate::lz_core_err;
+use crate::{lz_core_err, graphics::shader::ShaderBuilder};
 
 use super::{bitmap::BitmapBuilder, Bitmap, plain_bitmap::PlainBitmap, bitmap_cache::PlainBitmapCache};
 
@@ -14,8 +14,6 @@ pub struct PlainBitmapBuilder {
     pub characters: String,
     pub cache: bool,
     pub super_sampling_factor: u8,
-    pub vertex_shader_path: String,
-    pub fragment_shader_path: String,
     pub glyph_padding_x: u32, // padding between the glyphs
     pub glyph_padding_y: u32, // padding between the glyphs
 }
@@ -56,12 +54,10 @@ impl BitmapBuilder for PlainBitmapBuilder {
         }
     }
 
-    fn vertex_shader_path(&self) -> &String {
-        &self.vertex_shader_path
-    }
-
-    fn fragment_shader_path(&self) -> &String {
-        &self.fragment_shader_path
+    fn default_shader_builder(&self) -> ShaderBuilder {
+        ShaderBuilder::new()
+            .with_vertex_shader_path("./assets/shaders/text-ui.vert".to_string())
+            .with_fragment_shader_path("./assets/shaders/text-ui-plain.frag".to_string())
     }
 }
 
@@ -74,8 +70,6 @@ impl PlainBitmapBuilder {
             characters: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!;%:?*()_+-=.,/|\\\"'@#$€^&{}[]".to_string(),
             cache: true,
             super_sampling_factor: 1,
-            vertex_shader_path: "./assets/shaders/text-ui.vert".to_string(),
-            fragment_shader_path: "./assets/shaders/text-ui-plain.frag".to_string(),
             glyph_padding_x: 1, // setting this to a minimum of one prevents overlapping when downsampling
             glyph_padding_y: 1,
         }
@@ -108,16 +102,6 @@ impl PlainBitmapBuilder {
 
     pub fn with_super_sampling_factor(mut self, super_sampling_factor: u8) -> Self {
         self.super_sampling_factor = super_sampling_factor;
-        self
-    }
-
-    pub fn with_vertex_shader_path(mut self, path: String) -> Self {
-        self.vertex_shader_path = path;
-        self
-    }
-
-    pub fn with_fragment_shader_path(mut self, path: String) -> Self {
-        self.fragment_shader_path = path;
         self
     }
 
