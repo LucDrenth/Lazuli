@@ -10,7 +10,7 @@ use crate::lz_core_warn;
 /// * `factor` - reduce both with and height by this amount, e.g. factor 4 is 1024x1024 to 256x256
 /// * `method` - 
 pub fn downsample_gray_image(image: &GrayImage, factor: u32) -> GrayImage {
-    if factor < 2 {
+    if factor < 1 {
         lz_core_warn!("invalid image downsample factor of {}. Returning input image clone", factor);
         return image.clone();
     }
@@ -57,7 +57,7 @@ fn gray_image_average(image: &GrayImage, factor: u32, start_x: u32, start_y: u32
 /// * `factor` - reduce both with and height by this amount, e.g. factor 4 is 1024x1024 to 256x256
 /// * `method` - 
 pub fn downsample_rgba_image(image: &RgbaImage, factor: u32) -> RgbaImage {
-    if factor < 2 {
+    if factor < 1 {
         lz_core_warn!("invalid image downsample factor of {}. Returning input image clone", factor);
         return image.clone();
     }

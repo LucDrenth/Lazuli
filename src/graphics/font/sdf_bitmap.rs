@@ -161,7 +161,7 @@ impl SdfBitmapBuilder {
             super_sampling_factor: 4,
             cache: true,
             vertex_shader_path: "./assets/shaders/text-ui.vert".to_string(),
-            fragment_shader_path: "./assets/shaders/text-ui.frag".to_string(),
+            fragment_shader_path: "./assets/shaders/text-ui-sdf.frag".to_string(),
         }
     }
 
@@ -203,6 +203,16 @@ impl SdfBitmapBuilder {
 
     pub fn with_cache(mut self, cache: bool) -> Self {
         self.cache = cache;
+        self
+    }
+
+    pub fn with_vertex_shader_path(mut self, path: String) -> Self {
+        self.vertex_shader_path = path;
+        self
+    }
+
+    pub fn with_fragment_shader_path(mut self, path: String) -> Self {
+        self.fragment_shader_path = path;
         self
     }
 }

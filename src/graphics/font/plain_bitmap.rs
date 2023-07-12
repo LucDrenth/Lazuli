@@ -4,7 +4,7 @@ use image::{DynamicImage, GrayImage, Luma};
 use rusttype::PositionedGlyph;
 use serde::Serialize;
 
-use crate::{lz_core_warn, lz_core_err, graphics::texture::ImageType};
+use crate::{lz_core_warn, lz_core_err, graphics::texture::{ImageType, downsample_gray_image}};
 
 use super::{BitmapCharacter, Bitmap, bitmap::BitmapBuilder, bitmap_cache::PlainBitmapCache};
 
@@ -59,7 +59,7 @@ impl PlainBitmap {
     }
 
     fn create(font: &rusttype::Font<'static>, bitmap_builder: &PlainBitmapBuilder) -> Result<Self, String> {
-        let scale = rusttype::Scale::uniform(bitmap_builder.font_size);
+        let scale = rusttype::Scale::uniform(bitmap_builder.font_size * bitmap_builder.super_sampling_factor as f32);
         let v_metrics = font.v_metrics(scale);
         let start_point = rusttype::point(bitmap_builder.padding_x as f32, bitmap_builder.padding_y as f32 + v_metrics.ascent);
         let glyphs: Vec<_> = font.layout(&bitmap_builder.characters, scale, start_point).collect();
@@ -69,22 +69,15 @@ impl PlainBitmap {
         // TODO - remove duplicates from bitmap_builder.characters (and add a warning if there is any duplicates)
 
         let line_height = (v_metrics.ascent - v_metrics.descent).ceil() as u32;
-        let (bitmap_width, bitmap_height) = calculate_image_size(&glyphs, line_height, bitmap_builder.padding_x, bitmap_builder.padding_y);
+        let (bitmap_width, bitmap_height) = calculate_image_size(&glyphs, line_height, &bitmap_builder);
 
         let mut image_buffer: GrayImage = DynamicImage::new_luma8(bitmap_width, bitmap_height).to_luma8();
         let mut bitmap_characters: HashMap<char, BitmapCharacter> = HashMap::new();
-        write_glyphs(
-            glyphs, 
-            &bitmap_builder.characters, 
-            &mut image_buffer, 
-            &mut bitmap_characters, 
-            bitmap_builder.padding_x, 
-            bitmap_builder.padding_y, 
-            line_height as f32
-        );
+        write_glyphs(glyphs, &bitmap_builder, &mut image_buffer, &mut bitmap_characters, line_height as f32);
+        let gray_image: GrayImage = downsample_gray_image(&image_buffer, bitmap_builder.super_sampling_factor as u32);
 
         Ok(Self{ 
-            image: ImageType::GrayImage(image_buffer), 
+            image: ImageType::GrayImage(gray_image), 
             characters: bitmap_characters, 
             line_height: line_height as f32,
         })
@@ -94,13 +87,16 @@ impl PlainBitmap {
 
 #[derive(Serialize)]
 pub struct PlainBitmapBuilder {
-    padding_x: u32,
-    padding_y: u32,
+    padding_x: u32, // padding arround the image
+    padding_y: u32, // padding around the image
     font_size: f32,
     characters: String,
     cache: bool,
+    super_sampling_factor: u8,
     vertex_shader_path: String,
     fragment_shader_path: String,
+    glyph_padding_x: u32, // padding between the glyphs
+    glyph_padding_y: u32, // padding between the glyphs
 }
 
 impl BitmapBuilder for PlainBitmapBuilder {
@@ -156,8 +152,11 @@ impl PlainBitmapBuilder {
             font_size: 25.0,
             characters: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!;%:?*()_+-=.,/|\\\"'@#$€^&{}[]".to_string(),
             cache: true,
+            super_sampling_factor: 1,
             vertex_shader_path: "./assets/shaders/text-ui.vert".to_string(),
-            fragment_shader_path: "./assets/shaders/text-ui.frag".to_string(),
+            fragment_shader_path: "./assets/shaders/text-ui-plain.frag".to_string(),
+            glyph_padding_x: 1, // setting this to a minimum of one prevents overlapping when downsampling
+            glyph_padding_y: 1,
         }
     }
 
@@ -185,10 +184,35 @@ impl PlainBitmapBuilder {
         self.cache = cache;
         self
     }
+
+    pub fn with_super_sampling_factor(mut self, super_sampling_factor: u8) -> Self {
+        self.super_sampling_factor = super_sampling_factor;
+        self
+    }
+
+    pub fn with_vertex_shader_path(mut self, path: String) -> Self {
+        self.vertex_shader_path = path;
+        self
+    }
+
+    pub fn with_fragment_shader_path(mut self, path: String) -> Self {
+        self.fragment_shader_path = path;
+        self
+    }
+
+    pub fn with_glyph_padding_x(mut self, padding: u32) -> Self {
+        self.glyph_padding_x = padding;
+        self
+    }
+
+    pub fn with_glyph_padding_y(mut self, padding: u32) -> Self {
+        self.glyph_padding_y = padding;
+        self
+    }
 }
 
 /// Calculate the size that the bitmap needs to be, as a powers of 2. such as 256x256, 512x512 etc.
-fn calculate_image_size(glyphs: &Vec<PositionedGlyph<'_>>, line_height: u32, padding_x: u32, padding_y: u32,) -> (u32, u32) {
+fn calculate_image_size(glyphs: &Vec<PositionedGlyph<'_>>, line_height: u32, bitmap_builder: &PlainBitmapBuilder) -> (u32, u32) {
     // start at 128x128
     let mut current_width: u32 = 2_u32.pow(7);
     let mut current_height: u32 = 2_u32.pow(7); 
@@ -196,7 +220,7 @@ fn calculate_image_size(glyphs: &Vec<PositionedGlyph<'_>>, line_height: u32, pad
     let mut update_width = true; // if true, increase current_width. If false, increase current_height
 
     loop {
-        if padding_x * 2 >= current_width || padding_y * 2 >= current_height {
+        if bitmap_builder.padding_x * 2 >= current_width || bitmap_builder.padding_y * 2 >= current_height {
             if update_width {
                 current_width *= 2; 
                 update_width = false;
@@ -208,10 +232,10 @@ fn calculate_image_size(glyphs: &Vec<PositionedGlyph<'_>>, line_height: u32, pad
             continue;
         }
         
-        let width_to_fit = current_width - padding_x * 2;
-        let height_to_fit = current_height - padding_y * 2;
+        let width_to_fit = current_width - bitmap_builder.padding_x * 2;
+        let height_to_fit = current_height - bitmap_builder.padding_y * 2;
         
-        if glyphs_fit_in(width_to_fit, height_to_fit, &glyphs, line_height) {
+        if glyphs_fit_in(width_to_fit, height_to_fit, &glyphs, line_height, &bitmap_builder) {
             return (current_width, current_height)
         }
 
@@ -226,7 +250,7 @@ fn calculate_image_size(glyphs: &Vec<PositionedGlyph<'_>>, line_height: u32, pad
 }
 
 /// Check if the glyphs fit within a certain image size
-fn glyphs_fit_in(width: u32, height: u32, glyphs: &Vec<PositionedGlyph<'_>>, line_height: u32) -> bool {
+fn glyphs_fit_in(width: u32, height: u32, glyphs: &Vec<PositionedGlyph<'_>>, line_height: u32, bitmap_builder: &PlainBitmapBuilder) -> bool {
     let mut current_x: u32 = 0;
     let mut current_y: u32 = 0;
 
@@ -237,13 +261,13 @@ fn glyphs_fit_in(width: u32, height: u32, glyphs: &Vec<PositionedGlyph<'_>>, lin
             if current_x + character_width >= width {
                 // go to next line
                 current_x = character_width;
-                current_y += line_height;
+                current_y += line_height + bitmap_builder.glyph_padding_y * bitmap_builder.super_sampling_factor as u32;
 
                 if current_y + line_height >= height {
                     return false;
                 }
             } else {
-                current_x += character_width;
+                current_x += character_width + bitmap_builder.glyph_padding_x * bitmap_builder.super_sampling_factor as u32;
             }
         }
     }
@@ -254,38 +278,34 @@ fn glyphs_fit_in(width: u32, height: u32, glyphs: &Vec<PositionedGlyph<'_>>, lin
 /// # Arguments
 /// 
 /// * `glyphs` - There exists a glyph for every character of the characters param, and no more
-/// * `characters` - 
+/// * `bitmap_builder` - 
 /// * `image_buffer` - 
 /// * `bitmap_characters` - 
-/// * `padding_x` - 
-/// * `padding_y` - 
 /// * `line_height` - 
 fn write_glyphs(
     glyphs: Vec<PositionedGlyph<'_>>, 
-    characters: &str,
+    bitmap_builder: &PlainBitmapBuilder,
     image_buffer: &mut GrayImage, 
     bitmap_characters: &mut HashMap<char, BitmapCharacter>,
-    padding_x: u32,
-    padding_y: u32,
     line_height: f32,
 ) {
-    let mut current_x: u32 = padding_x;
-    let mut current_y: u32 = padding_y;
+    let mut current_x: u32 = bitmap_builder.padding_x;
+    let mut current_y: u32 = bitmap_builder.padding_y;
 
     for (i, glyph) in glyphs.iter().enumerate() {
         let bitmap_width = image_buffer.width();
         let bitmap_height = image_buffer.height();
 
         if let Some(bounding_box) = glyph.pixel_bounding_box() {
-            let character: char = characters.chars().nth(i).take().unwrap();
+            let character: char = bitmap_builder.characters.chars().nth(i).take().unwrap();
             let character_width = (bounding_box.max.x - bounding_box.min.x) as u32;
 
-            if current_x + character_width >= bitmap_width - padding_x {
+            if current_x + character_width >= bitmap_width - bitmap_builder.padding_x {
                 // go to next line
-                current_x = padding_x;
-                current_y += line_height as u32;
+                current_x = bitmap_builder.padding_x;
+                current_y += line_height as u32 + bitmap_builder.glyph_padding_y * bitmap_builder.super_sampling_factor as u32;
 
-                if current_y >= bitmap_height - padding_y {
+                if current_y >= bitmap_height - bitmap_builder.padding_y {
                     lz_core_err!("Failed to write glyphs to bitmap because it does not fit within the image");
                     return;
                 }
@@ -293,7 +313,7 @@ fn write_glyphs(
 
             match bitmap_characters.entry(character) {
                 std::collections::hash_map::Entry::Occupied(_) => {
-                    lz_core_warn!("Encountered duplicate character [{}] while writing glyphs for characters [{}] to bitmap", character, characters);
+                    lz_core_warn!("Encountered duplicate character [{}] while writing glyphs for characters [{}] to bitmap", character, bitmap_builder.characters);
                     continue;
                 },
                 std::collections::hash_map::Entry::Vacant(entry) => {
@@ -310,12 +330,12 @@ fn write_glyphs(
             glyph.draw(|x, y, v| {
                 image_buffer.put_pixel(
                     x + current_x,
-                    y + current_y + bounding_box.min.y as u32 - padding_y,
+                    y + current_y + bounding_box.min.y as u32 - bitmap_builder.padding_y,
                     Luma([(v * 255.0) as u8]),
                 )
             });
 
-            current_x += character_width;
+            current_x += character_width + bitmap_builder.glyph_padding_x * bitmap_builder.super_sampling_factor as u32;
         }
     }
 }
