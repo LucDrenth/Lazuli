@@ -16,7 +16,7 @@ impl Scene for HelloText {
             .with_font_size(50.0)
         , None)?);
 
-        // First we of creating a text is with a funciton from Interface
+        // First way of creating a text is with a funciton from Interface
         interface.add_text("Welcome to Lazuli engine".to_string(), plain_font_id, &TextBuilder::new()
             .with_text_size(25.0)
             .with_color((255, 255, 255))
