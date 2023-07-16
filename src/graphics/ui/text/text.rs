@@ -119,6 +119,10 @@ impl Text {
 
         return total_width - letter_spacing + spread;
     }
+
+    pub fn total_width(&self) -> f32 {
+        self.total_width
+    }
 }
 
 pub struct TextBuilder {

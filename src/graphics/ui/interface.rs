@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, graphics::font::Font, lz_core_err};
+use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, graphics::{font::Font, material::Material}, lz_core_err};
 
 use super::{ui_element::UiElement, TextBuilder, Text};
 
@@ -9,6 +9,8 @@ pub struct Interface {
 
     fonts: HashMap<u16, Font>,
     current_font_id: u16,
+
+    materials: HashMap<String, Material>,
 
     elements: HashMap<u32, Box<dyn UiElement>>,
     current_element_id: u32,
@@ -22,6 +24,7 @@ impl Interface {
             window_resize_listener,
             fonts: HashMap::new(),
             current_font_id: 0,
+            materials: HashMap::new(),
             elements: HashMap::new(),
             current_element_id: 0,
         }
@@ -99,6 +102,22 @@ impl Interface {
 
     pub fn get_font(&self, id: u16) -> Option<&Font> {
         self.fonts.get(&id)
+    }
+
+    pub fn add_material(&mut self, material: Material, shader_builder_hash: String) -> bool {
+        match self.materials.entry(shader_builder_hash) {
+            std::collections::hash_map::Entry::Occupied(_) => {
+                return false;
+            },
+            std::collections::hash_map::Entry::Vacant(entry) => {
+                entry.insert(material);
+                return true;
+            }
+        }
+    }
+
+    pub fn get_material(&self, id: &String) -> Option<&Material> {
+        self.materials.get(id)
     }
 }
 

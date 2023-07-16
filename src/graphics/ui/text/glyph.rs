@@ -1,15 +1,10 @@
-use crate::{graphics::{renderer::buffer::{Vao, Buffer}, font::BitmapCharacter, shader::ShaderProgram}, error::opengl, set_attribute};
+use crate::{graphics::{renderer::buffer::{Vao, Buffer}, font::BitmapCharacter, shader::ShaderProgram, shapes::RECTANGLE_INDICES}, error::opengl, set_attribute};
 
 type Position = [f32; 3];
 type TextureCoordinates = [f32; 2];
 type GlyphQuad = [GlyphVertex; 4];
 
 pub struct GlyphVertex(pub Position, pub TextureCoordinates);
-
-const INDICES: [i32; 6] = [
-    0, 1, 2,
-    2, 3, 0
-];
 
 pub struct Glyph {
     vao: Vao,
@@ -33,7 +28,7 @@ impl Glyph {
         vao.bind();
 
         let mut ebo = Buffer::new_ebo();
-        ebo.set_data(&INDICES, gl::STATIC_DRAW);
+        ebo.set_data(&RECTANGLE_INDICES, gl::STATIC_DRAW);
 
         let position_attribute = program.get_attribute_location("position")
             .expect("Could not get position attribute");

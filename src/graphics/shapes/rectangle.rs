@@ -16,7 +16,7 @@ const TEXTURED_RECTANGLE_VERTICES: [VertexTextured; 4] = [
     VertexTextured([-0.5,  0.5, 0.0], [0.0, 0.0]) // top left
 ];
 
-const INDICES: [i32; 6] = [
+pub const INDICES: [i32; 6] = [
     0, 1, 2,
     2, 3, 0
 ];

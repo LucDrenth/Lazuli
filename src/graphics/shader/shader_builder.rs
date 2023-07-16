@@ -1,5 +1,8 @@
+use std::{hash::{Hash, Hasher}, collections::hash_map::DefaultHasher};
+
 use super::ShaderProgram;
 
+#[derive(Debug)]
 pub struct ShaderBuilder {
     vertex_shader_path: String,
     fragment_shader_path: String,
@@ -25,5 +28,13 @@ impl ShaderBuilder {
     pub fn with_fragment_shader_path(mut self, path: String) -> Self {
         self.fragment_shader_path = path;
         self
+    }
+
+    pub fn hash(&self) -> Result<String, String> {
+        let mut hasher = DefaultHasher::new();
+        self.vertex_shader_path.hash(&mut hasher);
+        self.fragment_shader_path.hash(&mut hasher);
+
+        Ok(hasher.finish().to_string())
     }
 }

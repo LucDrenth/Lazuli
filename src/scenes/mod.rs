@@ -6,6 +6,7 @@ mod hello_event_system;
 mod coordinate_system;
 mod hello_text;
 mod hello_json;
+mod hello_ui;
 
 pub use hello_triangle::HelloTriangle;
 pub use moving_triangle::MovingTriangle;
@@ -15,3 +16,4 @@ pub use hello_event_system::HelloEventSystem;
 pub use coordinate_system::CoordinateSystem;
 pub use hello_text::HelloText;
 pub use hello_json::HelloJson;
+pub use hello_ui::HelloUi;
