@@ -60,14 +60,11 @@ impl Rectangle {
             },
         }
 
-        let width = 100.0;
-        let height = 40.0;
-
         let vertices: [Vertex; 4] = [
-            Vertex([-width, -height, 0.0]), // bottom left
-            Vertex([width, -height, 0.0]), // bottom right
-            Vertex([width, height, 0.0]), // top right
-            Vertex([-width, height, 0.0])  // top left
+            Vertex([-builder.width, -builder.height, 0.0]), // bottom left
+            Vertex([builder.width, -builder.height, 0.0]), // bottom right
+            Vertex([builder.width, builder.height, 0.0]), // top right
+            Vertex([-builder.width, builder.height, 0.0])  // top left
         ];
 
         let vao = Vao::new();
@@ -108,7 +105,9 @@ pub struct RectangleBuilder {
     color: (u8, u8, u8),
     position_x: f32,
     position_y: f32,
-    shader_builder: Option<ShaderBuilder>
+    shader_builder: Option<ShaderBuilder>,
+    width: f32,
+    height: f32,
 }
 
 impl RectangleBuilder {
@@ -118,6 +117,8 @@ impl RectangleBuilder {
             shader_builder: None,
             position_x: 0.0,
             position_y: 0.0,
+            width: 100.0,
+            height: 40.0,
         }
     }
 
@@ -138,6 +139,16 @@ impl RectangleBuilder {
 
     pub fn with_shader_builder(mut self, shader_builder: ShaderBuilder) -> Self {
         self.shader_builder = Some(shader_builder);
+        self
+    }
+
+    pub fn with_width(mut self, width: f32) -> Self {
+        self.width = width;
+        self
+    }
+
+    pub fn with_height(mut self, height: f32) -> Self {
+        self.height = height;
         self
     }
 }
