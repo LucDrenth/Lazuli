@@ -2,7 +2,7 @@ use std::time::Instant;
 use glam::Vec2;
 use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, GlRequest, ContextBuilder, Api, event::{Event, WindowEvent}, ContextWrapper, PossiblyCurrent, GlProfile, dpi::{PhysicalPosition}};
 
-use crate::{event::{EventSystem, WindowResizeEvent}, input::{Input}, lz_core_warn, time, graphics::{renderer::Renderer, window::window_listeners::WindowListeners, Window}};
+use crate::{event::{EventSystem, WindowResizeEvent}, input::{Input}, lz_core_warn, time, graphics::{renderer::Renderer, window::window_listeners::WindowListeners, Window}, asset_registry::AssetRegistry};
 
 use super::event_mapper;
 
@@ -14,7 +14,7 @@ pub struct GlutinWindow {
 }
 
 impl Window for GlutinWindow {
-    fn run(self: Box<Self>, mut renderer: Renderer, mut event_system: EventSystem, mut lz_input: Input) {
+    fn run(self: Box<Self>, mut renderer: Renderer, mut event_system: EventSystem, mut lz_input: Input, mut asset_registry: AssetRegistry) {
         let mut next_frame_time: u128 = 0;
 
         // Move all properties of self in to their own variables, because self will get moved by event_loop.run and its 
@@ -91,10 +91,10 @@ impl Window for GlutinWindow {
                         return;
                     }
 
-                    renderer.scene.update(&mut event_system, &lz_input);
+                    renderer.scene.update(&mut event_system, &lz_input, &mut asset_registry);
                     Self::read_event_listeners(&mut event_listeners, &render_context.window());
 
-                    renderer.draw();
+                    renderer.draw(&mut asset_registry);
                     render_context.swap_buffers().expect("Failed to swap buffers");
 
                     lz_input.reset();

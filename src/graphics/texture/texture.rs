@@ -38,16 +38,17 @@ impl Texture {
         opengl::gl_check_errors();
     }
 
-    pub fn load_from_path(&self, path: &Path) {
+    pub fn load_from_path(&self, path: &Path) -> Result<(), String> {
         self.bind();
 
         match image::open(path) {
             Ok(img) => {
                 Self::upload(&img.into_rgba8());
-            },
+                Ok(())
+            }
             Err(err) => {
-                lz_core_warn!("Failed to load texture image from path {:?}: {}", path, err);
-            },
+                Err(format!("Failed to load texture image from path {:?}: {}", path, err))
+            }
         }
     }
 

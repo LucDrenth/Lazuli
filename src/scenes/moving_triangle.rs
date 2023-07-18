@@ -1,32 +1,34 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, material::Material, Triangle, mesh_renderer, shader::{ShaderProgram, PATH_MOVING_TRIANGLE_VERT, PATH_MOVING_TRIANGLE_FRAG}}, event::EventSystem, input::Input};
+use crate::{graphics::{scene::Scene, Triangle, shader::{PATH_MOVING_TRIANGLE_VERT, PATH_MOVING_TRIANGLE_FRAG, ShaderBuilder}, Shape}, event::EventSystem, input::Input, asset_registry::AssetRegistry};
 
 pub struct MovingTriangle {
-    material: Material,
+    material_id: u32,
     triangle: Triangle,
     triangle_offset_x: f32,
     triangle_movement_velocity: f32,
 }
 
 impl Scene for MovingTriangle {
-    fn new(_event_system: &mut EventSystem, _window_size: Vec2) -> Result<Self, String> {
-        let program = ShaderProgram::new(&PATH_MOVING_TRIANGLE_VERT.to_string(), &PATH_MOVING_TRIANGLE_FRAG.to_string())?;
-        let material = Material::new(program);
+    fn new(_event_system: &mut EventSystem, _window_size: Vec2, asset_registry: &mut AssetRegistry) -> Result<Self, String> {
+        let shader_id = asset_registry.load_shader(ShaderBuilder::new()
+            .with_vertex_shader_path(PATH_MOVING_TRIANGLE_VERT.to_string())
+            .with_fragment_shader_path(PATH_MOVING_TRIANGLE_FRAG.to_string())
+        ).unwrap();
+        let material_id = asset_registry.load_material(shader_id).unwrap();
 
-        let triangle = Triangle::new(&material.shader_program);
 
-        let result = Self { 
-            material,
+        let triangle = Triangle::new(asset_registry.get_shader_by_id(shader_id).unwrap());
+
+        Ok(Self { 
+            material_id,
             triangle,
             triangle_offset_x: 0.0,
             triangle_movement_velocity: 0.008,
-        };
-
-        Ok(result)
+        })
     }
 
-    fn update(&mut self, _: &mut EventSystem, _: &Input) {
+    fn update(&mut self, _: &mut EventSystem, _: &Input, asset_registry: &mut AssetRegistry) {
         self.triangle_offset_x += self.triangle_movement_velocity;
 
         if self.triangle_offset_x > 0.5 {
@@ -38,10 +40,12 @@ impl Scene for MovingTriangle {
             self.triangle_movement_velocity *= -1.0;
         }
 
-        self.material.shader_program.set_uniform("xPos", self.triangle_offset_x);
+        let shader_id = asset_registry.get_material_by_id(self.material_id).unwrap().shader_id;
+        asset_registry.get_shader_by_id(shader_id).unwrap().set_uniform("xPos", self.triangle_offset_x);
     }
 
-    unsafe fn draw(&self) {
-        mesh_renderer::draw_shape(&self.triangle, &self.material);
+    unsafe fn draw(&self, asset_registry: &mut AssetRegistry) {
+        let shader_id = asset_registry.get_material_by_id(self.material_id).unwrap().shader_id;
+        self.triangle.draw(asset_registry.get_shader_by_id(shader_id).unwrap());
     }
 }

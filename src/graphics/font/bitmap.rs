@@ -19,4 +19,5 @@ pub trait BitmapBuilder {
     fn cache_from_json(&self, data: String) -> Option<Box<dyn BitmapCache>>;
     fn do_cache(&self) -> bool;
     fn default_shader_builder(&self) -> ShaderBuilder;
+    fn font_file_path(&self) -> &String;
 }

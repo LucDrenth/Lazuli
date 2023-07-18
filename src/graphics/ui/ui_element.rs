@@ -1,8 +1,6 @@
-use crate::graphics::material::Material;
-
-use super::Interface;
+use crate::asset_registry::AssetRegistry;
 
 pub trait UiElement {
-    fn material<'a>(&'a self, interface: &'a Interface) -> Option<&Material>;
-    fn draw(&self, material: &Material);
+    fn material_id(&self) -> u32;
+    fn draw(&self, asset_registry: &mut AssetRegistry);
 }

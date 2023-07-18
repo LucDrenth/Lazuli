@@ -6,6 +6,7 @@ use crate::{error::opengl, lz_core_warn, lz_core_err};
 
 use super::{shader::Shader, uniform::UniformValue};
 
+#[derive(Debug)]
 pub struct ShaderProgram {
     pub id: GLuint
 }

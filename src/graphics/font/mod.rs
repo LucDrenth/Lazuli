@@ -16,3 +16,4 @@ pub use bitmap_character::BitmapCharacter;
 pub use bitmap::Bitmap;
 pub use plain_bitmap_builder::PlainBitmapBuilder;
 pub use sdf_bitmap_builder::SdfBitmapBuilder;
+pub use bitmap::BitmapBuilder;

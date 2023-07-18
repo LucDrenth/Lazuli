@@ -1,6 +1,6 @@
 use crate::{
     graphics::scene::Scene, 
-    error::opengl
+    error::opengl, asset_registry::AssetRegistry
 };
 
 use super::fps::Fps;
@@ -24,12 +24,12 @@ impl Renderer {
         })
     }
 
-    pub fn draw(&mut self) {
+    pub fn draw(&mut self, asset_registry: &mut AssetRegistry) {
         unsafe {
             gl::ClearColor(0.45, 0.4, 0.6, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
-            self.scene.draw();
+            self.scene.draw(asset_registry);
             self.fps.update_fps_count();
 
             opengl::gl_check_errors();

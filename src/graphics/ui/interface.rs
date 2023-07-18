@@ -1,16 +1,11 @@
 use std::collections::HashMap;
 
-use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, graphics::{font::Font, material::Material}, lz_core_err};
+use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, lz_core_err, asset_registry::AssetRegistry};
 
 use super::{ui_element::UiElement, TextBuilder, Text};
 
 pub struct Interface {
     window_resize_listener: EventReader<WindowResizeEvent>,
-
-    fonts: HashMap<u16, Font>,
-    current_font_id: u16,
-
-    materials: HashMap<String, Material>,
 
     elements: HashMap<u32, Box<dyn UiElement>>,
     current_element_id: u32,
@@ -22,39 +17,35 @@ impl Interface {
 
         Self {
             window_resize_listener,
-            fonts: HashMap::new(),
-            current_font_id: 0,
-            materials: HashMap::new(),
             elements: HashMap::new(),
             current_element_id: 0,
         }
     }
 
-    pub fn update(&mut self) {
+    pub fn update(&mut self, asset_registry: &mut AssetRegistry) {
         match self.window_resize_listener.read().last() {
             Some(e) => {
                 // update view uniform of all ui elements
                 for (_, ui_element) in self.elements.iter() {
-                    match ui_element.material(&self) {
+                    let shader_id;
+
+                    match asset_registry.get_material_by_id(ui_element.material_id()) {
                         Some(material) => {
-                            material.shader_program.set_uniform("view", for_shader(e.width as f32, e.height as f32));
+                            shader_id = material.shader_id;
                         }
-                        None => (),
+                        None => continue,
                     }
+
+                    asset_registry.get_shader_by_id(shader_id).unwrap().set_uniform("view", for_shader(e.width as f32, e.height as f32));
                 }
             },
             None => (),            
         }
     }
 
-    pub fn draw(&self) {
+    pub fn draw(&self, asset_registry: &mut AssetRegistry) {
         for (_, ui_element) in self.elements.iter() {
-            match ui_element.material(&self) {
-                Some(material) => {
-                    ui_element.draw(material);
-                }
-                None => (),
-            }
+            ui_element.draw(asset_registry);
         }
     }
 
@@ -73,51 +64,9 @@ impl Interface {
         }
     }
 
-    pub fn add_text(&mut self, text: String, font_id: u16, text_builder: &TextBuilder) -> u32 {
-        match self.get_font(font_id) {
-            Some(font) => {
-                return self.add_element(Box::new(Text::new(text, font, font_id, text_builder)));
-            },
-            None => {
-                lz_core_err!("Failed to add interface text because font with id {} was not found", font_id);
-                return 0;
-            },
-        }
-    }
-
-    pub fn add_font(&mut self, font: Font) -> u16 {   
-        self.current_font_id += 1;
-
-        match self.fonts.entry(self.current_font_id) {
-            std::collections::hash_map::Entry::Occupied(_) => {
-                lz_core_err!("Encountered duplicate id [{}] while adding interface font", self.current_font_id);
-                return 0;
-            },
-            std::collections::hash_map::Entry::Vacant(entry) => {
-                entry.insert(font);
-                return self.current_font_id;
-            }
-        }
-    }
-
-    pub fn get_font(&self, id: u16) -> Option<&Font> {
-        self.fonts.get(&id)
-    }
-
-    pub fn add_material(&mut self, material: Material, shader_builder_hash: String) -> bool {
-        match self.materials.entry(shader_builder_hash) {
-            std::collections::hash_map::Entry::Occupied(_) => {
-                return false;
-            },
-            std::collections::hash_map::Entry::Vacant(entry) => {
-                entry.insert(material);
-                return true;
-            }
-        }
-    }
-
-    pub fn get_material(&self, id: &String) -> Option<&Material> {
-        self.materials.get(id)
+    pub fn add_text(&mut self, text: String, font_id: u32, text_builder: &TextBuilder, asset_registry: &mut AssetRegistry) -> Result<u32, String> {
+        let text = Text::new(text, font_id, text_builder, asset_registry)?;
+        Ok(self.add_element(Box::new(text)))
     }
 }
 

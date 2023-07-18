@@ -16,6 +16,7 @@ pub struct SdfBitmapBuilder {
     pub spread: u8, // the amount of padding (in pixels) each glyph from the binary image gets. Increase for better quality.
     pub super_sampling_factor: u8,
     pub cache: bool,
+    pub font_file_path: String,
 }
 
 impl BitmapBuilder for SdfBitmapBuilder {
@@ -59,6 +60,12 @@ impl BitmapBuilder for SdfBitmapBuilder {
             .with_vertex_shader_path("./assets/shaders/text-ui.vert".to_string())
             .with_fragment_shader_path("./assets/shaders/text-ui-sdf.frag".to_string())
     }
+
+    fn font_file_path(&self) -> &String {
+        &self.font_file_path
+    }
+
+    
 }
 
 impl SdfBitmapBuilder {
@@ -72,6 +79,7 @@ impl SdfBitmapBuilder {
             spread: 4,
             super_sampling_factor: 4,
             cache: true,
+            font_file_path: "./assets/fonts/roboto.ttf".to_string(),
         }
     }
 
@@ -113,6 +121,11 @@ impl SdfBitmapBuilder {
 
     pub fn with_cache(mut self, cache: bool) -> Self {
         self.cache = cache;
+        self
+    }
+
+    pub fn with_font_file_path(mut self, path: String) -> Self {
+        self.font_file_path = path;
         self
     }
 }

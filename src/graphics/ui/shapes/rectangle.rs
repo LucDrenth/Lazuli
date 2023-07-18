@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{ui_element::UiElement, Interface}, material::Material}, set_attribute, error::opengl};
+use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::ui_element::UiElement}, set_attribute, error::opengl, asset_registry::AssetRegistry};
 use crate::graphics::shapes::RECTANGLE_INDICES;
 
 type Positon = [f32; 3];
@@ -10,26 +10,25 @@ pub struct Rectangle {
     vao: Vao,
     _vbo: Buffer,
     ebo: Buffer,
-    material_id: String,
+    material_id: u32,
     pub position: Vec2,
     color: (u8, u8, u8)
 }
 
 impl UiElement for Rectangle {
-    fn material<'a>(&'a self, interface: &'a crate::graphics::ui::Interface) -> Option<&crate::graphics::material::Material> {
-        interface.get_material(&self.material_id)
-    }
+    fn draw(&self, asset_registry: &mut AssetRegistry) {
+        let shader_id = asset_registry.get_material_by_id(self.material_id).unwrap().shader_id;
+        let shader = asset_registry.get_shader_by_id(shader_id).unwrap();
 
-    fn draw(&self, material: &crate::graphics::material::Material) {
-        material.shader_program.apply();
+        shader.apply();
         self.vao.bind();
 
-        material.shader_program.set_uniform("color", (
+        shader.set_uniform("color", (
             (self.color.0 as f32 / 255.0),
             (self.color.1 as f32 / 255.0),
             (self.color.2 as f32 / 255.0),
         ));
-        material.shader_program.set_uniform("worldPosition", self.position_for_shader());
+        shader.set_uniform("worldPosition", self.position_for_shader());
 
         unsafe {
             gl::DrawElements(gl::TRIANGLES, self.ebo.data_size as i32, gl::UNSIGNED_INT, core::ptr::null());
@@ -37,28 +36,21 @@ impl UiElement for Rectangle {
 
         opengl::gl_check_errors();
     }
+
+    fn material_id(&self) -> u32 {
+        self.material_id
+    }
 }
 
 impl Rectangle {
-    pub fn new(builder: RectangleBuilder, interface: &mut Interface) -> Result<Self, String> {
+    pub fn new(builder: RectangleBuilder, asset_registry: &mut AssetRegistry) -> Result<Self, String> {
         let shader_builder = match builder.shader_builder {
             Some(custom_shader_builder) => custom_shader_builder,
             None => Self::default_shader_builder(),
         };
 
-        let material_id = shader_builder.hash().unwrap();
-
-        match interface.get_material(&material_id) {
-            Some(_) => (),
-            None => {
-                if !interface.add_material(
-                    Material::new(shader_builder.build().unwrap()),
-                    material_id.clone(),
-                ) {
-                    return Err("failed to rectangle material shader to interface".to_string());
-                }
-            },
-        }
+        let shader_id = asset_registry.load_shader(shader_builder)?;
+        let material_id = asset_registry.load_material(shader_id)?;
 
         let vertices: [Vertex; 4] = [
             Vertex([-builder.width, -builder.height, 0.0]), // bottom left
@@ -76,7 +68,7 @@ impl Rectangle {
         let mut ebo = Buffer::new_ebo();
         ebo.set_data(&RECTANGLE_INDICES, gl::STATIC_DRAW);
 
-        let position_attribute = interface.get_material(&material_id).unwrap().shader_program.get_attribute_location("position")
+        let position_attribute = asset_registry.get_shader_by_id(shader_id).unwrap().get_attribute_location("position")
             .expect("Could not get position attribute");
         set_attribute!(vao, position_attribute, Vertex::0);
 

@@ -16,6 +16,7 @@ pub struct PlainBitmapBuilder {
     pub super_sampling_factor: u8,
     pub glyph_padding_x: u32, // padding between the glyphs
     pub glyph_padding_y: u32, // padding between the glyphs
+    pub font_file_path: String,
 }
 
 impl BitmapBuilder for PlainBitmapBuilder {
@@ -59,6 +60,12 @@ impl BitmapBuilder for PlainBitmapBuilder {
             .with_vertex_shader_path("./assets/shaders/text-ui.vert".to_string())
             .with_fragment_shader_path("./assets/shaders/text-ui-plain.frag".to_string())
     }
+
+    fn font_file_path(&self) -> &String {
+        &self.font_file_path
+    }
+
+    
 }
 
 impl PlainBitmapBuilder {
@@ -72,6 +79,7 @@ impl PlainBitmapBuilder {
             super_sampling_factor: 1,
             glyph_padding_x: 1, // setting this to a minimum of one prevents overlapping when downsampling
             glyph_padding_y: 1,
+            font_file_path: "./assets/fonts/roboto.ttf".to_string(),
         }
     }
 
@@ -112,6 +120,11 @@ impl PlainBitmapBuilder {
 
     pub fn with_glyph_padding_y(mut self, padding: u32) -> Self {
         self.glyph_padding_y = padding;
+        self
+    }
+
+    pub fn with_font_file_path(mut self, path: String) -> Self {
+        self.font_file_path = path;
         self
     }
 }

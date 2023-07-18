@@ -2,6 +2,7 @@ use std::env;
 
 use glam::Vec2;
 
+use crate::asset_registry::AssetRegistry;
 use crate::event::EventSystem;
 use crate::graphics::scene::Scene;
 use crate::graphics::window::{Window, GlutinWindow};
@@ -12,6 +13,7 @@ pub struct App {
     pub event_system: EventSystem,
     window: Box<dyn Window>,
     input: Input,
+    pub asset_registry: AssetRegistry,
 }
 
 impl App {
@@ -22,8 +24,9 @@ impl App {
         let mut event_system = EventSystem::new();
         let window = Self::create_window(&mut event_system);
         let input = Input::new();
+        let asset_registry = AssetRegistry::new();
 
-        Self { event_system, window, input }
+        Self { event_system, window, input, asset_registry }
     }
 
     pub fn window_size(&self) -> Vec2 {
@@ -32,7 +35,7 @@ impl App {
 
     pub fn run(self, scene: Box<dyn Scene>) {
         let renderer = Renderer::new(scene).expect("Could not create renderer");
-        self.window.run(renderer, self.event_system, self.input);
+        self.window.run(renderer, self.event_system, self.input, self.asset_registry);
     }
 
     fn create_window(event_system: &mut EventSystem) -> Box<dyn Window> {

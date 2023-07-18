@@ -1,34 +1,35 @@
-use std::path::Path;
-
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, material::Material, mesh_renderer, shader::{ShaderProgram, PATH_TEXTURED_VERT, PATH_TEXTURED_FRAG}, Rectangle}, event::EventSystem, input::Input};
+use crate::{graphics::{scene::Scene, shader::{PATH_TEXTURED_VERT, PATH_TEXTURED_FRAG, ShaderBuilder}, Rectangle, Shape}, event::EventSystem, input::Input, asset_registry::AssetRegistry};
 
 pub struct HelloTexture {
-    material: Material,
+    material_id: u32,
     shape: Rectangle,
 }
 
 impl Scene for HelloTexture {
-    fn new(_event_system: &mut EventSystem, _window_size: Vec2) -> Result<Self, String> {
-        let program = ShaderProgram::new(&PATH_TEXTURED_VERT.to_string(), &PATH_TEXTURED_FRAG.to_string())?;
-        let mut material = Material::new(program);
+    fn new(_event_system: &mut EventSystem, _window_size: Vec2, asset_registry: &mut AssetRegistry) -> Result<Self, String> {
+        let shader_id = asset_registry.load_shader(ShaderBuilder::new()
+            .with_vertex_shader_path(PATH_TEXTURED_VERT.to_string())
+            .with_fragment_shader_path(PATH_TEXTURED_FRAG.to_string())
+        )?;
+        let material_id = asset_registry.load_material(shader_id)?;
+        let texture_id = asset_registry.load_texture("./assets/images/pattern.png".to_string())?;
+        asset_registry.add_material_texture(material_id, texture_id);
 
-        material.add_texture_from_path(&Path::new("./assets/images/pattern.png"));
-
-        let shape = Rectangle::new_textured(&material.shader_program);
+        let shape = Rectangle::new_textured(asset_registry.get_shader_by_id(shader_id).unwrap());
 
         let result = Self { 
-            material,
+            material_id,
             shape,
         };
 
         Ok(result)
     }
 
-    fn update(&mut self, _: &mut EventSystem, _: &Input) {}
+    fn update(&mut self, _: &mut EventSystem, _: &Input, _: &mut AssetRegistry) {}
 
-    unsafe fn draw(&self) {
-        mesh_renderer::draw_shape(&self.shape, &self.material);
+    unsafe fn draw(&self, asset_registry: &mut AssetRegistry) {
+        self.shape.draw(asset_registry.get_material_shader(self.material_id).unwrap());
     }
 }

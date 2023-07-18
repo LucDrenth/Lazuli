@@ -30,11 +30,11 @@ impl ShaderBuilder {
         self
     }
 
-    pub fn hash(&self) -> Result<String, String> {
+    pub fn hash(&self) -> Result<u64, String> {
         let mut hasher = DefaultHasher::new();
         self.vertex_shader_path.hash(&mut hasher);
         self.fragment_shader_path.hash(&mut hasher);
 
-        Ok(hasher.finish().to_string())
+        Ok(hasher.finish())
     }
 }

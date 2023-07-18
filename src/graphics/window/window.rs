@@ -1,9 +1,9 @@
 use glam::Vec2;
 
-use crate::{event::EventSystem, graphics::renderer::Renderer, input::Input};
+use crate::{event::EventSystem, graphics::renderer::Renderer, input::Input, asset_registry::AssetRegistry};
 
 pub trait Window {
-    fn run(self: Box<Self>, renderer: Renderer, event_system: EventSystem, lz_input: Input);
+    fn run(self: Box<Self>, renderer: Renderer, event_system: EventSystem, lz_input: Input, asset_registry: AssetRegistry);
     fn get_size(&self) -> Vec2;
     
     // TODO
