@@ -14,6 +14,7 @@ impl Button {
 
         let text = Text::new(label, font_id, &TextBuilder::new()
             .with_color(builder.text_color)
+            .with_z_index(1.0)
         , asset_registry)?;
         
         let width = text.total_width() + builder.padding_x * 2.0;

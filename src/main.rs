@@ -1,6 +1,6 @@
 use app::App;
 use graphics::scene::Scene;
-use scenes::HelloTriangle as InitialScene;
+use scenes::HelloUi as InitialScene;
 
 mod graphics;
 mod scenes;

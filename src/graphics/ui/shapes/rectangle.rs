@@ -12,6 +12,7 @@ pub struct Rectangle {
     ebo: Buffer,
     material_id: u32,
     pub position: Vec2,
+    pub z_index: f32, // TODO use this somewhere to determine the render order
     color: (u8, u8, u8)
 }
 
@@ -78,7 +79,8 @@ impl Rectangle {
             ebo,
             material_id,
             color: builder.color,
-            position: Vec2 { x: builder.position_x, y: builder.position_y }
+            position: Vec2 { x: builder.position_x, y: builder.position_y },
+            z_index: builder.z_index,
         })
     }
 
@@ -100,6 +102,7 @@ pub struct RectangleBuilder {
     shader_builder: Option<ShaderBuilder>,
     width: f32,
     height: f32,
+    z_index: f32,
 }
 
 impl RectangleBuilder {
@@ -111,6 +114,7 @@ impl RectangleBuilder {
             position_y: 0.0,
             width: 100.0,
             height: 40.0,
+            z_index: 1.0,
         }
     }
 
@@ -141,6 +145,11 @@ impl RectangleBuilder {
 
     pub fn with_height(mut self, height: f32) -> Self {
         self.height = height;
+        self
+    }
+
+    pub fn with_z_index(mut self, z_index: f32) -> Self {
+        self.z_index = z_index;
         self
     }
 }

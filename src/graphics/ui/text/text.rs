@@ -13,6 +13,7 @@ pub struct Text {
     total_width: f32,
     text_size: f32, // font size in pixels
     pub position: Vec2, // position in pixels from the center of the screen
+    pub z_index: f32, // TODO use this somewhere to determine the render order
     pub font_id: u32,
     material_id: u32,
 }
@@ -100,6 +101,7 @@ impl Text {
             total_width,
             text_size: text_builder.text_size,
             position: Vec2{x: text_builder.position_x, y: text_builder.position_y},
+            z_index: text_builder.z_index,
             font_id,
             material_id: font_material_id,
         })
@@ -149,6 +151,7 @@ pub struct TextBuilder {
     letter_spacing: f32,
     position_x: f32,
     position_y: f32,
+    z_index: f32,
 }
 
 impl TextBuilder {
@@ -159,6 +162,7 @@ impl TextBuilder {
             letter_spacing: 0.04,
             position_x: 0.0,
             position_y: 0.0,
+            z_index: 1.0,
         }
     }
 
@@ -184,6 +188,11 @@ impl TextBuilder {
 
     pub fn with_position_y(mut self, position_y: f32) -> Self {
         self.position_y = position_y;
+        self
+    }
+
+    pub fn with_z_index(mut self, z_index: f32) -> Self {
+        self.z_index = z_index;
         self
     }
 }
