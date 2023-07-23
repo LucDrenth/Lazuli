@@ -12,7 +12,7 @@ pub struct Rectangle {
     ebo: Buffer,
     material_id: u32,
     pub position: Vec2,
-    pub z_index: f32, // TODO use this somewhere to determine the render order
+    pub z_index: f32,
     color: (u8, u8, u8)
 }
 

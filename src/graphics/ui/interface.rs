@@ -26,6 +26,10 @@ impl Interface {
     }
 
     pub fn update(&mut self, asset_registry: &mut AssetRegistry) {
+        self.handle_window_resize(asset_registry);
+    }
+
+    fn handle_window_resize(&mut self, asset_registry: &mut AssetRegistry) {
         match self.window_resize_listener.read().last() {
             Some(e) => {
                 // update view uniform of all ui elements
@@ -39,7 +43,7 @@ impl Interface {
                         None => continue,
                     }
 
-                    asset_registry.get_shader_by_id(shader_id).unwrap().set_uniform("view", for_shader(e.width as f32, e.height as f32));
+                    asset_registry.get_shader_by_id(shader_id).unwrap().set_uniform("view", to_view_uniform(e.width as f32, e.height as f32));
                 }
             },
             None => (),            
@@ -77,6 +81,6 @@ impl Interface {
     }
 }
 
-fn for_shader(window_width: f32, window_height: f32) -> (f32, f32) {
+fn to_view_uniform(window_width: f32, window_height: f32) -> (f32, f32) {
     (1.0 / window_width, 1.0 / window_height)
 }

@@ -13,7 +13,7 @@ pub struct Text {
     total_width: f32,
     text_size: f32, // font size in pixels
     pub position: Vec2, // position in pixels from the center of the screen
-    pub z_index: f32, // TODO use this somewhere to determine the render order
+    pub z_index: f32,
     pub font_id: u32,
     material_id: u32,
 }
@@ -115,8 +115,8 @@ impl Text {
         (self.position.x, self.position.y)
     }
 
-    /// Calculate the total width of the text, ignoring characters that do not have a glyph
-    pub fn get_total_width(text: &String, font: &Font, letter_spacing: f32, spread: f32) -> f32 {
+    /// Calculate the total width of the text, in local space, ignoring characters that do not have a glyph
+    fn get_total_width(text: &String, font: &Font, letter_spacing: f32, spread: f32) -> f32 {
         let mut total_width = 0.0;
         let mut has_glyph_to_render = false;
         
@@ -144,7 +144,9 @@ impl Text {
         return total_width - letter_spacing + spread;
     }
 
+    // Total width in world space (pixels)
     pub fn total_width(&self) -> f32 {
+        // TODO convert self.total_width to world space
         self.total_width
     }
 }
