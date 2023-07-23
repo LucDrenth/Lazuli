@@ -14,20 +14,21 @@ impl Button {
 
         let text = Text::new(label, font_id, &TextBuilder::new()
             .with_color(builder.text_color)
-            .with_z_index(1.0)
+            .with_z_index(builder.z_index + 0.001)
         , asset_registry)?;
         
-        let width = text.total_width() + builder.padding_x * 2.0;
-        let height = asset_registry.get_font_by_id(font_id).unwrap().line_height() + builder.padding_y * 2.0;
+        let background_width = text.total_width() + builder.padding_x * 2.0;
+        let background_height = asset_registry.get_font_by_id(font_id).unwrap().line_height() + builder.padding_y * 2.0;
 
         let background = ui::shapes::Rectangle::new(RectangleBuilder::new()
-            .with_width(width)
-            .with_height(height)
+            .with_width(background_width)
+            .with_height(background_height)
             .with_color(builder.background_color)
+            .with_z_index(builder.z_index)
         , asset_registry)?;
 
-        let background_element_id = interface.add_element(Box::new(background));
-        let text_element_id = interface.add_element(Box::new(text));
+        let background_element_id = interface.add_element(background);
+        let text_element_id = interface.add_element(text);
 
         Ok(Self {
             text_element_id,
@@ -42,6 +43,7 @@ pub struct ButtonBuilder {
     font_path: String,
     padding_x: f32,
     padding_y: f32,
+    z_index: f32,
 }
 
 impl ButtonBuilder {
@@ -52,6 +54,7 @@ impl ButtonBuilder {
             font_path: "./assets/fonts/roboto.ttf".to_string(),
             padding_x: 8.0,
             padding_y: 8.0,
+            z_index: 1.0,
         }
     }
 
@@ -80,9 +83,14 @@ impl ButtonBuilder {
         self
     }
 
-    pub fn with_paddin(mut self, padding: f32) -> Self {
+    pub fn with_padding(mut self, padding: f32) -> Self {
         self.padding_x = padding;
         self.padding_y = padding;
+        self
+    }
+
+    pub fn with_z_index(mut self, z_index: f32) -> Self {
+        self.z_index = z_index;
         self
     }
 }

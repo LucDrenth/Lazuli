@@ -1,13 +1,16 @@
-use std::collections::HashMap;
-
-use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, lz_core_err, asset_registry::AssetRegistry};
+use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_registry::AssetRegistry};
 
 use super::{ui_element::UiElement, TextBuilder, Text};
+
+struct ElementEntry {
+    id: u32,
+    element: Box<dyn UiElement>,
+}
 
 pub struct Interface {
     window_resize_listener: EventReader<WindowResizeEvent>,
 
-    elements: HashMap<u32, Box<dyn UiElement>>,
+    elements: Vec<ElementEntry>,
     current_element_id: u32,
 }
 
@@ -17,7 +20,7 @@ impl Interface {
 
         Self {
             window_resize_listener,
-            elements: HashMap::new(),
+            elements: vec![],
             current_element_id: 0,
         }
     }
@@ -26,10 +29,10 @@ impl Interface {
         match self.window_resize_listener.read().last() {
             Some(e) => {
                 // update view uniform of all ui elements
-                for (_, ui_element) in self.elements.iter() {
+                for ui_element in self.elements.iter() {
                     let shader_id;
 
-                    match asset_registry.get_material_by_id(ui_element.material_id()) {
+                    match asset_registry.get_material_by_id(ui_element.element.material_id()) {
                         Some(material) => {
                             shader_id = material.shader_id;
                         }
@@ -44,29 +47,33 @@ impl Interface {
     }
 
     pub fn draw(&self, asset_registry: &mut AssetRegistry) {
-        for (_, ui_element) in self.elements.iter() {
-            ui_element.draw(asset_registry);
+        for ui_element in self.elements.iter() {
+            ui_element.element.draw(asset_registry);
         }
     }
 
-    pub fn add_element(&mut self, element: Box<dyn UiElement>) -> u32 {
+    pub fn add_element(&mut self, element: impl UiElement + 'static) -> u32 {
         self.current_element_id += 1;
 
-        match self.elements.entry(self.current_element_id) {
-            std::collections::hash_map::Entry::Occupied(_) => {
-                lz_core_err!("Encountered duplicate id [{}] while adding interface font", self.current_element_id);
-                return 0;
-            },
-            std::collections::hash_map::Entry::Vacant(entry) => {
-                entry.insert(element);
-                return self.current_element_id;
-            }
-        }
+        let new_element = ElementEntry { 
+            id: self.current_element_id, 
+            element: Box::new(element),
+        };
+
+        self.elements.push(new_element);
+        self.sort_elements_by_z_index();
+
+        self.current_element_id
+    }
+
+    // Sort elements so that the elements with the highest z-index are at the start of the list
+    fn sort_elements_by_z_index(&mut self) {
+        self.elements.sort_by(|a, b| b.element.get_z_index().total_cmp(&a.element.get_z_index()));
     }
 
     pub fn add_text(&mut self, text: String, font_id: u32, text_builder: &TextBuilder, asset_registry: &mut AssetRegistry) -> Result<u32, String> {
         let text = Text::new(text, font_id, text_builder, asset_registry)?;
-        Ok(self.add_element(Box::new(text)))
+        Ok(self.add_element(text))
     }
 }
 

@@ -38,7 +38,7 @@ impl Scene for HelloText {
             .with_letter_spacing(0.05)
             .with_position_y(-100.0)
         , asset_registry)?;
-        interface.add_element(Box::new(sdf_text));
+        interface.add_element(sdf_text);
         
 
         let result = Self { 

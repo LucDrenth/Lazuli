@@ -41,6 +41,10 @@ impl UiElement for Rectangle {
     fn material_id(&self) -> u32 {
         self.material_id
     }
+
+    fn get_z_index(&self) -> f32 {
+        self.z_index
+    }
 }
 
 impl Rectangle {
