@@ -10,7 +10,7 @@ pub struct Text {
     pub transform: Transform,
     pub letter_spacing: f32,
     pub color: (u8, u8, u8),
-    total_width: f32,
+    worldspace_width: f32,
     text_size: f32, // font size in pixels
     pub position: Vec2, // position in pixels from the center of the screen
     pub z_index: f32,
@@ -68,6 +68,7 @@ impl Text {
         }
 
         let mut start_x: f32 = 0.0 - total_width / 2.0;
+        let worldspace_width = (start_x * text_builder.text_size * 4.0).abs();
 
         let shader_id = asset_registry.get_material_by_id(font_material_id).unwrap().shader_id;
         let shader = asset_registry.get_shader_by_id(shader_id).unwrap();
@@ -102,7 +103,7 @@ impl Text {
             transform: Transform::new(),
             letter_spacing: text_builder.letter_spacing,
             color: text_builder.color,
-            total_width,
+            worldspace_width,
             text_size: text_builder.text_size,
             position: Vec2{x: text_builder.position_x, y: text_builder.position_y},
             z_index: text_builder.z_index,
@@ -144,10 +145,9 @@ impl Text {
         return total_width - letter_spacing + spread;
     }
 
-    // Total width in world space (pixels)
-    pub fn total_width(&self) -> f32 {
-        // TODO convert self.total_width to world space
-        self.total_width
+    // Total text width in world space (pixels)
+    pub fn worldspace_width(&self) -> f32 {
+        self.worldspace_width
     }
 }
 

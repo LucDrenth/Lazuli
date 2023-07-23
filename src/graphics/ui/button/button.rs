@@ -17,7 +17,7 @@ impl Button {
             .with_z_index(builder.z_index + 0.001)
         , asset_registry)?;
         
-        let background_width = text.total_width() + builder.padding_x * 2.0;
+        let background_width = text.worldspace_width() + builder.padding_x * 2.0;
         let background_height = asset_registry.get_font_by_id(font_id).unwrap().line_height() + builder.padding_y * 2.0;
 
         let background = ui::shapes::Rectangle::new(RectangleBuilder::new()
@@ -52,7 +52,7 @@ impl ButtonBuilder {
             background_color: (126, 126, 126),
             text_color: (255, 255, 255),
             font_path: "./assets/fonts/roboto.ttf".to_string(),
-            padding_x: 8.0,
+            padding_x: 14.0,
             padding_y: 8.0,
             z_index: 1.0,
         }
