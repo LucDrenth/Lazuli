@@ -5,7 +5,7 @@ use super::Position;
 /// World space data about size and positioning of a UI element
 pub struct WorldElementData {
     size: Vec2, // given in world space (pixels)
-    final_coordinates: Vec2, // the world space coordinates at which we actually render the center of the element, where (0,0) is the center of the screen
+    final_coordinates: Vec2, // the world space coordinates at which we render the center of the element. (0,0) is the center of the screen
     position_type: Position,
     z_index: f32,
 }

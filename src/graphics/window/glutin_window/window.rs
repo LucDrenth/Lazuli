@@ -17,8 +17,8 @@ impl Window for GlutinWindow {
     fn run(self: Box<Self>, mut renderer: Renderer, mut event_system: EventSystem, mut lz_input: Input, mut asset_registry: AssetRegistry) {
         let mut next_frame_time: u128 = 0;
 
-        // Move all properties of self in to their own variables, because self will get moved by event_loop.run and its 
-        // can not be used in the function of event_loop.run
+        // Move all properties of self in to their own variables because self will get moved by event_loop.run, and thus the properties
+        // can not be directly used in the function of event_loop.run
         let render_context = self.render_context;
         let mut event_listeners = self.event_listeners;
         let target_fps = self.target_fps;
