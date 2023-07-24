@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{ui_element::UiElement, interface::{is_valid_z_index, map_z_index_for_shader}, world_element_data::{Position, WorldElementData}}}, set_attribute, error::opengl, asset_registry::AssetRegistry, lz_core_warn};
+use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{ui_element::UiElement, interface::{is_valid_z_index, map_z_index_for_shader}, world_element_data::WorldElementData, Position}}, set_attribute, error::opengl, asset_registry::AssetRegistry, lz_core_warn};
 use crate::graphics::shapes::RECTANGLE_INDICES;
 
 type Positon = [f32; 2];
