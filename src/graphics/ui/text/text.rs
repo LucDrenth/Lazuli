@@ -85,11 +85,10 @@ impl Text {
                 Some(bitmap_character) => {
                     // These values range from (-window_width / 2) to (window_width / 2) and (-window_height / 2) to (window_height / 2).
                     // (0, 0) is the center of the screen.
-                    // TODO - why do we need to multiple the x by 2?
-                    let glyph_start_x = start_x * text_builder.font_size * 2.0;
-                    let glyph_end_x = (start_x + bitmap_character.width) * text_builder.font_size * 2.0;
-                    let glyph_start_y = -1.0 * text_builder.font_size;
-                    let glyph_end_y = 1.0 * text_builder.font_size;
+                    let glyph_start_x = start_x * text_builder.font_size;
+                    let glyph_end_x = (start_x + bitmap_character.width) * text_builder.font_size;
+                    let glyph_start_y = -1.0 * text_builder.font_size / 2.0;
+                    let glyph_end_y = 1.0 * text_builder.font_size / 2.0;
                     
                     glyphs.push(Glyph::new(bitmap_character, glyph_start_x, glyph_end_x, glyph_start_y, glyph_end_y, shader));
                     start_x += bitmap_character.width + text_builder.letter_spacing - bitmap_spread;
@@ -166,7 +165,7 @@ pub struct TextBuilder {
 impl TextBuilder {
     pub fn new() -> Self {
         TextBuilder { 
-            font_size: 14.0,
+            font_size: 28.0,
             color: (255, 255, 255),
             letter_spacing: 0.04,
             position: Position::FixedCenter,

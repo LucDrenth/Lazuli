@@ -14,7 +14,7 @@ impl Scene for HelloUi {
         let mut interface: ui::Interface = ui::Interface::new(event_system, window_size);
 
         let button = Button::new("Click me!".to_string(), ButtonBuilder::new()
-            .with_position(ui::Position::FixedCenter)
+            .with_position(ui::Position::FixedLeft(25.0))
             .with_padding(16.0)
         , &mut interface, asset_registry)?;
 
@@ -38,8 +38,8 @@ impl Scene for HelloUi {
         if input.is_key_down(Key::Space) {
             self.interface.add_rectangle(RectangleBuilder::new()
                 .with_color((255, 25, 162))
-                .with_width(self.interface.width() * 0.45)
-                .with_height(self.interface.height() * 0.45)
+                .with_width(self.interface.width() * 0.95)
+                .with_height(self.interface.height() * 0.95)
                 .with_z_index(5.0), asset_registry
             ).unwrap();
         }

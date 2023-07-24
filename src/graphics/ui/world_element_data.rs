@@ -30,10 +30,10 @@ impl WorldElementData {
 
     // Check if the given position is within this world element
     pub fn is_within(&self, position: Vec2) -> bool {
-        return position.x >= self.final_coordinates.x - self.size.x
-            && position.x < self.final_coordinates.x + self.size.x
-            && position.y >= self.final_coordinates.y - self.size.y
-            && position.y < self.final_coordinates.y + self.size.y
+        return position.x >= self.final_coordinates.x - self.size.x / 2.0
+            && position.x < self.final_coordinates.x + self.size.x / 2.0
+            && position.y >= self.final_coordinates.y - self.size.y / 2.0
+            && position.y < self.final_coordinates.y + self.size.y / 2.0
     }
 
     pub fn handle_window_resize(&mut self, new_window_size: &Vec2) {
@@ -66,16 +66,16 @@ impl Position {
             ),
             Position::FixedCenter => Vec2::ZERO,
             Position::FixedTop(top) => {
-                Vec2::new(0.0, window_size.y / 2.0 - element_size.y - top)
+                Vec2::new(0.0, window_size.y / 2.0 - element_size.y / 2.0 - top)
             },
             Position::FixedBottom(bottom) => {
-                Vec2::new(0.0, -window_size.y / 2.0 + element_size.y + bottom)
+                Vec2::new(0.0, -window_size.y / 2.0 + element_size.y / 2.0 + bottom)
             },
             Position::FixedLeft(right) => {
-                Vec2::new(-window_size.x / 2.0 + element_size.x + right, 0.0)
+                Vec2::new(-window_size.x / 2.0 + element_size.x / 2.0 + right, 0.0)
             },
             Position::FixedRight(left) => {
-                Vec2::new(window_size.x / 2.0 - element_size.x - left, 0.0)
+                Vec2::new(window_size.x / 2.0 - element_size.x / 2.0 - left, 0.0)
             },
         }
     }

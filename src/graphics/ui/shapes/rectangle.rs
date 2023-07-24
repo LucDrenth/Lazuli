@@ -66,10 +66,10 @@ impl Rectangle {
         let material_id = asset_registry.load_material(shader_id)?;
 
         let vertices: [Vertex; 4] = [
-            Vertex([-builder.width, -builder.height]), // bottom left
-            Vertex([builder.width, -builder.height]), // bottom right
-            Vertex([builder.width, builder.height]), // top right
-            Vertex([-builder.width, builder.height])  // top left
+            Vertex([-builder.width / 2.0, -builder.height / 2.0]), // bottom left
+            Vertex([builder.width / 2.0, -builder.height / 2.0]), // bottom right
+            Vertex([builder.width / 2.0, builder.height / 2.0]), // top right
+            Vertex([-builder.width / 2.0, builder.height / 2.0])  // top left
         ];
 
         let vao = Vao::new();
