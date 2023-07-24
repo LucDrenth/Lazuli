@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::ui_element::UiElement}, set_attribute, error::opengl, asset_registry::AssetRegistry};
+use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{ui_element::UiElement, interface::{is_valid_z_index, map_z_index_for_shader}}}, set_attribute, error::opengl, asset_registry::AssetRegistry, lz_core_warn};
 use crate::graphics::shapes::RECTANGLE_INDICES;
 
 type Positon = [f32; 3];
@@ -29,6 +29,7 @@ impl UiElement for Rectangle {
             (self.color.1 as f32 / 255.0),
             (self.color.2 as f32 / 255.0),
         ));
+        shader.set_uniform("zIndex", map_z_index_for_shader(self.z_index));
         shader.set_uniform("worldPosition", self.position_for_shader());
 
         unsafe {
@@ -44,6 +45,10 @@ impl UiElement for Rectangle {
 
     fn get_z_index(&self) -> f32 {
         self.z_index
+    }
+
+    fn type_name(&self) -> &str {
+        "rectangle"
     }
 }
 
@@ -153,7 +158,12 @@ impl RectangleBuilder {
     }
 
     pub fn with_z_index(mut self, z_index: f32) -> Self {
-        self.z_index = z_index;
+        if is_valid_z_index(z_index) {
+            self.z_index = z_index;
+        } else {
+            lz_core_warn!("did not set RectangleBuilder z_index {} because it's not a valid z-index", z_index);
+        }
+
         self
     }
 }

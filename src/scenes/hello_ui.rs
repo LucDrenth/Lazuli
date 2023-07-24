@@ -26,6 +26,7 @@ impl Scene for HelloUi {
         if input.is_key_down(Key::Space) {
             let rectangle = Rectangle::new(RectangleBuilder::new()
                 .with_color((255, 25, 162))
+                .with_width(500.0)
                 .with_z_index(100.0)
             , asset_registry).unwrap();
             self.interface.add_element(rectangle);

@@ -1,4 +1,4 @@
-use crate::{graphics::{ui::{Text, TextBuilder, shapes::RectangleBuilder, Interface, self}, font::PlainBitmapBuilder}, asset_registry::AssetRegistry};
+use crate::{graphics::{ui::{Text, TextBuilder, shapes::RectangleBuilder, Interface, self, interface::is_valid_z_index}, font::PlainBitmapBuilder}, asset_registry::AssetRegistry, lz_core_warn};
 
 pub struct Button {
     text_element_id: u32,
@@ -14,7 +14,7 @@ impl Button {
 
         let text = Text::new(label, font_id, &TextBuilder::new()
             .with_color(builder.text_color)
-            .with_z_index(builder.z_index + 0.001)
+            .with_z_index(builder.z_index + 0.01)
         , asset_registry)?;
         
         let background_width = text.worldspace_width() + builder.padding_x * 2.0;
@@ -90,7 +90,13 @@ impl ButtonBuilder {
     }
 
     pub fn with_z_index(mut self, z_index: f32) -> Self {
-        self.z_index = z_index;
+        // Add 1 because the given z_index is for the lowest element, and higher elements may go up to 1 higher
+        if is_valid_z_index(z_index + 1.0) {
+            self.z_index = z_index;
+        } else {
+            lz_core_warn!("did not set ButtonBuilder z_index {} because it's not a valid z-index", z_index);
+        }
+
         self
     }
 }

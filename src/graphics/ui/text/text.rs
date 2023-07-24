@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{font::Font, Transform, ui::ui_element::UiElement}, lz_core_warn, asset_registry::AssetRegistry};
+use crate::{graphics::{font::Font, Transform, ui::{ui_element::UiElement, interface::{is_valid_z_index, map_z_index_for_shader}}}, lz_core_warn, asset_registry::AssetRegistry};
 
 use super::glyph::Glyph;
 
@@ -29,7 +29,7 @@ impl UiElement for Text {
             (self.color.1 as f32 / 255.0),
             (self.color.2 as f32 / 255.0),
         ));
-
+        shader.set_uniform("zIndex", map_z_index_for_shader(self.z_index));
         shader.set_uniform("worldPosition", self.position_for_shader());
 
         for glyph in &self.glyphs {
@@ -43,6 +43,10 @@ impl UiElement for Text {
 
     fn get_z_index(&self) -> f32 {
         self.z_index
+    }
+
+    fn type_name(&self) -> &str {
+        "text"
     }
 }
 
@@ -198,7 +202,12 @@ impl TextBuilder {
     }
 
     pub fn with_z_index(mut self, z_index: f32) -> Self {
-        self.z_index = z_index;
+        if is_valid_z_index(z_index) {
+            self.z_index = z_index;
+        } else {
+            lz_core_warn!("did not set TextBuilder z_index {} because it's not a valid z-index", z_index);
+        }
+
         self
     }
 }

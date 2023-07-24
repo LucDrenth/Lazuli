@@ -2,6 +2,9 @@ use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_registry
 
 use super::{ui_element::UiElement, TextBuilder, Text};
 
+const MIN_Z_INDEX: f32 = 1.0;
+const MAX_Z_INDEX: f32 = 10_000.0;
+
 struct ElementEntry {
     id: u32,
     element: Box<dyn UiElement>,
@@ -33,10 +36,10 @@ impl Interface {
         match self.window_resize_listener.read().last() {
             Some(e) => {
                 // update view uniform of all ui elements
-                for ui_element in self.elements.iter() {
+                for element_entry in self.elements.iter() {
                     let shader_id;
 
-                    match asset_registry.get_material_by_id(ui_element.element.material_id()) {
+                    match asset_registry.get_material_by_id(element_entry.element.material_id()) {
                         Some(material) => {
                             shader_id = material.shader_id;
                         }
@@ -51,8 +54,8 @@ impl Interface {
     }
 
     pub fn draw(&self, asset_registry: &mut AssetRegistry) {
-        for ui_element in self.elements.iter() {
-            ui_element.element.draw(asset_registry);
+        for element_entry in self.elements.iter() {
+            element_entry.element.draw(asset_registry);
         }
     }
 
@@ -72,7 +75,7 @@ impl Interface {
 
     // Sort elements so that the elements with the highest z-index are at the start of the list
     fn sort_elements_by_z_index(&mut self) {
-        self.elements.sort_by(|a, b| b.element.get_z_index().total_cmp(&a.element.get_z_index()));
+        self.elements.sort_by(|a, b| a.element.get_z_index().total_cmp(&b.element.get_z_index()));
     }
 
     pub fn add_text(&mut self, text: String, font_id: u32, text_builder: &TextBuilder, asset_registry: &mut AssetRegistry) -> Result<u32, String> {
@@ -83,4 +86,15 @@ impl Interface {
 
 fn to_view_uniform(window_width: f32, window_height: f32) -> (f32, f32) {
     (1.0 / window_width, 1.0 / window_height)
+}
+
+pub fn is_valid_z_index(z: f32) -> bool {
+    z >= MIN_Z_INDEX && z <= MAX_Z_INDEX
+}
+
+// Map z index to a value between -1 and 1. 
+// Actual result ranges from -0.999 to 0.999, because <= 1 and >= 1 gets culled
+// A high z_index results in a low value, so it gets displayed on top of elements with a low z_index.
+pub fn map_z_index_for_shader(z_index: f32) -> f32 {
+    -0.999 + 1.998 * ((MAX_Z_INDEX + MIN_Z_INDEX - z_index) - MIN_Z_INDEX) / (MAX_Z_INDEX - MIN_Z_INDEX)
 }
