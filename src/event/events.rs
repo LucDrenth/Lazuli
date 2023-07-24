@@ -1,5 +1,5 @@
 // Window events
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct WindowResizeEvent {
     pub width: u32,
     pub height: u32,

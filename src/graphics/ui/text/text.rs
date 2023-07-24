@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{font::Font, Transform, ui::{ui_element::UiElement, interface::{is_valid_z_index, map_z_index_for_shader}}}, lz_core_warn, asset_registry::AssetRegistry};
+use crate::{graphics::{font::Font, Transform, ui::{ui_element::UiElement, interface::{is_valid_z_index, map_z_index_for_shader}, world_element_data::{WorldElementData, Position}}}, lz_core_warn, asset_registry::AssetRegistry};
 
 use super::glyph::Glyph;
 
@@ -10,10 +10,8 @@ pub struct Text {
     pub transform: Transform,
     pub letter_spacing: f32,
     pub color: (u8, u8, u8),
-    worldspace_width: f32,
-    text_size: f32, // font size in pixels
-    pub position: Vec2, // position in pixels from the center of the screen
-    pub z_index: f32,
+    font_size: f32, // font size in pixels
+    world_data: WorldElementData,
     pub font_id: u32,
     material_id: u32,
 }
@@ -29,8 +27,8 @@ impl UiElement for Text {
             (self.color.1 as f32 / 255.0),
             (self.color.2 as f32 / 255.0),
         ));
-        shader.set_uniform("zIndex", map_z_index_for_shader(self.z_index));
-        shader.set_uniform("worldPosition", self.position_for_shader());
+        shader.set_uniform("zIndex", map_z_index_for_shader(self.world_data.z_index()));
+        shader.set_uniform("worldPosition", self.world_data.shader_coordinates());
 
         for glyph in &self.glyphs {
             glyph.draw();
@@ -41,17 +39,21 @@ impl UiElement for Text {
         self.material_id
     }
 
-    fn get_z_index(&self) -> f32 {
-        self.z_index
-    }
-
     fn type_name(&self) -> &str {
         "text"
+    }
+
+    fn world_data(&self) -> &WorldElementData {
+        &self.world_data
+    }
+
+    fn handle_window_resize(&mut self, new_window_size: &Vec2) {
+        self.world_data.handle_window_resize(new_window_size);
     }
 }
 
 impl Text {
-    pub fn new(text: String, font_id: u32, text_builder: &TextBuilder, asset_registry: &mut AssetRegistry) -> Result<Self, String> {
+    pub fn new(text: String, font_id: u32, text_builder: TextBuilder, asset_registry: &mut AssetRegistry, window_size: &Vec2) -> Result<Self, String> {
         let mut glyphs: Vec::<Glyph> = Vec::new();
 
         let font_material_id;
@@ -72,7 +74,8 @@ impl Text {
         }
 
         let mut start_x: f32 = 0.0 - total_width / 2.0;
-        let worldspace_width = (start_x * text_builder.text_size * 4.0).abs();
+        let worldspace_width = (start_x * text_builder.font_size * 2.0).abs();
+        let worldspace_height = text_builder.font_size;
 
         let shader_id = asset_registry.get_material_by_id(font_material_id).unwrap().shader_id;
         let shader = asset_registry.get_shader_by_id(shader_id).unwrap();
@@ -80,12 +83,13 @@ impl Text {
         for character in text.chars() {
             match bitmap_characters.get(&character) {
                 Some(bitmap_character) => {
-                    // These values range from -window_width to window width and -window_height to window_height.
-                    // TODO - why do we need to multiple the x by 4 and y by 2? Could this pixel density for the x2 and y2, but what about the other x2?
-                    let glyph_start_x = start_x * text_builder.text_size * 4.0;
-                    let glyph_end_x = (start_x + bitmap_character.width) * text_builder.text_size * 4.0;
-                    let glyph_start_y = -1.0 * text_builder.text_size * 2.0;
-                    let glyph_end_y = 1.0 * text_builder.text_size * 2.0;
+                    // These values range from (-window_width / 2) to (window_width / 2) and (-window_height / 2) to (window_height / 2).
+                    // (0, 0) is the center of the screen.
+                    // TODO - why do we need to multiple the x by 2?
+                    let glyph_start_x = start_x * text_builder.font_size * 2.0;
+                    let glyph_end_x = (start_x + bitmap_character.width) * text_builder.font_size * 2.0;
+                    let glyph_start_y = -1.0 * text_builder.font_size;
+                    let glyph_end_y = 1.0 * text_builder.font_size;
                     
                     glyphs.push(Glyph::new(bitmap_character, glyph_start_x, glyph_end_x, glyph_start_y, glyph_end_y, shader));
                     start_x += bitmap_character.width + text_builder.letter_spacing - bitmap_spread;
@@ -101,23 +105,24 @@ impl Text {
             }
         }
 
+        let world_data = WorldElementData::new(
+            text_builder.position
+            , text_builder.z_index
+            , Vec2::new(worldspace_width, worldspace_height)
+            , window_size
+        );
+
         Ok(Self { 
             text, 
             glyphs,
             transform: Transform::new(),
             letter_spacing: text_builder.letter_spacing,
             color: text_builder.color,
-            worldspace_width,
-            text_size: text_builder.text_size,
-            position: Vec2{x: text_builder.position_x, y: text_builder.position_y},
-            z_index: text_builder.z_index,
+            font_size: text_builder.font_size,
+            world_data,
             font_id,
             material_id: font_material_id,
         })
-    }
-
-    pub fn position_for_shader(&self) -> (f32, f32) {
-        (self.position.x, self.position.y)
     }
 
     /// Calculate the total width of the text, in local space, ignoring characters that do not have a glyph
@@ -148,36 +153,29 @@ impl Text {
 
         return total_width - letter_spacing + spread;
     }
-
-    // Total text width in world space (pixels)
-    pub fn worldspace_width(&self) -> f32 {
-        self.worldspace_width
-    }
 }
 
 pub struct TextBuilder {
-    text_size: f32, // size in pixels
+    font_size: f32, // size in pixels
     color: (u8, u8, u8),
     letter_spacing: f32,
-    position_x: f32,
-    position_y: f32,
+    position: Position,
     z_index: f32,
 }
 
 impl TextBuilder {
     pub fn new() -> Self {
         TextBuilder { 
-            text_size: 20.0,
+            font_size: 14.0,
             color: (255, 255, 255),
             letter_spacing: 0.04,
-            position_x: 0.0,
-            position_y: 0.0,
-            z_index: 1.0,
+            position: Position::FixedCenter,
+            z_index: 10.0,
         }
     }
 
-    pub fn with_text_size(mut self, text_size: f32) -> Self {
-        self.text_size = text_size;
+    pub fn with_font_size(mut self, font_size: f32) -> Self {
+        self.font_size = font_size;
         self
     }
 
@@ -191,13 +189,8 @@ impl TextBuilder {
         self
     }
 
-    pub fn with_position_x(mut self, position_x: f32) -> Self {
-        self.position_x = position_x;
-        self
-    }
-
-    pub fn with_position_y(mut self, position_y: f32) -> Self {
-        self.position_y = position_y;
+    pub fn with_position(mut self, position: Position) -> Self {
+        self.position = position;
         self
     }
 

@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{ui_element::UiElement, interface::{is_valid_z_index, map_z_index_for_shader}}}, set_attribute, error::opengl, asset_registry::AssetRegistry, lz_core_warn};
+use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{ui_element::UiElement, interface::{is_valid_z_index, map_z_index_for_shader}, world_element_data::{Position, WorldElementData}}}, set_attribute, error::opengl, asset_registry::AssetRegistry, lz_core_warn};
 use crate::graphics::shapes::RECTANGLE_INDICES;
 
 type Positon = [f32; 3];
@@ -11,9 +11,8 @@ pub struct Rectangle {
     _vbo: Buffer,
     ebo: Buffer,
     material_id: u32,
-    pub position: Vec2,
-    pub z_index: f32,
-    color: (u8, u8, u8)
+    world_data: WorldElementData,
+    color: (u8, u8, u8),
 }
 
 impl UiElement for Rectangle {
@@ -29,8 +28,8 @@ impl UiElement for Rectangle {
             (self.color.1 as f32 / 255.0),
             (self.color.2 as f32 / 255.0),
         ));
-        shader.set_uniform("zIndex", map_z_index_for_shader(self.z_index));
-        shader.set_uniform("worldPosition", self.position_for_shader());
+        shader.set_uniform("zIndex", map_z_index_for_shader(self.world_data.z_index()));
+        shader.set_uniform("worldPosition", self.world_data.shader_coordinates());
 
         unsafe {
             gl::DrawElements(gl::TRIANGLES, self.ebo.data_size as i32, gl::UNSIGNED_INT, core::ptr::null());
@@ -43,17 +42,21 @@ impl UiElement for Rectangle {
         self.material_id
     }
 
-    fn get_z_index(&self) -> f32 {
-        self.z_index
-    }
-
     fn type_name(&self) -> &str {
         "rectangle"
+    }
+
+    fn world_data(&self) -> &WorldElementData {
+        &self.world_data
+    }
+
+    fn handle_window_resize(&mut self, new_window_size: &Vec2) {
+        self.world_data.handle_window_resize(new_window_size);
     }
 }
 
 impl Rectangle {
-    pub fn new(builder: RectangleBuilder, asset_registry: &mut AssetRegistry) -> Result<Self, String> {
+    pub fn new(builder: RectangleBuilder, asset_registry: &mut AssetRegistry, window_size: &Vec2) -> Result<Self, String> {
         let shader_builder = match builder.shader_builder {
             Some(custom_shader_builder) => custom_shader_builder,
             None => Self::default_shader_builder(),
@@ -82,19 +85,21 @@ impl Rectangle {
             .expect("Could not get position attribute");
         set_attribute!(vao, position_attribute, Vertex::0);
 
+        let world_data = WorldElementData::new(
+            builder.position,
+            builder.z_index, 
+            Vec2::new(builder.width, builder.height) ,
+            window_size
+        );
+
         Ok(Self { 
             vao, 
             _vbo: vbo,
             ebo,
             material_id,
             color: builder.color,
-            position: Vec2 { x: builder.position_x, y: builder.position_y },
-            z_index: builder.z_index,
+            world_data,
         })
-    }
-
-    pub fn position_for_shader(&self) -> (f32, f32) {
-        (self.position.x, self.position.y)
     }
 
     pub fn default_shader_builder() -> ShaderBuilder {
@@ -106,8 +111,7 @@ impl Rectangle {
 
 pub struct RectangleBuilder {
     color: (u8, u8, u8),
-    position_x: f32,
-    position_y: f32,
+    position: Position,
     shader_builder: Option<ShaderBuilder>,
     width: f32,
     height: f32,
@@ -119,11 +123,10 @@ impl RectangleBuilder {
         Self {
             color: (126, 126, 126), // gray
             shader_builder: None,
-            position_x: 0.0,
-            position_y: 0.0,
+            position: Position::FixedCenter,
             width: 100.0,
             height: 40.0,
-            z_index: 1.0,
+            z_index: 10.0,
         }
     }
 
@@ -132,13 +135,8 @@ impl RectangleBuilder {
         self
     }
 
-    pub fn with_position_x(mut self, position_x: f32) -> Self {
-        self.position_x = position_x;
-        self
-    }
-
-    pub fn with_position_y(mut self, position_y: f32) -> Self {
-        self.position_y = position_y;
+    pub fn with_position(mut self, position: Position) -> Self {
+        self.position = position;
         self
     }
 

@@ -1,6 +1,8 @@
-use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_registry::AssetRegistry};
+use glam::Vec2;
 
-use super::{ui_element::UiElement, TextBuilder, Text};
+use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_registry::AssetRegistry, input::{Input, MouseButton}, lz_core_warn};
+
+use super::{ui_element::UiElement, TextBuilder, Text, shapes::{Rectangle, RectangleBuilder}};
 
 const MIN_Z_INDEX: f32 = 1.0;
 const MAX_Z_INDEX: f32 = 10_000.0;
@@ -12,19 +14,21 @@ struct ElementEntry {
 
 pub struct Interface {
     window_resize_listener: EventReader<WindowResizeEvent>,
+    size: Vec2,
 
     elements: Vec<ElementEntry>,
     current_element_id: u32,
 }
 
 impl Interface {
-    pub fn new(event_system: &mut EventSystem) -> Self {
+    pub fn new(event_system: &mut EventSystem, window_size: Vec2) -> Self {
         let window_resize_listener = event_system.register::<WindowResizeEvent>();
 
         Self {
             window_resize_listener,
             elements: vec![],
             current_element_id: 0,
+            size: window_size,
         }
     }
 
@@ -35,8 +39,11 @@ impl Interface {
     fn handle_window_resize(&mut self, asset_registry: &mut AssetRegistry) {
         match self.window_resize_listener.read().last() {
             Some(e) => {
+                self.size = Vec2::new(e.width as f32, e.height as f32);
+
                 // update view uniform of all ui elements
-                for element_entry in self.elements.iter() {
+                for element_entry in self.elements.iter_mut() {
+                    element_entry.element.handle_window_resize(&self.size);
                     let shader_id;
 
                     match asset_registry.get_material_by_id(element_entry.element.material_id()) {
@@ -75,17 +82,61 @@ impl Interface {
 
     // Sort elements so that the elements with the highest z-index are at the start of the list
     fn sort_elements_by_z_index(&mut self) {
-        self.elements.sort_by(|a, b| a.element.get_z_index().total_cmp(&b.element.get_z_index()));
+        self.elements.sort_by(|a, b| a.element.world_data().z_index().total_cmp(&b.element.world_data().z_index()));
     }
 
-    pub fn add_text(&mut self, text: String, font_id: u32, text_builder: &TextBuilder, asset_registry: &mut AssetRegistry) -> Result<u32, String> {
-        let text = Text::new(text, font_id, text_builder, asset_registry)?;
+    pub fn add_text(&mut self, text: String, font_id: u32, text_builder: TextBuilder, asset_registry: &mut AssetRegistry) -> Result<u32, String> {
+        let text = Text::new(text, font_id, text_builder, asset_registry, &self.size)?;
         Ok(self.add_element(text))
     }
+
+    pub fn add_rectangle(&mut self, builder: RectangleBuilder, asset_registry: &mut AssetRegistry) -> Result<u32, String> {
+        let rectangle = Rectangle::new(builder, asset_registry, &self.size)?;
+        Ok(self.add_element(rectangle))
+    }
+
+    pub fn is_element_hovered(&self, element_id: u32, input: &Input) -> bool {
+        match self.get_element(element_id) {
+            Some(element_entry) => {
+                element_entry.element.world_data().is_within(self.map_mouse_position(&input))
+            }
+            None => {
+                lz_core_warn!("interface is_element_hovered for element {} returned false because element was not found", element_id);
+                false
+            }
+        }
+    }
+
+    pub fn is_element_clicked(&self, element_id: u32, input: &Input) -> bool {
+        return input.is_mouse_button_down(MouseButton::Left) 
+            && self.is_element_hovered(element_id, input)
+    }
+
+    fn get_element(&self, element_id: u32) -> Option<&ElementEntry> {
+        for element_entry in self.elements.iter() {
+            if element_entry.id == element_id {
+                return Some(element_entry)
+            }
+        }
+
+        None
+    }
+
+    // map mouse position so that (0, 0) is the center
+    fn map_mouse_position(&self, input: &Input) -> Vec2 {
+        Vec2 {
+            x: input.get_mouse_position_x() as f32 - self.size.x / 2.0,
+            y: -(input.get_mouse_position_y() as f32 - self.size.y / 2.0),
+        }
+    }
+
+    pub fn size(&self) -> &Vec2 { &self.size }
+    pub fn width(&self) -> f32 { self.size.x }
+    pub fn height(&self) -> f32 { self.size.y }
 }
 
 fn to_view_uniform(window_width: f32, window_height: f32) -> (f32, f32) {
-    (1.0 / window_width, 1.0 / window_height)
+    (2.0 / window_width, 2.0 / window_height) // 0.5 because the world coordinates for the UI range from (-size / 2) to (size / 2)
 }
 
 pub fn is_valid_z_index(z: f32) -> bool {

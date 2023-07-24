@@ -1,4 +1,4 @@
-use crate::{graphics::{ui::{Text, TextBuilder, shapes::RectangleBuilder, Interface, self, interface::is_valid_z_index}, font::PlainBitmapBuilder}, asset_registry::AssetRegistry, lz_core_warn};
+use crate::{graphics::{ui::{Text, TextBuilder, shapes::RectangleBuilder, Interface, self, interface::is_valid_z_index, ui_element::UiElement, world_element_data::Position}, font::PlainBitmapBuilder}, asset_registry::AssetRegistry, lz_core_warn, input::Input};
 
 pub struct Button {
     text_element_id: u32,
@@ -12,20 +12,23 @@ impl Button {
             .with_font_size(50.0)
         , None)?;
 
-        let text = Text::new(label, font_id, &TextBuilder::new()
+        let text = Text::new(label, font_id, TextBuilder::new()
             .with_color(builder.text_color)
             .with_z_index(builder.z_index + 0.01)
-        , asset_registry)?;
+            .with_position(builder.position)
+            .with_font_size(builder.font_size)
+        , asset_registry, interface.size())?;
         
-        let background_width = text.worldspace_width() + builder.padding_x * 2.0;
-        let background_height = asset_registry.get_font_by_id(font_id).unwrap().line_height() + builder.padding_y * 2.0;
+        let background_width = text.world_data().width() + builder.padding_x * 2.0;
+        let background_height = text.world_data().height() + builder.padding_y * 2.0;
 
         let background = ui::shapes::Rectangle::new(RectangleBuilder::new()
             .with_width(background_width)
             .with_height(background_height)
             .with_color(builder.background_color)
             .with_z_index(builder.z_index)
-        , asset_registry)?;
+            .with_position(builder.position)
+        , asset_registry, interface.size())?;
 
         let background_element_id = interface.add_element(background);
         let text_element_id = interface.add_element(text);
@@ -34,6 +37,14 @@ impl Button {
             text_element_id,
             background_element_id,
         })
+    }
+
+    pub fn is_hovered(&self, input: &Input, interface: &Interface) -> bool {
+        interface.is_element_hovered(self.background_element_id, input)
+    }
+
+    pub fn is_clicked(&self, input: &Input, interface: &Interface) -> bool {
+        interface.is_element_clicked(self.background_element_id, input)
     }
 }
 
@@ -44,6 +55,8 @@ pub struct ButtonBuilder {
     padding_x: f32,
     padding_y: f32,
     z_index: f32,
+    position: Position,
+    font_size: f32,
 }
 
 impl ButtonBuilder {
@@ -54,7 +67,9 @@ impl ButtonBuilder {
             font_path: "./assets/fonts/roboto.ttf".to_string(),
             padding_x: 14.0,
             padding_y: 8.0,
-            z_index: 1.0,
+            z_index: 10.0,
+            position: Position::FixedCenter,
+            font_size: 14.0,
         }
     }
 
@@ -97,6 +112,16 @@ impl ButtonBuilder {
             lz_core_warn!("did not set ButtonBuilder z_index {} because it's not a valid z-index", z_index);
         }
 
+        self
+    }
+
+    pub fn with_position(mut self, position: Position) -> Self {
+        self.position = position;
+        self
+    }
+
+    pub fn with_font_size(mut self, font_size: f32) -> Self {
+        self.font_size = font_size;
         self
     }
 }
