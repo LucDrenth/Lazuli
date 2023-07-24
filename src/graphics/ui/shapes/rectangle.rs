@@ -3,7 +3,7 @@ use glam::Vec2;
 use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{ui_element::UiElement, interface::{is_valid_z_index, map_z_index_for_shader}, world_element_data::{Position, WorldElementData}}}, set_attribute, error::opengl, asset_registry::AssetRegistry, lz_core_warn};
 use crate::graphics::shapes::RECTANGLE_INDICES;
 
-type Positon = [f32; 3];
+type Positon = [f32; 2];
 pub struct Vertex(Positon);
 
 pub struct Rectangle {
@@ -66,10 +66,10 @@ impl Rectangle {
         let material_id = asset_registry.load_material(shader_id)?;
 
         let vertices: [Vertex; 4] = [
-            Vertex([-builder.width, -builder.height, 0.0]), // bottom left
-            Vertex([builder.width, -builder.height, 0.0]), // bottom right
-            Vertex([builder.width, builder.height, 0.0]), // top right
-            Vertex([-builder.width, builder.height, 0.0])  // top left
+            Vertex([-builder.width, -builder.height]), // bottom left
+            Vertex([builder.width, -builder.height]), // bottom right
+            Vertex([builder.width, builder.height]), // top right
+            Vertex([-builder.width, builder.height])  // top left
         ];
 
         let vao = Vao::new();
