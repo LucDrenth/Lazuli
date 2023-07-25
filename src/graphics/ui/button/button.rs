@@ -12,7 +12,7 @@ impl Button {
             .with_font_size(50.0)
         , None)?;
 
-        let text = Text::new(label, font_id, TextBuilder::new()
+        let text = Text::new(label, &font_id, TextBuilder::new()
             .with_color(builder.text_color)
             .with_z_index(builder.z_index + 0.01)
             .with_position(builder.position)

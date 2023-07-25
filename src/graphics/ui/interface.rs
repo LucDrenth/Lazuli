@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_registry::AssetRegistry, input::{Input, MouseButton}, lz_core_warn};
+use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_registry::{AssetRegistry, AssetId}, input::{Input, MouseButton}, lz_core_warn, graphics::font::Font};
 
 use super::{ui_element::UiElement, TextBuilder, Text, shapes::{Rectangle, RectangleBuilder}};
 
@@ -48,12 +48,12 @@ impl Interface {
 
                     match asset_registry.get_material_by_id(element_entry.element.material_id()) {
                         Some(material) => {
-                            shader_id = material.shader_id;
+                            shader_id = material.shader_id.duplicate();
                         }
                         None => continue,
                     }
 
-                    asset_registry.get_shader_by_id(shader_id).unwrap().set_uniform("view", to_view_uniform(e.width as f32, e.height as f32));
+                    asset_registry.get_shader_by_id(&shader_id).unwrap().set_uniform("view", to_view_uniform(e.width as f32, e.height as f32));
                 }
             },
             None => (),            
@@ -85,7 +85,7 @@ impl Interface {
         self.elements.sort_by(|a, b| a.element.world_data().z_index().total_cmp(&b.element.world_data().z_index()));
     }
 
-    pub fn add_text(&mut self, text: String, font_id: u32, text_builder: TextBuilder, asset_registry: &mut AssetRegistry) -> Result<u32, String> {
+    pub fn add_text(&mut self, text: String, font_id: &AssetId<Font>, text_builder: TextBuilder, asset_registry: &mut AssetRegistry) -> Result<u32, String> {
         let text = Text::new(text, font_id, text_builder, asset_registry, &self.size)?;
         Ok(self.add_element(text))
     }

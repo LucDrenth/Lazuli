@@ -3,10 +3,10 @@ use std::f32::consts::{PI, TAU};
 use glam::{Vec3, Vec2};
 use rand::{Rng, rngs::ThreadRng};
 
-use crate::{graphics::{scene::Scene, Cube, shader::{PATH_COLORED_FRAG, ShaderBuilder}, Transform, Camera, Shape}, event::{EventSystem, self}, input::{Input, Key}, time, asset_registry::AssetRegistry};
+use crate::{graphics::{scene::Scene, Cube, shader::{PATH_COLORED_FRAG, ShaderBuilder}, Transform, Camera, Shape, material::Material}, event::{EventSystem, self}, input::{Input, Key}, time, asset_registry::{AssetRegistry, AssetId}};
 
 pub struct CoordinateSystem {
-    material_id: u32,
+    material_id: AssetId<Material>,
     cubes: Vec<Cube>,
     transforms: Vec<Transform>,
     rotations: Vec<Vec3>,
@@ -25,7 +25,7 @@ impl Scene for CoordinateSystem {
             .with_vertex_shader_path("./assets/shaders/with-camera.vert".to_string())
             .with_fragment_shader_path(PATH_COLORED_FRAG.to_string())
         ).unwrap();
-        let material_id = asset_registry.load_material(shader_id).unwrap();
+        let material_id = asset_registry.load_material(&shader_id).unwrap();
 
         let mut cubes = vec![];
         let mut transforms = vec![];
@@ -34,7 +34,7 @@ impl Scene for CoordinateSystem {
         let mut rng = rand::thread_rng();
 
         for _ in 0..15 {
-            let cube = Cube::new_colored(asset_registry.get_shader_by_id(shader_id).unwrap());
+            let cube = Cube::new_colored(asset_registry.get_shader_by_id(&shader_id).unwrap());
             cubes.push(cube);
 
             let mut transform = Transform::new();
@@ -57,7 +57,7 @@ impl Scene for CoordinateSystem {
         camera.translate_z(-40.0);
 
         {
-            let shader = asset_registry.get_shader_by_id(shader_id).unwrap();
+            let shader = asset_registry.get_shader_by_id(&shader_id).unwrap();
             shader.set_uniform("projection", camera.projection_for_shader());
             shader.set_uniform("view", camera.view_for_shader());
         }
@@ -93,11 +93,11 @@ impl Scene for CoordinateSystem {
             self.camera.look_at(self.transforms[0].position);
         }
 
-        asset_registry.get_material_shader(self.material_id).unwrap().set_uniform("view", self.camera.view_for_shader());
+        asset_registry.get_material_shader(&self.material_id).unwrap().set_uniform("view", self.camera.view_for_shader());
     }
 
     unsafe fn draw(&self, asset_registry: &mut AssetRegistry) {
-        let shader = asset_registry.get_material_shader(self.material_id).unwrap();
+        let shader = asset_registry.get_material_shader(&self.material_id).unwrap();
 
         for i in 0..self.cubes.len() {
             shader.set_uniform("model", self.transforms[i].for_shader());
@@ -140,7 +140,7 @@ impl CoordinateSystem {
 
         if scroll_y != 0.0 {
             self.camera.zoom(scroll_y);
-            asset_registry.get_material_shader(self.material_id).unwrap().set_uniform("projection", self.camera.projection_for_shader());
+            asset_registry.get_material_shader(&self.material_id).unwrap().set_uniform("projection", self.camera.projection_for_shader());
         }
     }
 }

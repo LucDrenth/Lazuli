@@ -21,7 +21,7 @@ impl Scene for HelloUi {
         let plain_font_id = asset_registry.load_font(PlainBitmapBuilder::new()
             .with_font_size(50.0)
         , None)?;
-        let text_id = interface.add_text("I am a text you can click".to_string(), plain_font_id, TextBuilder::new()
+        let text_id = interface.add_text("I am a text you can click".to_string(), &plain_font_id, TextBuilder::new()
             .with_position(ui::Position::FixedTop(25.0))
         , asset_registry)?;
 

@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{font::Font, Transform, ui::{ui_element::UiElement, interface::{is_valid_z_index, map_z_index_for_shader}, world_element_data::WorldElementData, Position}}, lz_core_warn, asset_registry::AssetRegistry};
+use crate::{graphics::{font::Font, Transform, ui::{ui_element::UiElement, interface::{is_valid_z_index, map_z_index_for_shader}, world_element_data::WorldElementData, Position}, material::Material}, lz_core_warn, asset_registry::{AssetRegistry, AssetId}};
 
 use super::glyph::Glyph;
 
@@ -12,15 +12,15 @@ pub struct Text {
     pub color: (u8, u8, u8),
     font_size: f32, // font size in pixels
     world_data: WorldElementData,
-    pub font_id: u32,
-    material_id: u32,
+    pub font_id: AssetId<Font>,
+    material_id: AssetId<Material>,
 }
 
 impl UiElement for Text {
     fn draw(&self, asset_registry: &mut AssetRegistry) {   
-        asset_registry.activate_material(self.material_id);
+        asset_registry.activate_material(&self.material_id);
 
-        let shader = asset_registry.get_material_shader(self.material_id).unwrap();
+        let shader = asset_registry.get_material_shader(&self.material_id).unwrap();
 
         shader.set_uniform("color", (
             (self.color.0 as f32 / 255.0),
@@ -35,8 +35,8 @@ impl UiElement for Text {
         }
     }
 
-    fn material_id(&self) -> u32 {
-        self.material_id
+    fn material_id(&self) -> &AssetId<Material> {
+        &self.material_id
     }
 
     fn type_name(&self) -> &str {
@@ -53,7 +53,7 @@ impl UiElement for Text {
 }
 
 impl Text {
-    pub fn new(text: String, font_id: u32, text_builder: TextBuilder, asset_registry: &mut AssetRegistry, window_size: &Vec2) -> Result<Self, String> {
+    pub fn new(text: String, font_id: &AssetId<Font>, text_builder: TextBuilder, asset_registry: &mut AssetRegistry, window_size: &Vec2) -> Result<Self, String> {
         let mut glyphs: Vec::<Glyph> = Vec::new();
 
         let font_material_id;
@@ -62,23 +62,23 @@ impl Text {
         let total_width;
         let bitmap_characters;
 
-        match asset_registry.get_font_by_id(font_id) {
+        match asset_registry.get_font_by_id(&font_id) {
             Some(font) => {
-                font_material_id = font.material_id;
+                font_material_id = font.material_id.duplicate();
                 font_space_size = font.space_size;
                 bitmap_spread = (font.bitmap_spread() as f32) * 2.0 / font.line_height() as f32;
                 total_width = Self::get_total_width(&text, &font, text_builder.letter_spacing, bitmap_spread);
                 bitmap_characters = font.bitmap_characters_copy()
             },
-            None => return Err(format!("Failed to get font by id {}", font_id)),
+            None => return Err(format!("Failed to get font by id {}", font_id.id())),
         }
 
         let mut start_x: f32 = 0.0 - total_width / 2.0;
         let worldspace_width = (start_x * text_builder.font_size * 2.0).abs();
         let worldspace_height = text_builder.font_size;
 
-        let shader_id = asset_registry.get_material_by_id(font_material_id).unwrap().shader_id;
-        let shader = asset_registry.get_shader_by_id(shader_id).unwrap();
+        let shader_id = asset_registry.get_material_by_id(&font_material_id).unwrap().shader_id.duplicate();
+        let shader = asset_registry.get_shader_by_id(&shader_id).unwrap();
 
         for character in text.chars() {
             match bitmap_characters.get(&character) {
@@ -119,7 +119,7 @@ impl Text {
             color: text_builder.color,
             font_size: text_builder.font_size,
             world_data,
-            font_id,
+            font_id: font_id.duplicate(),
             material_id: font_material_id,
         })
     }

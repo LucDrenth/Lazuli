@@ -2,6 +2,8 @@ use std::{collections::{HashMap, hash_map::DefaultHasher}, path::Path, hash::{Ha
 
 use crate::graphics::{texture::{Texture, TextureImage}, font::{Font, BitmapBuilder}, shader::{ShaderBuilder, ShaderProgram}, material::Material};
 
+use super::AssetId;
+
 struct TextureEntry {
     path: Option<String>,
     texture: Texture,
@@ -47,12 +49,12 @@ impl AssetRegistry {
         }
     }
 
-    pub fn load_texture(&mut self, path: String) -> Result<u32, String> {
+    pub fn load_texture(&mut self, path: String) -> Result<AssetId<Texture>, String> {
         for (existing_texture_id, existing_texture_entry) in self.textures.iter() {
             match &existing_texture_entry.path {
                 Some(existing_texture_entry_path) => {
                     if *existing_texture_entry_path == path {
-                        return Ok(*existing_texture_id);
+                        return Ok(AssetId::new(*existing_texture_id));
                     }
                 },
                 None => continue,
@@ -70,14 +72,14 @@ impl AssetRegistry {
         self.add_texture(texture, Some(path))
     }
 
-    pub fn add_texture_from_image<T: Into<TextureImage>>(&mut self, img: T) -> Result<u32, String> {
+    pub fn add_texture_from_image<T: Into<TextureImage>>(&mut self, img: T) -> Result<AssetId<Texture>, String> {
         let texture = Texture::new();
         texture.load_from_image(img);
 
         self.add_texture(texture, None)
     }
 
-    fn add_texture(&mut self, texture: Texture, path: Option<String>) ->  Result<u32, String> {
+    fn add_texture(&mut self, texture: Texture, path: Option<String>) ->  Result<AssetId<Texture>, String> {
         self.current_texture_id += 1;
 
         match self.textures.entry(self.current_texture_id) {
@@ -89,17 +91,17 @@ impl AssetRegistry {
             },
         }
 
-        Ok(self.current_texture_id)
+        Ok(AssetId::new(self.current_texture_id))
     }
 
-    pub fn get_texture_by_id(&self, id: u32) -> Option<&Texture> {
-        match self.textures.get(&id) {
+    pub fn get_texture_by_id(&self, id: &AssetId<Texture>) -> Option<&Texture> {
+        match self.textures.get(id.id()) {
             Some(entry) => Some(&entry.texture),
             None => None,
         }
     }
 
-    pub fn load_font(&mut self, bitmap_builder: impl BitmapBuilder, shader_builder: Option<ShaderBuilder>) -> Result<u32, String> {
+    pub fn load_font(&mut self, bitmap_builder: impl BitmapBuilder, shader_builder: Option<ShaderBuilder>) -> Result<AssetId<Font>, String> {
         let shader_builder_to_use: ShaderBuilder = match shader_builder {
             Some(builder) => builder,
             None => bitmap_builder.default_shader_builder(),
@@ -112,7 +114,7 @@ impl AssetRegistry {
 
         for (existing_font_id, existing_font_entry) in self.fonts.iter() {
             if existing_font_entry.hash == hash {
-                return Ok(*existing_font_id);
+                return Ok(AssetId::new(*existing_font_id))
             }
         }
 
@@ -131,22 +133,22 @@ impl AssetRegistry {
             },
         }
 
-        Ok(self.current_font_id)
+        Ok(AssetId::new(self.current_font_id))
     }
 
-    pub fn get_font_by_id(&mut self, id: u32) -> Option<&Font> {
-        match self.fonts.get(&id) {
+    pub fn get_font_by_id(&mut self, id: &AssetId<Font>) -> Option<&Font> {
+        match self.fonts.get(id.id()) {
             Some(entry) => Some(&entry.font),
             None => None,
         }
     }
 
-    pub fn load_shader(&mut self, shader_builder: ShaderBuilder) -> Result<u32, String> {
+    pub fn load_shader(&mut self, shader_builder: ShaderBuilder) -> Result<AssetId<ShaderProgram>, String> {
         let hash = shader_builder.hash()?;
 
         for (existing_shader_id, existing_shader_entry) in self.shaders.iter() {
             if existing_shader_entry.hash == hash {
-                return Ok(*existing_shader_id);
+                return Ok(AssetId::new(*existing_shader_id));
             }
         }
 
@@ -162,29 +164,29 @@ impl AssetRegistry {
             },
         }
 
-        Ok(self.current_shader_id)
+        Ok(AssetId::new(self.current_shader_id))
     }
 
-    pub fn get_shader_by_id(&self, id: u32) -> Option<&ShaderProgram> {
-        match self.shaders.get(&id) {
+    pub fn get_shader_by_id(&self, id: &AssetId<ShaderProgram>) -> Option<&ShaderProgram> {
+        match self.shaders.get(&id.id()) {
             Some(entry) => Some(&entry.shader),
             None => None,
         }
     }
 
-    pub fn load_material(&mut self, shader_id: u32) -> Result<u32, String> {
+    pub fn load_material(&mut self, shader_id: &AssetId<ShaderProgram>) -> Result<AssetId<Material>, String> {
         // All parameters of this function must be put in this hash
         let mut hasher = DefaultHasher::new();
-        shader_id.hash(&mut hasher);
+        shader_id.id().hash(&mut hasher);
         let hash = hasher.finish();
 
         for (existing_material_id, existing_material_entry) in self.materials.iter() {
             if existing_material_entry.hash == hash {
-                return Ok(*existing_material_id);
+                return Ok(AssetId::new(*existing_material_id));
             }
         }
 
-        let material = Material::new(shader_id);
+        let material = Material::new(shader_id.duplicate());
         self.current_material_id += 1;
 
         match self.materials.entry(self.current_material_id) {
@@ -196,11 +198,11 @@ impl AssetRegistry {
             },
         }
 
-        Ok(self.current_material_id)
+        Ok(AssetId::new(self.current_material_id))
     }
 
-    pub fn get_material_by_id(&mut self, id: u32) -> Option<&mut Material> {
-        match self.materials.get_mut(&id) {
+    pub fn get_material_by_id(&mut self, id: &AssetId<Material>) -> Option<&mut Material> {
+        match self.materials.get_mut(id.id()) {
             Some(entry) => {
                 Some(&mut entry.material)
             },
@@ -208,11 +210,11 @@ impl AssetRegistry {
         }
     }
 
-    pub fn add_material_texture(&mut self, material_id: u32, texture_id: u32) {
+    pub fn add_material_texture(&mut self, material_id: &AssetId<Material>, texture_id: &AssetId<Texture>) {
         {
             let textures_length = self.get_material_by_id(material_id).unwrap().number_of_textures();
-            let shader_id = self.get_material_by_id(material_id).unwrap().shader_id;
-            let shader = self.get_shader_by_id(shader_id).unwrap();
+            let shader_id = self.get_material_by_id(material_id).unwrap().shader_id.duplicate();
+            let shader = self.get_shader_by_id(&shader_id).unwrap();
             
             shader.set_uniform(
                 format!("texture{}", textures_length).as_str(), 
@@ -220,25 +222,25 @@ impl AssetRegistry {
             );
         }
 
-        self.get_material_by_id(material_id).unwrap().push_texture_id(texture_id);
+        self.get_material_by_id(material_id).unwrap().push_texture_id(texture_id.duplicate());
     }
 
-    pub fn activate_material(&mut self, material_id: u32) {
+    pub fn activate_material(&mut self, material_id: &AssetId<Material>) {
         let texture_ids = self.get_material_by_id(material_id).unwrap().texture_ids_copy();
 
         for (index, texture_id) in texture_ids.iter().enumerate() {
-            self.get_texture_by_id(*texture_id).unwrap().activate(index);
+            self.get_texture_by_id(texture_id).unwrap().activate(index);
         }
     }
 
-    pub fn get_material_shader(&mut self, material_id: u32) -> Option<&ShaderProgram> {
+    pub fn get_material_shader(&mut self, material_id: &AssetId<Material>) -> Option<&ShaderProgram> {
         let shader_id;
 
         match self.get_material_by_id(material_id) {
-            Some(material) => shader_id = material.shader_id,
+            Some(material) => shader_id = material.shader_id.duplicate(),
             None => return None,
         }
 
-        self.get_shader_by_id(shader_id)
+        self.get_shader_by_id(&shader_id)
     }
 }

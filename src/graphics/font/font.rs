@@ -1,6 +1,6 @@
 use std::{fs::File, io::Read, collections::HashMap};
 
-use crate::{lz_core_err, lz_core_warn, graphics::texture::ImageType, asset_registry::AssetRegistry};
+use crate::{lz_core_err, lz_core_warn, graphics::{texture::ImageType, shader::ShaderProgram, material::Material}, asset_registry::{AssetRegistry, AssetId}};
 
 use super::{BitmapCharacter, Bitmap, bitmap::BitmapBuilder, bitmap_cache};
 
@@ -9,7 +9,7 @@ pub struct Font {
 
     /// The width of the space (' ') character. the space is relative to the line height. So 0.5 is halve the line height. 
     pub space_size: f32,
-    pub material_id: u32,
+    pub material_id: AssetId<Material>,
 }
 
 /// # Arguments
@@ -18,14 +18,14 @@ pub struct Font {
 /// * `bitmap_builder` -
 /// * `shader` - None to use the default text shader
 impl Font {
-    pub fn new(bitmap_builder: impl BitmapBuilder, shader_id: u32, asset_registry: &mut AssetRegistry) -> Result<Self, String> {
+    pub fn new(bitmap_builder: impl BitmapBuilder, shader_id: AssetId<ShaderProgram>, asset_registry: &mut AssetRegistry) -> Result<Self, String> {
         match load_font(bitmap_builder.font_file_path()) {
             Ok(font) => {
                 let bitmap = Self::get_bitmap(font, bitmap_builder.font_file_path(), &bitmap_builder)?;
 
-                let texture_id = asset_registry.add_texture_from_image(bitmap.image())?;
-                let material_id = asset_registry.load_material(shader_id)?;
-                asset_registry.add_material_texture(material_id, texture_id);
+                let texture_id = asset_registry.add_texture_from_image(bitmap.image())?.duplicate();
+                let material_id = asset_registry.load_material(&shader_id)?.duplicate();
+                asset_registry.add_material_texture(&material_id, &texture_id);
 
                 Ok(Self { 
                     bitmap,

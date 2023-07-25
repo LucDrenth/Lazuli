@@ -1,22 +1,22 @@
-use crate::asset_registry::AssetRegistry;
+use crate::asset_registry::{AssetRegistry, AssetId};
 
-use super::shader::ShaderProgram;
+use super::{shader::ShaderProgram, texture::Texture};
 
 pub struct Material {
-    pub shader_id: u32,
-    texture_ids: Vec<u32>,
+    pub shader_id: AssetId<ShaderProgram>,
+    texture_ids: Vec<AssetId<Texture>>,
 }
 
 impl Material {
-    pub fn new(shader_id: u32) -> Self {
+    pub fn new(shader_id: AssetId<ShaderProgram>) -> Self {
         Self {
             shader_id,
             texture_ids: vec![],
         }
     }
 
-    pub fn add_texture(&mut self, texture_id: u32, asset_registry: &mut AssetRegistry) {
-        asset_registry.get_shader_by_id(self.shader_id).unwrap().set_uniform(
+    pub fn add_texture(&mut self, texture_id: AssetId<Texture>, asset_registry: &mut AssetRegistry) {
+        asset_registry.get_shader_by_id(&self.shader_id).unwrap().set_uniform(
             format!("texture{}", self.texture_ids.len()).as_str(), 
             self.texture_ids.len() as i32
         );
@@ -24,24 +24,30 @@ impl Material {
         self.texture_ids.push(texture_id);
     }
 
-    pub fn push_texture_id(&mut self, texture_id: u32) {
+    pub fn push_texture_id(&mut self, texture_id: AssetId<Texture>) {
         self.texture_ids.push(texture_id);
     }
 
     pub fn activate(&self, asset_registry: &mut AssetRegistry) {
-        asset_registry.get_shader_by_id(self.shader_id).unwrap().apply();
+        asset_registry.get_shader_by_id(&self.shader_id).unwrap().apply();
         
         for (index, texture_id) in self.texture_ids.iter().enumerate() {
-            asset_registry.get_texture_by_id(*texture_id).unwrap().activate(index);
+            asset_registry.get_texture_by_id(texture_id).unwrap().activate(index);
         }
     }
 
     pub fn shader<'a>(&'a self, asset_registry: &'a mut AssetRegistry) -> Option<&ShaderProgram> {
-        asset_registry.get_shader_by_id(self.shader_id)
+        asset_registry.get_shader_by_id(&self.shader_id)
     }
 
-    pub fn texture_ids_copy(&self) -> Vec<u32> {
-        self.texture_ids.clone()
+    pub fn texture_ids_copy(&self) -> Vec<AssetId<Texture>> {
+        let mut texture_ids_clone: Vec<AssetId<Texture>> = Vec::with_capacity(self.texture_ids.len());
+
+        for texture_id in self.texture_ids.iter() {
+            texture_ids_clone.push(texture_id.duplicate())
+        }
+
+        texture_ids_clone
     }
 
     pub fn number_of_textures(&self) -> usize {

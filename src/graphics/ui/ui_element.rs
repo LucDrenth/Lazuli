@@ -1,11 +1,11 @@
 use glam::Vec2;
 
-use crate::asset_registry::AssetRegistry;
+use crate::{asset_registry::{AssetRegistry, AssetId}, graphics::material::Material};
 
 use super::world_element_data::WorldElementData;
 
 pub trait UiElement {
-    fn material_id(&self) -> u32;
+    fn material_id(&self) -> &AssetId<Material>;
     fn draw(&self, asset_registry: &mut AssetRegistry);
     fn type_name(&self) -> &str;
     fn world_data(&self) -> &WorldElementData;
