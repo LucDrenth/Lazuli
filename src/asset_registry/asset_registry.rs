@@ -2,36 +2,19 @@ use std::{collections::{HashMap, hash_map::DefaultHasher}, path::Path, hash::{Ha
 
 use crate::graphics::{texture::{Texture, TextureImage}, font::{Font, BitmapBuilder}, shader::{ShaderBuilder, ShaderProgram}, material::Material};
 
-use super::AssetId;
-
-struct TextureEntry {
-    path: Option<String>,
-    texture: Texture,
-}
-struct FontEntry {
-    hash: u64, // a hash of the font builder and the shader builder
-    font: Font,
-}
-struct ShaderEntry {
-    hash: u64,
-    shader: ShaderProgram,
-}
-struct MaterialEntry {
-    hash: u64,
-    material: Material,
-}
+use super::{AssetId, asset_entry::AssetEntry};
 
 pub struct AssetRegistry {
-    textures: HashMap<u32, TextureEntry>,
+    textures: HashMap<u32, AssetEntry<Texture, Option<String>>>,
     current_texture_id: u32,
 
-    fonts: HashMap<u32, FontEntry>,
+    fonts: HashMap<u32, AssetEntry<Font, u64>>,
     current_font_id: u32,
 
-    shaders: HashMap<u32, ShaderEntry>,
+    shaders: HashMap<u32, AssetEntry<ShaderProgram, u64>>,
     current_shader_id: u32,
 
-    materials: HashMap<u32, MaterialEntry>,
+    materials: HashMap<u32, AssetEntry<Material, u64>>,
     current_material_id: u32,
 }
 
@@ -51,7 +34,7 @@ impl AssetRegistry {
 
     pub fn load_texture(&mut self, path: String) -> Result<AssetId<Texture>, String> {
         for (existing_texture_id, existing_texture_entry) in self.textures.iter() {
-            match &existing_texture_entry.path {
+            match &existing_texture_entry.builder_hash {
                 Some(existing_texture_entry_path) => {
                     if *existing_texture_entry_path == path {
                         return Ok(AssetId::new(*existing_texture_id));
@@ -87,7 +70,7 @@ impl AssetRegistry {
                 return Err(format!("Encountered duplicate id {} while adding texture to asset registry", self.current_texture_id));
             },
             std::collections::hash_map::Entry::Vacant(entry) => {
-                entry.insert(TextureEntry { path, texture });
+                entry.insert(AssetEntry { asset: texture, builder_hash: path });
             },
         }
 
@@ -96,7 +79,7 @@ impl AssetRegistry {
 
     pub fn get_texture_by_id(&self, id: &AssetId<Texture>) -> Option<&Texture> {
         match self.textures.get(id.id()) {
-            Some(entry) => Some(&entry.texture),
+            Some(entry) => Some(&entry.asset),
             None => None,
         }
     }
@@ -113,7 +96,7 @@ impl AssetRegistry {
         let hash = hasher.finish();
 
         for (existing_font_id, existing_font_entry) in self.fonts.iter() {
-            if existing_font_entry.hash == hash {
+            if existing_font_entry.builder_hash == hash {
                 return Ok(AssetId::new(*existing_font_id))
             }
         }
@@ -129,7 +112,7 @@ impl AssetRegistry {
                 return Err(format!("Encountered duplicate id {} while adding font to asset registry", self.current_font_id));
             },
             std::collections::hash_map::Entry::Vacant(entry) => {
-                entry.insert(FontEntry { hash, font });
+                entry.insert(AssetEntry { asset: font, builder_hash: hash });
             },
         }
 
@@ -138,7 +121,7 @@ impl AssetRegistry {
 
     pub fn get_font_by_id(&mut self, id: &AssetId<Font>) -> Option<&Font> {
         match self.fonts.get(id.id()) {
-            Some(entry) => Some(&entry.font),
+            Some(entry) => Some(&entry.asset),
             None => None,
         }
     }
@@ -147,7 +130,7 @@ impl AssetRegistry {
         let hash = shader_builder.hash()?;
 
         for (existing_shader_id, existing_shader_entry) in self.shaders.iter() {
-            if existing_shader_entry.hash == hash {
+            if existing_shader_entry.builder_hash == hash {
                 return Ok(AssetId::new(*existing_shader_id));
             }
         }
@@ -160,7 +143,7 @@ impl AssetRegistry {
                 return Err(format!("Encountered duplicate id {} while adding shader to asset registry", self.current_shader_id));
             },
             std::collections::hash_map::Entry::Vacant(entry) => {
-                entry.insert(ShaderEntry { hash, shader });
+                entry.insert(AssetEntry { asset: shader, builder_hash: hash });
             },
         }
 
@@ -169,7 +152,7 @@ impl AssetRegistry {
 
     pub fn get_shader_by_id(&self, id: &AssetId<ShaderProgram>) -> Option<&ShaderProgram> {
         match self.shaders.get(&id.id()) {
-            Some(entry) => Some(&entry.shader),
+            Some(entry) => Some(&entry.asset),
             None => None,
         }
     }
@@ -181,7 +164,7 @@ impl AssetRegistry {
         let hash = hasher.finish();
 
         for (existing_material_id, existing_material_entry) in self.materials.iter() {
-            if existing_material_entry.hash == hash {
+            if existing_material_entry.builder_hash == hash {
                 return Ok(AssetId::new(*existing_material_id));
             }
         }
@@ -194,7 +177,7 @@ impl AssetRegistry {
                 return Err(format!("Encountered duplicate id {} while adding material to asset registry", self.current_material_id));
             },
             std::collections::hash_map::Entry::Vacant(entry) => {
-                entry.insert(MaterialEntry { hash, material });
+                entry.insert(AssetEntry { asset: material, builder_hash: hash });
             },
         }
 
@@ -204,7 +187,7 @@ impl AssetRegistry {
     pub fn get_material_by_id(&mut self, id: &AssetId<Material>) -> Option<&mut Material> {
         match self.materials.get_mut(id.id()) {
             Some(entry) => {
-                Some(&mut entry.material)
+                Some(&mut entry.asset)
             },
             None => None,
         }
