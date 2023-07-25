@@ -73,7 +73,7 @@ impl PlainBitmapBuilder {
         Self {
             padding_x: 0,
             padding_y: 0,
-            font_size: 25.0,
+            font_size: 32.0,
             characters: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!;%:?*()_+-=.,/|\\\"'@#$€^&{}[]".to_string(),
             cache: true,
             super_sampling_factor: 1,

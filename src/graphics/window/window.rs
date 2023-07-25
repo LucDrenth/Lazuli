@@ -4,6 +4,8 @@ use crate::{event::EventSystem, graphics::renderer::Renderer, input::Input, asse
 
 pub trait Window {
     fn run(self: Box<Self>, renderer: Renderer, event_system: EventSystem, lz_input: Input, asset_registry: AssetRegistry);
+
+    /// in logical units (physical size / DPI)
     fn get_size(&self) -> Vec2;
     
     // TODO

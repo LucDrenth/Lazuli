@@ -165,7 +165,7 @@ pub struct TextBuilder {
 impl TextBuilder {
     pub fn new() -> Self {
         TextBuilder { 
-            font_size: 28.0,
+            font_size: 14.0,
             color: (255, 255, 255),
             letter_spacing: 0.04,
             position: Position::FixedCenter,

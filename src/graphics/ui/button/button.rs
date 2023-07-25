@@ -69,7 +69,7 @@ impl ButtonBuilder {
             padding_y: 8.0,
             z_index: 10.0,
             position: Position::FixedCenter,
-            font_size: 28.0,
+            font_size: 14.0,
         }
     }
 

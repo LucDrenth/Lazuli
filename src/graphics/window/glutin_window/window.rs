@@ -1,6 +1,6 @@
 use std::time::Instant;
 use glam::Vec2;
-use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, GlRequest, ContextBuilder, Api, event::{Event, WindowEvent}, ContextWrapper, PossiblyCurrent, GlProfile, dpi::{PhysicalPosition}};
+use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, GlRequest, ContextBuilder, Api, event::{Event, WindowEvent}, ContextWrapper, PossiblyCurrent, GlProfile, dpi::{PhysicalPosition, LogicalSize, LogicalPosition}};
 
 use crate::{event::{EventSystem, WindowResizeEvent}, input::{Input}, lz_core_warn, time, graphics::{renderer::Renderer, window::window_listeners::WindowListeners, Window}, asset_registry::AssetRegistry};
 
@@ -36,10 +36,21 @@ impl Window for GlutinWindow {
                     WindowEvent::Resized(physical_size) => {
                         render_context.resize(physical_size);
 
+                        let dpi_factor = render_context.window().scale_factor();
+                        let logical_size: LogicalSize<u32> = physical_size.to_logical(dpi_factor);
+
                         event_system.send(WindowResizeEvent {
-                            width: physical_size.width, 
-                            height: physical_size.height 
-                        })
+                            width: logical_size.width, 
+                            height: logical_size.height 
+                        });
+                    },
+                    WindowEvent::ScaleFactorChanged { scale_factor, new_inner_size } => {
+                        let logical_size: LogicalSize<u32> = new_inner_size.to_logical(scale_factor);
+
+                        event_system.send(WindowResizeEvent {
+                            width: logical_size.width, 
+                            height: logical_size.height 
+                        });
                     },
                     WindowEvent::KeyboardInput { device_id: _, input, is_synthetic: _ } => {
                         if let Some(key) = input.virtual_keycode {
@@ -70,7 +81,8 @@ impl Window for GlutinWindow {
                         }
                     },
                     WindowEvent::CursorMoved { device_id: _, position, .. } => {
-                        lz_input.register_mouse_reposition_event(position.x, position.y);
+                        let logical_position: LogicalPosition<f64> = position.to_logical(render_context.window().scale_factor());
+                        lz_input.register_mouse_reposition_event(logical_position.x, logical_position.y);
                     },
                     _ => (),
                 },
@@ -107,9 +119,12 @@ impl Window for GlutinWindow {
     }
 
     fn get_size(&self) -> Vec2 {
+        let dpi_factor = self.render_context.window().scale_factor();
+        let logical_size: LogicalSize<f32> = self.render_context.window().inner_size().to_logical(dpi_factor);
+
         return Vec2 { 
-            x: self.render_context.window().inner_size().width as f32, 
-            y: self.render_context.window().inner_size().height as f32,
+            x: logical_size.width, 
+            y: logical_size.height,
         }
     }
 }
