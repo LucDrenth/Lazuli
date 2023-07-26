@@ -23,7 +23,7 @@ impl Font {
             Ok(font) => {
                 let bitmap = Self::get_bitmap(font, bitmap_builder.font_file_path(), &bitmap_builder)?;
 
-                let texture_id = asset_registry.add_texture_from_image(bitmap.image())?.duplicate();
+                let texture_id = asset_registry.load_texture_from_image(bitmap.image())?.duplicate();
                 let material_id = asset_registry.load_material(&shader_id)?.duplicate();
                 asset_registry.add_material_texture(&material_id, &texture_id);
 
