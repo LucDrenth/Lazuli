@@ -1,6 +1,6 @@
 use std::{collections::hash_map::DefaultHasher, path::Path, hash::{Hash, Hasher}};
 
-use crate::{graphics::{texture::{Texture, TextureImage}, font::{Font, BitmapBuilder}, shader::{ShaderBuilder, ShaderProgram}, material::Material}, lz_core_info};
+use crate::graphics::{texture::{Texture, TextureImage}, font::{Font, BitmapBuilder}, shader::{ShaderBuilder, ShaderProgram}, material::Material};
 
 use super::{AssetId, asset_collection::AssetCollection};
 
@@ -26,7 +26,6 @@ impl AssetRegistry {
 
         match self.textures.get_by_builder_hash(&some_path) {
             Some(existing) => {
-                lz_core_info!("textures exists {}", path);
                 return Ok(existing)
             },
             None => (),
