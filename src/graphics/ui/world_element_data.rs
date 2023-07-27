@@ -42,6 +42,14 @@ impl WorldElementData {
         self.final_coordinates = self.position_type.shader_coordinates(&self.size, new_window_size);
     }
 
+    // Put our element at the center of the given element (element_to_center_on)
+    pub fn center_at(&mut self, element_to_center_on: &Self) {
+        let width_difference = element_to_center_on.width() - self.width();
+        let height_difference = element_to_center_on.height() - self.height();
+
+        self.position_type = element_to_center_on.position_type.add_offset(width_difference / 2.0, height_difference / 2.0);
+    }
+
     pub fn size(&self) -> &Vec2 { &self.size }
     pub fn width(&self) -> f32 { self.size.x }
     pub fn height(&self) -> f32 { self.size.y }

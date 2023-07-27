@@ -50,6 +50,10 @@ impl UiElement for Rectangle {
         &self.world_data
     }
 
+    fn center_at(&mut self, element_to_center_on: &WorldElementData) {
+        self.world_data.center_at(element_to_center_on);
+    }
+
     fn handle_window_resize(&mut self, new_window_size: &Vec2) {
         self.world_data.handle_window_resize(new_window_size);
     }

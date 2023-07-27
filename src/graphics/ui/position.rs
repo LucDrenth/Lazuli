@@ -57,6 +57,22 @@ impl Position {
         }
     }
 
+    /// Translate from to the direction of the anchor point. 
+    /// If anchor point is only on the x axis, amount_y will be ignored and vice versa.
+    pub fn add_offset(&self, amount_x: f32, amount_y: f32) -> Position{
+        match self {
+            Position::FixedCenter => Position::FixedCenter,
+            Position::FixedTop(y) => Position::FixedTop(*y + amount_y),
+            Position::FixedBottom(y) => Position::FixedTop(*y + amount_y),
+            Position::FixedLeft(x) => Position::FixedLeft(*x + amount_x),
+            Position::FixedRight(x) => Position::FixedRight(*x + amount_x),
+            Position::FixedTopLeft(x, y) => Position::FixedTopLeft(*x + amount_x, *y + amount_y),
+            Position::FixedTopRight(x, y) => Position::FixedTopRight(*x + amount_x, *y + amount_y),
+            Position::FixedBottomLeft(x, y) => Position::FixedBottomLeft(*x + amount_x, *y + amount_y),
+            Position::FixedBottomRight(x, y) => Position::FixedBottomRight(*x + amount_x, *y + amount_y),
+        }
+    }
+
     pub fn x_for_fixed_left(element_size: &Vec2, window_size: &Vec2, left: &f32,) -> f32 {
         -window_size.x / 2.0 + element_size.x / 2.0 + left
     }

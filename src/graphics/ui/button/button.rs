@@ -12,10 +12,9 @@ impl Button {
             .with_font_size(50.0)
         , None)?;
 
-        let text = Text::new(label, &font_id, TextBuilder::new()
+        let mut text = Text::new(label, &font_id, TextBuilder::new()
             .with_color(builder.text_color)
             .with_z_index(builder.z_index + 0.01)
-            .with_position(builder.position)
             .with_font_size(builder.font_size)
         , asset_registry, interface.size())?;
         
@@ -29,6 +28,8 @@ impl Button {
             .with_z_index(builder.z_index)
             .with_position(builder.position)
         , asset_registry, interface.size())?;
+
+        text.center_at(&background.world_data());
 
         let background_element_id = interface.add_element(background);
         let text_element_id = interface.add_element(text);
