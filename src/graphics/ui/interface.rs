@@ -2,7 +2,7 @@ use glam::Vec2;
 
 use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_registry::{AssetRegistry, AssetId}, input::{Input, MouseButton}, lz_core_warn, graphics::font::Font, lz_core_info};
 
-use super::{ui_element::UiElement, TextBuilder, Text, shapes::{Rectangle, RectangleBuilder}};
+use super::{TextBuilder, Text, shapes::{Rectangle, RectangleBuilder}, element::ui_element::UiElement};
 
 const MIN_Z_INDEX: f32 = 1.0;
 const MAX_Z_INDEX: f32 = 10_000.0;

@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, ui::{self, shapes::RectangleBuilder, Button, ButtonBuilder, TextBuilder}, font::PlainBitmapBuilder}, event::EventSystem, input::{Input, Key}, asset_registry::AssetRegistry, lz_core_info};
+use crate::{graphics::{scene::Scene, ui::{self, shapes::RectangleBuilder, TextBuilder, widget::{Button, ButtonBuilder}}, font::PlainBitmapBuilder}, event::EventSystem, input::{Input, Key}, asset_registry::AssetRegistry, lz_core_info};
 
 pub struct HelloUi {
     interface: ui::Interface,
