@@ -6,6 +6,7 @@ pub struct HelloUi {
     interface: ui::Interface,
     button: Button,
     text_id: u32,
+    rectangle_id: u32,
 }
 
 impl Scene for HelloUi {
@@ -23,12 +24,22 @@ impl Scene for HelloUi {
         , None)?;
         let text_id = interface.add_text("I am a text you can click".to_string(), &plain_font_id, TextBuilder::new()
             .with_position(ui::Position::FixedTop(25.0))
+            .with_z_index(100.0)
+        , asset_registry)?;
+
+        let rectangle_id = interface.add_rectangle(RectangleBuilder::new()
+            .with_width(400.0)
+            .with_height(200.0)
+            .with_z_index(50.0)
+            .with_color((125, 23, 1))
+            .with_position(ui::Position::FixedTopLeft(25.0, 100.0))
         , asset_registry)?;
 
         Ok(Self { 
             interface,
             button,
             text_id,
+            rectangle_id,
         })
     }
 
@@ -42,6 +53,10 @@ impl Scene for HelloUi {
                 .with_height(self.interface.height() * 0.95)
                 .with_z_index(5.0), asset_registry
             ).unwrap();
+        }
+
+        if input.is_key_down(Key::C) {
+            self.interface.center_element_at_element(self.text_id, self.rectangle_id);
         }
 
         if self.button.is_clicked(input, &self.interface) {

@@ -29,7 +29,7 @@ impl Button {
             .with_position(builder.position)
         , asset_registry, interface.size())?;
 
-        text.center_at(&background.world_data());
+        text.center_at(&background.world_data(), interface.size());
 
         let background_element_id = interface.add_element(background);
         let text_element_id = interface.add_element(text);

@@ -3,6 +3,7 @@ use glam::Vec2;
 use super::Position;
 
 /// World space data about size and positioning of a UI element
+#[derive(Clone, Copy)]
 pub struct WorldElementData {
     size: Vec2, // given in world space (pixels)
     final_coordinates: Vec2, // the world space coordinates at which we render the center of the element. (0,0) is the center of the screen
@@ -26,9 +27,14 @@ impl WorldElementData {
         &self.final_coordinates
     }
 
+    pub fn recalculate_final_coordinates(&mut self, window_size: &Vec2) {
+        self.final_coordinates = self.position_type.shader_coordinates(&self.size, window_size);
+    }
+
     pub fn shader_coordinates(&self) -> (f32, f32) {
         (self.final_coordinates.x, self.final_coordinates.y)
     }
+
 
     // Check if the given position is within this world element
     pub fn is_within(&self, position: Vec2) -> bool {
@@ -43,11 +49,12 @@ impl WorldElementData {
     }
 
     // Put our element at the center of the given element (element_to_center_on)
-    pub fn center_at(&mut self, element_to_center_on: &Self) {
+    pub fn center_at(&mut self, element_to_center_on: &Self, window_size: &Vec2) {
         let width_difference = element_to_center_on.width() - self.width();
         let height_difference = element_to_center_on.height() - self.height();
 
         self.position_type = element_to_center_on.position_type.add_offset(width_difference / 2.0, height_difference / 2.0);
+        self.recalculate_final_coordinates(window_size);
     }
 
     pub fn size(&self) -> &Vec2 { &self.size }

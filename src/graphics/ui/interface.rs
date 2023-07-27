@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_registry::{AssetRegistry, AssetId}, input::{Input, MouseButton}, lz_core_warn, graphics::font::Font};
+use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_registry::{AssetRegistry, AssetId}, input::{Input, MouseButton}, lz_core_warn, graphics::font::Font, lz_core_info};
 
 use super::{ui_element::UiElement, TextBuilder, Text, shapes::{Rectangle, RectangleBuilder}};
 
@@ -97,8 +97,8 @@ impl Interface {
 
     pub fn is_element_hovered(&self, element_id: u32, input: &Input) -> bool {
         match self.get_element(element_id) {
-            Some(element_entry) => {
-                element_entry.element.world_data().is_within(self.map_mouse_position(&input))
+            Some(element) => {
+                element.world_data().is_within(self.map_mouse_position(&input))
             }
             None => {
                 lz_core_warn!("interface is_element_hovered for element {} returned false because element was not found", element_id);
@@ -112,14 +112,41 @@ impl Interface {
             && self.is_element_hovered(element_id, input)
     }
 
-    fn get_element(&self, element_id: u32) -> Option<&ElementEntry> {
+    fn get_element(&self, element_id: u32) -> Option<&Box<dyn UiElement>> {
         for element_entry in self.elements.iter() {
             if element_entry.id == element_id {
-                return Some(element_entry)
+                return Some(&element_entry.element)
             }
         }
 
         None
+    }
+
+    fn get_mut_element(&mut self, element_id: u32) -> Option<&mut Box<dyn UiElement>> {
+        for element_entry in self.elements.iter_mut() {
+            if element_entry.id == element_id {
+                return Some(&mut element_entry.element)
+            }
+        }
+
+        None
+    }
+
+    pub fn center_element_at_element(&mut self, element_to_center: u32, element_to_center_at: u32) {
+        let target;
+        match self.get_element(element_to_center_at) {
+            Some(element) => target = element.world_data().clone(),
+            None => todo!(),
+        }
+
+        let window_size = self.size.clone();
+
+        match self.get_mut_element(element_to_center) {
+            Some(element) => element.center_at(&target, &window_size),
+            None => {
+                lz_core_info!("failed to center interface element at another element because element_to_center (id={}) was not found", element_to_center)
+            },
+        }
     }
 
     // map mouse position so that (0, 0) is the center
