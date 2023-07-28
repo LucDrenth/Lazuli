@@ -9,7 +9,7 @@ name = "lazuli"
 path = "src/lib.rs"
 
 [[bin]]
-name = "mybin"
+name = "lazuli-sandbox"
 path = "src/bin.rs"
 
 [dependencies]
