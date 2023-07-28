@@ -3,7 +3,7 @@ use std::{fs, collections::{hash_map::DefaultHasher, HashMap}, hash::{Hash, Hash
 use image::GrayImage;
 use serde::{Serialize, Deserialize};
 
-use crate::{lz_core_err, graphics::texture::ImageType};
+use crate::{graphics::texture::ImageType, log};
 
 use super::{SdfBitmapBuilder, BitmapCharacter, sdf_bitmap::SdfBitmap, Bitmap, plain_bitmap::PlainBitmap, bitmap::BitmapBuilder};
 
@@ -83,7 +83,7 @@ pub fn load(font_path: &String, bitmap_builder: &impl BitmapBuilder) -> Option<B
     match bitmap_builder.get_hash() {
         Ok(hash) => bitmap_builder_hash = hash,
         Err(err) => {
-            lz_core_err!("failed to check sdf bitmap cache because bitmap_builder hash could not be created: {}", err);
+            log::engine_err(format!("failed to check sdf bitmap cache because bitmap_builder hash could not be created: {}", err));
             return None;
         },
     }

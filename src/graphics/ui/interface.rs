@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_registry::{AssetRegistry, AssetId}, input::{Input, MouseButton}, lz_core_warn, graphics::font::Font, lz_core_info};
+use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_registry::{AssetRegistry, AssetId}, input::{Input, MouseButton}, graphics::font::Font, log};
 
 use super::{TextBuilder, Text, shapes::{Rectangle, RectangleBuilder}, element::ui_element::UiElement};
 
@@ -101,7 +101,7 @@ impl Interface {
                 element.world_data().is_within(self.map_mouse_position(&input))
             }
             None => {
-                lz_core_warn!("interface is_element_hovered for element {} returned false because element was not found", element_id);
+                log::engine_warn(format!("interface is_element_hovered for element {} returned false because element was not found", element_id));
                 false
             }
         }
@@ -144,7 +144,7 @@ impl Interface {
         match self.get_mut_element(element_to_center) {
             Some(element) => element.center_at(&target, &window_size),
             None => {
-                lz_core_info!("failed to center interface element at another element because element_to_center (id={}) was not found", element_to_center)
+                log::engine_warn(format!("failed to center interface element at another element because element_to_center (id={}) was not found", element_to_center));
             },
         }
     }

@@ -1,4 +1,4 @@
-use crate::{graphics::{ui::{Text, TextBuilder, shapes::RectangleBuilder, Interface, self, interface::is_valid_z_index, Position, element::ui_element::UiElement}, font::PlainBitmapBuilder}, asset_registry::AssetRegistry, lz_core_warn, input::Input};
+use crate::{graphics::{ui::{Text, TextBuilder, shapes::RectangleBuilder, Interface, self, interface::is_valid_z_index, Position, element::ui_element::UiElement}, font::PlainBitmapBuilder}, asset_registry::AssetRegistry, input::Input, log};
 
 pub struct Button {
     text_element_id: u32,
@@ -110,7 +110,7 @@ impl ButtonBuilder {
         if is_valid_z_index(z_index + 1.0) {
             self.z_index = z_index;
         } else {
-            lz_core_warn!("did not set ButtonBuilder z_index {} because it's not a valid z-index", z_index);
+            log::engine_warn(format!("did not set ButtonBuilder z_index {} because it's not a valid z-index", z_index));
         }
 
         self

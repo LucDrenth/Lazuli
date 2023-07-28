@@ -1,6 +1,6 @@
 /// Functions to map input from the "glutin" crate to that of our own
 
-use crate::{lz_core_warn, input::{Key, KeyState, MouseButton, MouseButtonState}};
+use crate::{input::{Key, KeyState, MouseButton, MouseButtonState}, log};
 
 pub fn map_glutin_keycode(glutin_key: glutin::event::VirtualKeyCode) -> Key {
     match glutin_key {
@@ -76,7 +76,7 @@ pub fn map_glutin_keycode(glutin_key: glutin::event::VirtualKeyCode) -> Key {
         glutin::event::VirtualKeyCode::Grave => Key::BackTick,
         glutin::event::VirtualKeyCode::Return => Key::Enter,
         _ => {
-            lz_core_warn!("Unhandled glutin key event: {:?}", glutin_key);
+            log::engine_warn(format!("Unhandled glutin key event: {:?}", glutin_key));
             Key::Uknown
         },
     }
@@ -95,7 +95,7 @@ pub fn map_glutin_mouse_button(state: glutin::event::MouseButton) -> MouseButton
         glutin::event::MouseButton::Right => MouseButton::Right,
         glutin::event::MouseButton::Middle => MouseButton::Middle,
         glutin::event::MouseButton::Other(val) => {
-            lz_core_warn!("Unhandled glutin mouse button event: other[{}]", val);
+            log::engine_warn(format!("Unhandled glutin mouse button event: other[{}]", val));
             MouseButton::Uknown
         },
     }

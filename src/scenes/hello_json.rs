@@ -3,7 +3,7 @@ use std::{fs, path::Path};
 use glam::Vec2;
 
 use serde::{Deserialize, Serialize};
-use crate::{graphics::scene::Scene, event::EventSystem, input::Input, lz_core_info, asset_registry::AssetRegistry};
+use crate::{graphics::scene::Scene, event::EventSystem, input::Input, asset_registry::AssetRegistry, log};
 
 pub struct HelloJson {}
 impl Scene for HelloJson {
@@ -18,7 +18,7 @@ impl Scene for HelloJson {
 
         let json_to_read = fs::read_to_string(Path::new("./data.json")).unwrap();
         let my_struct: MyStruct = serde_json::from_str(&json_to_read).unwrap();
-        lz_core_info!("{}: {}", my_struct.id, my_struct.name);
+        log::engine_info(format!("{}: {}", my_struct.id, my_struct.name));
 
         let result = Self { };
         Ok(result)

@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, element::{world_element_data::WorldElementData, ui_element::UiElement}, Position}, material::Material}, set_attribute, error::opengl, asset_registry::{AssetRegistry, AssetId}, lz_core_warn};
+use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, element::{world_element_data::WorldElementData, ui_element::UiElement}, Position}, material::Material}, set_attribute, error::opengl, asset_registry::{AssetRegistry, AssetId}, log};
 use crate::graphics::shapes::RECTANGLE_INDICES;
 
 type Positon = [f32; 2];
@@ -163,7 +163,7 @@ impl RectangleBuilder {
         if is_valid_z_index(z_index) {
             self.z_index = z_index;
         } else {
-            lz_core_warn!("did not set RectangleBuilder z_index {} because it's not a valid z-index", z_index);
+            log::engine_warn(format!("did not set RectangleBuilder z_index {} because it's not a valid z-index", z_index));
         }
 
         self

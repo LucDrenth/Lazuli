@@ -4,12 +4,16 @@ use graphics::scene::Scene;
 pub mod graphics;
 pub mod scenes;
 pub mod error;
-pub mod log;
 pub mod event;
 pub mod input;
 pub mod time;
 pub mod math;
 pub mod asset_registry;
+
+mod log;
+pub use log::info;
+pub use log::warn;
+pub use log::err;
 
 pub extern crate glam;
 pub extern crate gl;

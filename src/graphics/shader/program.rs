@@ -2,7 +2,7 @@ use std::ffi::CString;
 
 use gl::types::{GLuint, GLint};
 
-use crate::{error::opengl, lz_core_warn, lz_core_err};
+use crate::{error::opengl, log};
 
 use super::{shader::Shader, uniform::UniformValue};
 
@@ -63,7 +63,7 @@ impl ShaderProgram {
             let result = gl::GetAttribLocation(self.id, attribute_as_cstring.as_ptr());
             
             if result == -1 {
-                lz_core_err!("Could not find attribute location of \"{}\"", attribute);
+                log::engine_err(format!("Could not find attribute location of \"{}\"", attribute));
                 opengl::gl_clear_errors();
                 return Err(format!("Could not find attribute location of {}", attribute));
             }
@@ -103,7 +103,7 @@ impl ShaderProgram {
         let location = self.get_uniform_location(name);
         
         if location < 0 {
-            lz_core_warn!("Can not find uniform location of: {}", name);
+            log::engine_warn(format!("Can not find uniform location of: {}", name));
             return;
         }
         
@@ -118,7 +118,7 @@ impl ShaderProgram {
                 return gl::GetUniformLocation(self.id, cstring.as_ptr());
             }
             Err(err) => {
-                lz_core_warn!("Failed to create CString from uniform name {:?}: {}", name, err);
+                log::engine_warn(format!("Failed to create CString from uniform name {:?}: {}", name, err));
                 return -1;
             },
         }

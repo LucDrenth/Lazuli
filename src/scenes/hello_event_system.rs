@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::scene::Scene, lz_core_info, event::{WindowResizeEvent, EventSystem, EventReader}, input::Input, asset_registry::AssetRegistry};
+use crate::{graphics::scene::Scene, event::{WindowResizeEvent, EventSystem, EventReader}, input::Input, asset_registry::AssetRegistry, log};
 
 pub struct HelloEventSystem {
     window_resize_listener1: EventReader<WindowResizeEvent>,
@@ -22,17 +22,17 @@ impl Scene for HelloEventSystem {
 
     fn update(&mut self, _: &mut EventSystem, _: &Input, _: &mut AssetRegistry) {
         for event in self.window_resize_listener1.read().iter() {
-            lz_core_info!("(1) Window resize event: {} / {}", event.width, event.height);
+            log::engine_info(format!("(1) Window resize event: {} / {}", event.width, event.height));
         }
 
         for event in self.window_resize_listener2.read().iter() {
-            lz_core_info!("(2) Window resize event: {} / {}", event.width, event.height);
+            log::engine_info(format!("(2) Window resize event: {} / {}", event.width, event.height));
         }
 
         self.nr_updates += 1;
 
         if self.nr_updates == 300 { // 5 seconds
-            lz_core_info!("removing WindowResizeEvent listener 1");
+            log::engine_info(format!("removing WindowResizeEvent listener 1"));
             self.window_resize_listener1.close();
         }
     }

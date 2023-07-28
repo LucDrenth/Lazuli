@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{font::Font, Transform, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, Position, element::{world_element_data::WorldElementData, ui_element::UiElement}}, material::Material}, lz_core_warn, asset_registry::{AssetRegistry, AssetId}};
+use crate::{graphics::{font::Font, Transform, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, Position, element::{world_element_data::WorldElementData, ui_element::UiElement}}, material::Material}, asset_registry::{AssetRegistry, AssetId}, log};
 
 use super::glyph::Glyph;
 
@@ -102,7 +102,7 @@ impl Text {
                         // the space character does not have a glyph
                         start_x += font_space_size;
                     } else {
-                        lz_core_warn!("font bitmap does not contain character [{}] for text [{}]", character, text);
+                        log::engine_warn(format!("font bitmap does not contain character [{}] for text [{}]", character, text));
                     }
                 },
             }
@@ -201,7 +201,7 @@ impl TextBuilder {
         if is_valid_z_index(z_index) {
             self.z_index = z_index;
         } else {
-            lz_core_warn!("did not set TextBuilder z_index {} because it's not a valid z-index", z_index);
+            log::engine_warn(format!("did not set TextBuilder z_index {} because it's not a valid z-index", z_index));
         }
 
         self

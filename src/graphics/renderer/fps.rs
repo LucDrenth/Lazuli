@@ -1,4 +1,4 @@
-use crate::{lz_core_info, time};
+use crate::{time, log};
 
 pub struct Fps {
     current_fps_count: u16,
@@ -22,7 +22,7 @@ impl Fps {
 
         if now - self.last_fps_measure_time > 1_000 {
             if self.print {
-                lz_core_info!("fps: {}", self.current_fps_count);
+                log::engine_info(format!("fps: {}", self.current_fps_count));
             }
 
             self.last_fps_measure_time = now;

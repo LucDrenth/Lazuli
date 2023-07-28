@@ -2,7 +2,7 @@ use std::{collections::hash_map::DefaultHasher, hash::{Hash, Hasher}};
 
 use serde::Serialize;
 
-use crate::{lz_core_err, graphics::shader::ShaderBuilder};
+use crate::{graphics::shader::ShaderBuilder, log};
 
 use super::{bitmap::BitmapBuilder, Bitmap, sdf_bitmap::SdfBitmap, bitmap_cache::{SdfBitmapCache, self}};
 
@@ -49,7 +49,7 @@ impl BitmapBuilder for SdfBitmapBuilder {
             Ok(cache) => return Some(Box::new(cache)),
             Err(err) => {
                 // cache exists but is not valid
-                lz_core_err!("Failed to read data from sdf bitmap cache: {}", err.to_string());
+                log::engine_err(format!("Failed to read data from sdf bitmap cache: {}", err.to_string()));
                 return None;
             },
         }

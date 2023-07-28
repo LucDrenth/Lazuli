@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, ui::{self, shapes::RectangleBuilder, TextBuilder, widget::{Button, ButtonBuilder}}, font::PlainBitmapBuilder}, event::EventSystem, input::{Input, Key}, asset_registry::AssetRegistry, lz_core_info};
+use crate::{graphics::{scene::Scene, ui::{self, shapes::RectangleBuilder, TextBuilder, widget::{Button, ButtonBuilder}}, font::PlainBitmapBuilder}, event::EventSystem, input::{Input, Key}, asset_registry::AssetRegistry, log};
 
 pub struct HelloUi {
     interface: ui::Interface,
@@ -60,11 +60,11 @@ impl Scene for HelloUi {
         }
 
         if self.button.is_clicked(input, &self.interface) {
-            lz_core_info!("Button was clicked!");
+            log::engine_info(format!("Button was clicked!"));
         }
 
         if self.interface.is_element_clicked(self.text_id, input) {
-            lz_core_info!("Text was clicked!");
+            log::engine_info(format!("Text was clicked!"));
         }
     }
 

@@ -1,6 +1,6 @@
 use image::{GrayImage, Luma, RgbaImage, Rgba};
 
-use crate::lz_core_warn;
+use crate::log;
 
 /// Create a new, downsampled image by averaging the values of each block (factor x factor) of the input image
 /// 
@@ -11,15 +11,15 @@ use crate::lz_core_warn;
 /// * `method` - 
 pub fn downsample_gray_image(image: &GrayImage, factor: u32) -> GrayImage {
     if factor < 1 {
-        lz_core_warn!("invalid image downsample factor of {}. Returning input image clone", factor);
+        log::engine_warn(format!("invalid image downsample factor of {}. Returning input image clone", factor));
         return image.clone();
     }
 
     if image.width() % factor != 0 || image.height() % factor != 0 {
-        lz_core_warn!(
+        log::engine_warn(format!(
             "downsampling image of {}x{} with factor {} is not perfectly dividible, which may lead to ugly borders",
             image.width(), image.height(), factor,
-        );
+        ));
     }
 
     let mut result: GrayImage = GrayImage::new(image.width() / factor, image.height() / factor as u32);
@@ -58,15 +58,15 @@ fn gray_image_average(image: &GrayImage, factor: u32, start_x: u32, start_y: u32
 /// * `method` - 
 pub fn downsample_rgba_image(image: &RgbaImage, factor: u32) -> RgbaImage {
     if factor < 1 {
-        lz_core_warn!("invalid image downsample factor of {}. Returning input image clone", factor);
+        log::engine_warn(format!("invalid image downsample factor of {}. Returning input image clone", factor));
         return image.clone();
     }
 
     if image.width() % factor != 0 || image.height() % factor != 0 {
-        lz_core_warn!(
+        log::engine_warn(format!(
             "downsampling image of {}x{} with factor {} is not perfectly dividible, which may lead to ugly borders",
             image.width(), image.height(), factor,
-        );
+        ));
     }
 
     let mut result: RgbaImage = RgbaImage::new(image.width() / factor, image.height() / factor as u32);

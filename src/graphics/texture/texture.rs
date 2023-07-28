@@ -1,8 +1,8 @@
 use std::path::Path;
 
-use gl::{types::{GLuint, GLenum}};
+use gl::types::{GLuint, GLenum};
 
-use crate::{error::opengl, lz_core_warn};
+use crate::{error::opengl, log};
 
 use super::TextureImage;
 
@@ -88,7 +88,7 @@ fn to_gl_texture_unit(unit: u32) -> GLenum {
     let highest = gl::TEXTURE31;
 
     if lowest + unit > highest {
-        lz_core_warn!("Texture unit {} is higher than limit {}. Using {} instead.", unit, highest - lowest, highest - lowest);
+        log::engine_warn(format!("Texture unit {} is higher than limit {}. Using {} instead.", unit, highest - lowest, highest - lowest));
         return gl::TEXTURE31;
     }
 

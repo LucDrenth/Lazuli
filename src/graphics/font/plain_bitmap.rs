@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use image::{DynamicImage, GrayImage, Luma};
 use rusttype::PositionedGlyph;
 
-use crate::{lz_core_warn, lz_core_err, graphics::texture::{ImageType, downsample_gray_image}};
+use crate::{graphics::texture::{ImageType, downsample_gray_image}, log};
 
 use super::{BitmapCharacter, Bitmap, bitmap_cache::PlainBitmapCache, PlainBitmapBuilder};
 
@@ -179,14 +179,14 @@ fn write_glyphs(
                 current_y += line_height as u32 + bitmap_builder.glyph_padding_y * bitmap_builder.super_sampling_factor as u32;
 
                 if current_y >= bitmap_height - bitmap_builder.padding_y {
-                    lz_core_err!("Failed to write glyphs to bitmap because it does not fit within the image");
+                    log::engine_err(format!("Failed to write glyphs to bitmap because it does not fit within the image"));
                     return;
                 }
             }
 
             match bitmap_characters.entry(character) {
                 std::collections::hash_map::Entry::Occupied(_) => {
-                    lz_core_warn!("Encountered duplicate character [{}] while writing glyphs for characters [{}] to bitmap", character, bitmap_builder.characters);
+                    log::engine_warn(format!("Encountered duplicate character [{}] while writing glyphs for characters [{}] to bitmap", character, bitmap_builder.characters));
                     continue;
                 },
                 std::collections::hash_map::Entry::Vacant(entry) => {

@@ -1,6 +1,6 @@
 use std::{fs::File, io::Read, collections::HashMap};
 
-use crate::{lz_core_err, lz_core_warn, graphics::{texture::ImageType, shader::ShaderProgram, material::Material}, asset_registry::{AssetRegistry, AssetId}};
+use crate::{graphics::{texture::ImageType, shader::ShaderProgram, material::Material}, asset_registry::{AssetRegistry, AssetId}, log};
 
 use super::{BitmapCharacter, Bitmap, bitmap::BitmapBuilder, bitmap_cache};
 
@@ -34,7 +34,7 @@ impl Font {
                 })
             },
             Err(err) => {
-                lz_core_err!("Failed to create font from path {}: {}", bitmap_builder.font_file_path(), err);
+                log::engine_err(format!("Failed to create font from path {}: {}", bitmap_builder.font_file_path(), err));
                 Err(err)
             },
         }
@@ -78,7 +78,7 @@ impl Font {
                 match bitmap_cache::save(path, bitmap_builder, &new_bitmap) {
                     Ok(_) => (),
                     Err(err) => {
-                        lz_core_warn!("Failed to save sdf font bitmap cache: {}", err);
+                        log::engine_warn(format!("Failed to save sdf font bitmap cache: {}", err));
                     },
                 }
             }

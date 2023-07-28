@@ -1,1 +1,2 @@
-pub mod log;
+mod log;
+pub use log::*;

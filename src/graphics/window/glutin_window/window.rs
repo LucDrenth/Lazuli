@@ -2,7 +2,7 @@ use std::time::Instant;
 use glam::Vec2;
 use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, GlRequest, ContextBuilder, Api, event::{Event, WindowEvent}, ContextWrapper, PossiblyCurrent, GlProfile, dpi::{PhysicalPosition, LogicalSize, LogicalPosition}};
 
-use crate::{event::{EventSystem, WindowResizeEvent}, input::Input, lz_core_warn, time, graphics::{renderer::Renderer, window::window_listeners::WindowListeners, Window}, asset_registry::AssetRegistry};
+use crate::{event::{EventSystem, WindowResizeEvent}, input::Input, time, graphics::{renderer::Renderer, window::window_listeners::WindowListeners, Window}, asset_registry::AssetRegistry, log};
 
 use super::event_mapper;
 
@@ -70,7 +70,7 @@ impl Window for GlutinWindow {
                         match delta {
                             glutin::event::MouseScrollDelta::LineDelta(x, y) => {
                                 // TODO how is this triggered? Can we register it the same as the other type?
-                                lz_core_warn!("Unchecked MouseWheel event delta type: {:?}", delta);
+                                log::engine_warn(format!("Unchecked MouseWheel event delta type: {:?}", delta));
                                 lz_input.register_scroll_x_event(x as f64);
                                 lz_input.register_scroll_y_event(y as f64);
                             },
@@ -163,7 +163,7 @@ impl GlutinWindow {
         match window.set_cursor_grab(glutin::window::CursorGrabMode::Locked) {
             Ok(_) => (),
             Err(err) => {
-                lz_core_warn!("could not lock cursor: {}",  err.to_string());
+                log::engine_warn(format!("could not lock cursor: {}",  err.to_string()));
             },
         }
     }
@@ -172,7 +172,7 @@ impl GlutinWindow {
         match window.set_cursor_grab(glutin::window::CursorGrabMode::None) {
             Ok(_) => (),
             Err(err) => {
-                lz_core_warn!("could not unlock cursor: {}",  err.to_string());
+                log::engine_warn(format!("could not unlock cursor: {}",  err.to_string()));
             },
         }
     }
@@ -182,7 +182,7 @@ impl GlutinWindow {
         match window.set_cursor_grab(glutin::window::CursorGrabMode::Confined) {
             Ok(_) => (),
             Err(err) => {
-                lz_core_warn!("could not confine cursor: {}",  err.to_string());
+                log::engine_warn(format!("could not confine cursor: {}",  err.to_string()));
             },
         }
     }
@@ -199,7 +199,7 @@ impl GlutinWindow {
         match window.set_cursor_position(PhysicalPosition{x, y}) {
             Ok(_) => (),
             Err(err) => {
-                lz_core_warn!("could not set cursor position: {}",  err.to_string());
+                log::engine_warn(format!("could not set cursor position: {}",  err.to_string()));
             },
         }
     }
