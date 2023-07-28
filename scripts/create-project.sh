@@ -45,11 +45,11 @@ cp -r ${LAZULI_DIRECTORY}/.vscode ./
 printf "run script\n"
 mkdir scripts && cp ${LAZULI_DIRECTORY}/scripts/run.sh ./scripts/
 
-printf ".gitignore"
+printf ".gitignore\n"
 cp ${LAZULI_DIRECTORY}/project-template/gitignore-template ./.gitignore
 
-printf "main.rs\n"
-cp ${LAZULI_DIRECTORY}/project-template/main.rs ./src/main.rs
+printf "src folder\n"
+cp -r ${LAZULI_DIRECTORY}/project-template/src ./
 
 printf "README.md\n"
 cp ${LAZULI_DIRECTORY}/project-template/README.md ./

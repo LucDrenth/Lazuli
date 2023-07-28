@@ -11,6 +11,14 @@ pub mod time;
 pub mod math;
 pub mod asset_registry;
 
+pub extern crate glam;
+pub extern crate gl;
+pub extern crate rand;
+pub extern crate serde;
+pub extern crate serde_json;
+pub extern crate chrono;
+pub extern crate image;
+
 mod app;
 
 pub fn run_scene<T: Scene + 'static>() {
