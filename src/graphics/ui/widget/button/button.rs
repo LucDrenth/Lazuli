@@ -1,4 +1,4 @@
-use crate::{graphics::{ui::{Text, TextBuilder, shapes::RectangleBuilder, Interface, self, interface::{is_valid_z_index, default_font}, Position, element::ui_element::UiElement}, font::PlainBitmapBuilder}, asset_registry::AssetRegistry, input::Input, log};
+use crate::{graphics::{ui::{Text, TextBuilder, shapes::RectangleBuilder, Interface, self, interface::is_valid_z_index, Position, element::ui_element::UiElement}, font::PlainBitmapBuilder}, asset_registry::AssetRegistry, input::Input, log};
 
 pub struct Button {
     text_element_id: u32,
@@ -12,7 +12,7 @@ impl Button {
                 .with_font_file_path(font_path)
                 .with_font_size(50.0)
                 , None)?,
-            None => default_font(asset_registry)?,
+            None => interface.default_font(asset_registry)?,
         };
 
         let mut text = Text::new(label, &font_id, TextBuilder::new()
@@ -64,10 +64,10 @@ pub struct ButtonBuilder {
 }
 
 impl ButtonBuilder {
-    pub fn new() -> Self {
+    pub fn new(interface: &Interface) -> Self {
         Self {
-            background_color: (126, 126, 126),
-            text_color: (255, 255, 255),
+            background_color: interface.default_element_background_color(),
+            text_color: interface.default_text_color(),
             font_path: None,
             padding_x: 14.0,
             padding_y: 8.0,
@@ -113,7 +113,7 @@ impl ButtonBuilder {
         if is_valid_z_index(z_index + 1.0) {
             self.z_index = z_index;
         } else {
-            log::engine_warn(format!("did not set ButtonBuilder z_index {} because it's not a valid z-index", z_index));
+            log::engine_warn(format!("Did not set ButtonBuilder z_index {} because it's not a valid z-index", z_index));
         }
 
         self

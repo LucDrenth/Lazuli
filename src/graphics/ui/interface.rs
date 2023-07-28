@@ -157,6 +157,16 @@ impl Interface {
         }
     }
 
+    // TODO make these default values configurable
+    pub fn default_font(&self, asset_registry: &mut AssetRegistry) -> Result<AssetId<Font>, String> {
+        asset_registry.load_font(PlainBitmapBuilder::new()
+            .with_font_file_path("./assets/fonts/roboto.ttf".to_string())
+            .with_font_size(50.0)
+        , None)
+    }
+    pub fn default_text_color(&self) -> (u8, u8, u8) { (239, 239, 239) }
+    pub fn default_element_background_color(&self) -> (u8, u8, u8) { (56, 56, 56) }
+
     pub fn size(&self) -> &Vec2 { &self.size }
     pub fn width(&self) -> f32 { self.size.x }
     pub fn height(&self) -> f32 { self.size.y }
@@ -175,11 +185,4 @@ pub fn is_valid_z_index(z: f32) -> bool {
 // A high z_index results in a low value, so it gets displayed on top of elements with a low z_index.
 pub fn map_z_index_for_shader(z_index: f32) -> f32 {
     -0.999 + 1.998 * ((MAX_Z_INDEX + MIN_Z_INDEX - z_index) - MIN_Z_INDEX) / (MAX_Z_INDEX - MIN_Z_INDEX)
-}
-
-pub fn default_font(asset_registry: &mut AssetRegistry) -> Result<AssetId<Font>, String> {
-    asset_registry.load_font(PlainBitmapBuilder::new()
-        .with_font_file_path("./assets/fonts/roboto.ttf".to_string())
-        .with_font_size(50.0)
-    , None)
 }

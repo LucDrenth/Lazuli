@@ -14,7 +14,7 @@ impl Scene for HelloUi {
     {
         let mut interface: ui::Interface = ui::Interface::new(event_system, window_size);
 
-        let button = Button::new("Click me!".to_string(), ButtonBuilder::new()
+        let button = Button::new("Click me!".to_string(), ButtonBuilder::new(&interface)
             .with_position(ui::Position::FixedBottomRight(25.0, 10.0))
             .with_padding(16.0)
         , &mut interface, asset_registry)?;
