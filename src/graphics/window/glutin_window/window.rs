@@ -2,7 +2,7 @@ use std::time::Instant;
 use glam::Vec2;
 use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, GlRequest, ContextBuilder, Api, event::{Event, WindowEvent}, ContextWrapper, PossiblyCurrent, GlProfile, dpi::{PhysicalPosition, LogicalSize, LogicalPosition}};
 
-use crate::{event::{EventSystem, WindowResizeEvent}, input::{Input}, lz_core_warn, time, graphics::{renderer::Renderer, window::window_listeners::WindowListeners, Window}, asset_registry::AssetRegistry};
+use crate::{event::{EventSystem, WindowResizeEvent}, input::Input, lz_core_warn, time, graphics::{renderer::Renderer, window::window_listeners::WindowListeners, Window}, asset_registry::AssetRegistry};
 
 use super::event_mapper;
 
