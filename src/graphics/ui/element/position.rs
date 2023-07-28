@@ -63,7 +63,7 @@ impl Position {
         match self {
             Position::FixedCenter => Position::FixedCenter,
             Position::FixedTop(y) => Position::FixedTop(*y + amount_y),
-            Position::FixedBottom(y) => Position::FixedTop(*y + amount_y),
+            Position::FixedBottom(y) => Position::FixedBottom(*y + amount_y),
             Position::FixedLeft(x) => Position::FixedLeft(*x + amount_x),
             Position::FixedRight(x) => Position::FixedRight(*x + amount_x),
             Position::FixedTopLeft(x, y) => Position::FixedTopLeft(*x + amount_x, *y + amount_y),
