@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_registry::{AssetRegistry, AssetId}, input::{Input, MouseButton}, graphics::font::Font, log};
+use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_registry::{AssetRegistry, AssetId}, input::{Input, MouseButton}, graphics::font::{Font, PlainBitmapBuilder}, log};
 
 use super::{TextBuilder, Text, shapes::{Rectangle, RectangleBuilder}, element::ui_element::UiElement};
 
@@ -175,4 +175,11 @@ pub fn is_valid_z_index(z: f32) -> bool {
 // A high z_index results in a low value, so it gets displayed on top of elements with a low z_index.
 pub fn map_z_index_for_shader(z_index: f32) -> f32 {
     -0.999 + 1.998 * ((MAX_Z_INDEX + MIN_Z_INDEX - z_index) - MIN_Z_INDEX) / (MAX_Z_INDEX - MIN_Z_INDEX)
+}
+
+pub fn default_font(asset_registry: &mut AssetRegistry) -> Result<AssetId<Font>, String> {
+    asset_registry.load_font(PlainBitmapBuilder::new()
+        .with_font_file_path("./assets/fonts/roboto.ttf".to_string())
+        .with_font_size(50.0)
+    , None)
 }

@@ -1,4 +1,4 @@
-use crate::{graphics::{ui::{Text, TextBuilder, shapes::RectangleBuilder, Interface, self, interface::is_valid_z_index, Position, element::ui_element::UiElement}, font::PlainBitmapBuilder}, asset_registry::AssetRegistry, input::Input, log};
+use crate::{graphics::{ui::{Text, TextBuilder, shapes::RectangleBuilder, Interface, self, interface::{is_valid_z_index, default_font}, Position, element::ui_element::UiElement}, font::PlainBitmapBuilder}, asset_registry::AssetRegistry, input::Input, log};
 
 pub struct Button {
     text_element_id: u32,
@@ -7,10 +7,13 @@ pub struct Button {
 
 impl Button {
     pub fn new(label: String, builder: ButtonBuilder, interface: &mut Interface, asset_registry: &mut AssetRegistry) -> Result<Self, String> {
-        let font_id = asset_registry.load_font(PlainBitmapBuilder::new()
-            .with_font_file_path(builder.font_path)
-            .with_font_size(50.0)
-        , None)?;
+        let font_id = match builder.font_path {
+            Some(font_path) => asset_registry.load_font(PlainBitmapBuilder::new()
+                .with_font_file_path(font_path)
+                .with_font_size(50.0)
+                , None)?,
+            None => default_font(asset_registry)?,
+        };
 
         let mut text = Text::new(label, &font_id, TextBuilder::new()
             .with_color(builder.text_color)
@@ -52,7 +55,7 @@ impl Button {
 pub struct ButtonBuilder {
     background_color: (u8, u8, u8),
     text_color: (u8, u8, u8),
-    font_path: String,
+    font_path: Option<String>,
     padding_x: f32,
     padding_y: f32,
     z_index: f32,
@@ -65,7 +68,7 @@ impl ButtonBuilder {
         Self {
             background_color: (126, 126, 126),
             text_color: (255, 255, 255),
-            font_path: "./assets/fonts/roboto.ttf".to_string(),
+            font_path: None,
             padding_x: 14.0,
             padding_y: 8.0,
             z_index: 10.0,
@@ -85,7 +88,7 @@ impl ButtonBuilder {
     }
 
     pub fn with_font_path(mut self, font_path: String) -> Self {
-        self.font_path = font_path;
+        self.font_path = Some(font_path);
         self
     }
 
