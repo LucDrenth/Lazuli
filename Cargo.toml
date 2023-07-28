@@ -8,6 +8,10 @@ edition = "2021"
 name = "lazuli"
 path = "src/lib.rs"
 
+[[bin]]
+name = "mybin"
+path = "src/bin.rs"
+
 [dependencies]
 glutin = "0.29.1"
 gl = "0.14.0"
