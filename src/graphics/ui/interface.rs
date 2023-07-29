@@ -136,7 +136,10 @@ impl Interface {
         let target;
         match self.get_element(element_to_center_at) {
             Some(element) => target = element.world_data().clone(),
-            None => todo!(),
+            None => {
+                log::engine_warn(format!("failed to center interface element at another element because target (id={}) was not found", element_to_center_at));
+                return;
+            },
         }
 
         let window_size = self.size.clone();
@@ -149,8 +152,51 @@ impl Interface {
         }
     }
 
+    pub fn get_element_scale(&self, element_id: u32) -> Result<Vec2, String> {
+        match self.get_element(element_id) {
+            Some(element) => Ok(element.get_scale()),
+            None => Err(format!("failed to get scale because element with id {} was not found", element_id)),
+        }
+    }
+
+    pub fn set_element_scale(&mut self, element_id: u32, scale: Vec2) -> Result<(), String> {
+        match self.get_mut_element(element_id) {
+            Some(element) => {
+                element.set_scale(scale);
+                Ok(())
+            },
+            None => Err(format!("failed to set scale because element with id {} was not found", element_id)),
+        }
+    }
+
+    pub fn get_element_size(&self, element_id: u32) -> Result<Vec2, String> {
+        match self.get_element(element_id) {
+            Some(element) => Ok(element.get_size()),
+            None => Err(format!("failed to get size because element with id {} was not found", element_id)),
+        }
+    }
+
+    /// Get the position of the element as the center pixel (in world space)
+    pub fn get_element_screen_position(&self, element_id: u32) -> Result<Vec2, String> {
+        match self.get_element(element_id) {
+            Some(element) => Ok(element.get_screen_position()),
+            None => Err(format!("failed to get size because element with id {} was not found", element_id)),
+        }
+    }
+
+    pub fn set_text(&mut self, text_element_id: u32, text: &String, asset_registry: &mut AssetRegistry) -> Result<(), String> {
+        let window_size: Vec2 = self.size.clone();
+
+        match self.get_mut_element(text_element_id) {
+            Some(element) => {
+                element.set_text(text, asset_registry, &window_size)
+            },
+            None => Err(format!("failed to set text because element with id {} was not found", text_element_id)),
+        }
+    }
+
     // map mouse position so that (0, 0) is the center
-    fn map_mouse_position(&self, input: &Input) -> Vec2 {
+    pub fn map_mouse_position(&self, input: &Input) -> Vec2 {
         Vec2 {
             x: input.get_mouse_position_x() as f32 - self.size.x / 2.0,
             y: -(input.get_mouse_position_y() as f32 - self.size.y / 2.0),

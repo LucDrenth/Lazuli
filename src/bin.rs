@@ -1,5 +1,5 @@
-use lazuli::scenes::HelloTriangle;
+use lazuli::scenes::*;
 
 fn main() {
-    lazuli::run_scene::<HelloTriangle>();
+    lazuli::run_scene::<HelloUi>();
 }

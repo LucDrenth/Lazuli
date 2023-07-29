@@ -3,8 +3,8 @@ use glam::Vec2;
 use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, element::{world_element_data::WorldElementData, ui_element::UiElement}, Position}, material::Material}, set_attribute, error::opengl, asset_registry::{AssetRegistry, AssetId}, log};
 use crate::graphics::shapes::RECTANGLE_INDICES;
 
-type Positon = [f32; 2];
-pub struct Vertex(Positon);
+type VertexPosition = [f32; 2];
+pub struct Vertex(VertexPosition);
 
 pub struct Rectangle {
     vao: Vao,
@@ -28,6 +28,7 @@ impl UiElement for Rectangle {
             (self.color.1 as f32 / 255.0),
             (self.color.2 as f32 / 255.0),
         ));
+        shader.set_uniform("scale", (self.world_data.scale.x, self.world_data.scale.y));
         shader.set_uniform("zIndex", map_z_index_for_shader(self.world_data.z_index()));
         shader.set_uniform("worldPosition", self.world_data.shader_coordinates());
 
@@ -56,6 +57,15 @@ impl UiElement for Rectangle {
 
     fn handle_window_resize(&mut self, new_window_size: &Vec2) {
         self.world_data.handle_window_resize(new_window_size);
+    }
+
+    fn get_scale(&self) -> Vec2 { self.world_data.scale }
+    fn set_scale(&mut self, new_scale: Vec2) { self.world_data.scale = new_scale; }
+    fn get_size(&self) -> Vec2 { self.world_data.size().clone() }
+    fn get_screen_position(&self) -> Vec2 { self.world_data.final_coordinates().clone() }
+    
+    fn set_text(&mut self, text: &String, _asset_registry: &mut AssetRegistry, _window_size: &Vec2) -> Result<(), String> {
+        Err(format!("Can not set text of a ui rectangle. Tried with [{}]", text))
     }
 }
 

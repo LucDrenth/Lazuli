@@ -10,7 +10,7 @@ pub struct Text {
     pub transform: Transform,
     pub letter_spacing: f32,
     pub color: (u8, u8, u8),
-    font_size: f32, // font size in pixels
+    font_size: f32, // the font height in pixels
     world_data: WorldElementData,
     pub font_id: AssetId<Font>,
     material_id: AssetId<Material>,
@@ -27,6 +27,7 @@ impl UiElement for Text {
             (self.color.1 as f32 / 255.0),
             (self.color.2 as f32 / 255.0),
         ));
+        shader.set_uniform("scale", (self.world_data.scale.x, self.world_data.scale.y));
         shader.set_uniform("zIndex", map_z_index_for_shader(self.world_data.z_index()));
         shader.set_uniform("worldPosition", self.world_data.shader_coordinates());
 
@@ -54,12 +55,72 @@ impl UiElement for Text {
     fn handle_window_resize(&mut self, new_window_size: &Vec2) {
         self.world_data.handle_window_resize(new_window_size);
     }
+
+    fn get_scale(&self) -> Vec2 { self.world_data.scale }
+    fn set_scale(&mut self, new_scale: Vec2) { self.world_data.scale = new_scale; }
+    fn get_size(&self) -> Vec2 { self.world_data.size().clone() }
+    fn get_screen_position(&self) -> Vec2 { self.world_data.final_coordinates().clone() }
+    
+    fn set_text(&mut self, text: &String, asset_registry: &mut AssetRegistry, window_size: &Vec2) -> Result<(), String> {
+        // TODO this shares a lot of code with the 'new' funcion
+        let font_material_id;
+        let font_space_size;
+        let bitmap_spread;
+        let total_width;
+        let bitmap_characters;
+
+        match asset_registry.get_font_by_id(&self.font_id) {
+            Some(font) => {
+                font_material_id = font.material_id.duplicate();
+                font_space_size = font.space_size;
+                bitmap_spread = (font.bitmap_spread() as f32) * 2.0 / font.line_height() as f32;
+                total_width = Self::get_total_width(&text, &font, self.letter_spacing, bitmap_spread);
+                bitmap_characters = font.bitmap_characters_copy()
+            },
+            None => return Err(format!("Failed to get font by id {}", self.font_id.id())),
+        }
+
+        let mut start_x: f32 = 0.0 - total_width / 2.0;
+        let worldspace_width = (start_x * self.font_size * 2.0).abs();
+        let worldspace_height = self.font_size;
+
+        let shader_id = asset_registry.get_material_by_id(&font_material_id).unwrap().shader_id.duplicate();
+        let shader = asset_registry.get_shader_by_id(&shader_id).unwrap();
+
+        self.glyphs = Vec::new();
+
+        for character in text.chars() {
+            match bitmap_characters.get(&character) {
+                Some(bitmap_character) => {
+                    // These values range from (-window_width / 2) to (window_width / 2) and (-window_height / 2) to (window_height / 2).
+                    // (0, 0) is the center of the screen.
+                    let glyph_start_x = start_x * self.font_size;
+                    let glyph_end_x = (start_x + bitmap_character.width) * self.font_size;
+                    let glyph_start_y = -1.0 * self.font_size / 2.0;
+                    let glyph_end_y = self.font_size / 2.0;
+                    
+                    self.glyphs.push(Glyph::new(bitmap_character, glyph_start_x, glyph_end_x, glyph_start_y, glyph_end_y, shader));
+                    start_x += bitmap_character.width + self.letter_spacing - bitmap_spread;
+                },
+                None => {
+                    if character == ' ' {
+                        // the space character does not have a glyph
+                        start_x += font_space_size;
+                    } else {
+                        log::engine_warn(format!("font bitmap does not contain character [{}] for text [{}]", character, text));
+                    }
+                },
+            }
+        }
+
+        self.world_data.set_size(Vec2::new(worldspace_width, worldspace_height), window_size);
+
+        Ok(())
+    }
 }
 
 impl Text {
     pub fn new(text: String, font_id: &AssetId<Font>, text_builder: TextBuilder, asset_registry: &mut AssetRegistry, window_size: &Vec2) -> Result<Self, String> {
-        let mut glyphs: Vec::<Glyph> = Vec::new();
-
         let font_material_id;
         let font_space_size;
         let bitmap_spread;
@@ -84,6 +145,8 @@ impl Text {
         let shader_id = asset_registry.get_material_by_id(&font_material_id).unwrap().shader_id.duplicate();
         let shader = asset_registry.get_shader_by_id(&shader_id).unwrap();
 
+        let mut glyphs: Vec::<Glyph> = Vec::new();
+
         for character in text.chars() {
             match bitmap_characters.get(&character) {
                 Some(bitmap_character) => {
@@ -92,7 +155,7 @@ impl Text {
                     let glyph_start_x = start_x * text_builder.font_size;
                     let glyph_end_x = (start_x + bitmap_character.width) * text_builder.font_size;
                     let glyph_start_y = -1.0 * text_builder.font_size / 2.0;
-                    let glyph_end_y = 1.0 * text_builder.font_size / 2.0;
+                    let glyph_end_y = text_builder.font_size / 2.0;
                     
                     glyphs.push(Glyph::new(bitmap_character, glyph_start_x, glyph_end_x, glyph_start_y, glyph_end_y, shader));
                     start_x += bitmap_character.width + text_builder.letter_spacing - bitmap_spread;

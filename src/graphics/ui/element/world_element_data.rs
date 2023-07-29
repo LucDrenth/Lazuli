@@ -9,6 +9,7 @@ pub struct WorldElementData {
     final_coordinates: Vec2, // the world space coordinates at which we render the center of the element. (0,0) is the center of the screen
     position_type: Position,
     z_index: f32,
+    pub scale: Vec2,
 }
 
 impl WorldElementData {
@@ -20,6 +21,7 @@ impl WorldElementData {
             final_coordinates,
             position_type,
             z_index,
+            scale: Vec2::ONE,
         }
     }
 
@@ -35,6 +37,10 @@ impl WorldElementData {
         (self.final_coordinates.x, self.final_coordinates.y)
     }
 
+    pub fn set_size(&mut self, size: Vec2, window_size: &Vec2) {
+        self.size = size;
+        self.recalculate_final_coordinates(window_size);
+    }
 
     // Check if the given position is within this world element
     pub fn is_within(&self, position: Vec2) -> bool {
