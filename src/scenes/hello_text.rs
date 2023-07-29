@@ -16,7 +16,7 @@ impl Scene for HelloText {
             .with_font_size(50.0)
         , None)?;
         
-        interface.add_text("Welcome to Lazuli engine".to_string(), &plain_font_id, TextBuilder::new()
+        interface.add_text("Welcome to Lazuli engine".to_string(), Some(&plain_font_id), TextBuilder::new()
             .with_font_size(25.0)
             .with_color((255, 255, 255))
             .with_letter_spacing(0.05)
@@ -49,8 +49,8 @@ impl Scene for HelloText {
         Ok(result)
     }
 
-    fn update(&mut self, _: &mut EventSystem, _input: &Input, asset_registry: &mut AssetRegistry) {
-        self.interface.update(asset_registry);
+    fn update(&mut self, _: &mut EventSystem, input: &Input, asset_registry: &mut AssetRegistry) {
+        self.interface.update(asset_registry, input);
     }
 
     unsafe fn draw(&self, asset_registry: &mut AssetRegistry) {

@@ -15,9 +15,11 @@ struct ElementEntry {
 pub struct Interface {
     window_resize_listener: EventReader<WindowResizeEvent>,
     size: Vec2,
+    dragged_element_id: Option<u32>, // element that is currently being dragged. Will be set to None on left mouse button up
 
     elements: Vec<ElementEntry>,
     current_element_id: u32,
+    
 }
 
 impl Interface {
@@ -29,10 +31,15 @@ impl Interface {
             elements: vec![],
             current_element_id: 0,
             size: window_size,
+            dragged_element_id: None,
         }
     }
 
-    pub fn update(&mut self, asset_registry: &mut AssetRegistry) {
+    pub fn update(&mut self, asset_registry: &mut AssetRegistry, input: &Input) {
+        if input.is_mouse_button_up(MouseButton::Left) {
+            self.dragged_element_id = None;
+        }
+
         self.handle_window_resize(asset_registry);
     }
 
@@ -80,13 +87,23 @@ impl Interface {
         self.current_element_id
     }
 
+    pub fn generate_element_id(&mut self) -> u32 {
+        self.current_element_id += 1;
+        self.current_element_id
+    }
+
     // Sort elements so that the elements with the highest z-index are at the start of the list
     fn sort_elements_by_z_index(&mut self) {
         self.elements.sort_by(|a, b| a.element.world_data().z_index().total_cmp(&b.element.world_data().z_index()));
     }
 
-    pub fn add_text(&mut self, text: String, font_id: &AssetId<Font>, text_builder: TextBuilder, asset_registry: &mut AssetRegistry) -> Result<u32, String> {
-        let text = Text::new(text, font_id, text_builder, asset_registry, &self.size)?;
+    pub fn add_text(&mut self, text: String, font_id: Option<&AssetId<Font>>, text_builder: TextBuilder, asset_registry: &mut AssetRegistry) -> Result<u32, String> {
+        let font_id_to_use = match font_id {
+            Some(id) => id.duplicate(),
+            None => self.default_font(asset_registry)?,
+        };
+
+        let text = Text::new(text, &font_id_to_use, text_builder, asset_registry, &self.size)?;
         Ok(self.add_element(text))
     }
 
@@ -200,6 +217,28 @@ impl Interface {
         Vec2 {
             x: input.get_mouse_position_x() as f32 - self.size.x / 2.0,
             y: -(input.get_mouse_position_y() as f32 - self.size.y / 2.0),
+        }
+    }
+
+    // If there is not an element currently being dragged, set it to the given element
+    pub fn try_set_dragged_element(&mut self, element_id: u32) -> bool {
+        let mut did_update = false;
+
+        self.dragged_element_id = match self.dragged_element_id {
+            Some(already_active) => { Some(already_active) },
+            None => {
+                did_update = true;
+                Some(element_id)
+            },
+        };
+
+        did_update
+    }
+
+    pub fn is_element_dragged(&mut self, element_id: u32) -> bool {
+        match self.dragged_element_id {
+            Some(dragged_element_id) => dragged_element_id == element_id,
+            None => false,
         }
     }
 

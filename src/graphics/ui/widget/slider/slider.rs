@@ -10,6 +10,13 @@ pub struct Slider {
     minimum_value: f32,
     maximum_value: f32,
     decimals: usize,
+    id: u32,
+}
+
+pub struct SliderUpdateResult {
+    pub change: Option<f32>,
+    pub value: f32,
+    pub did_start_drag: bool,
 }
 
 impl Slider {
@@ -62,20 +69,46 @@ impl Slider {
             minimum_value: builder.minimum_value,
             maximum_value: builder.maximum_value,
             decimals: builder.decimals,
+            id: interface.generate_element_id(),
         })
     }
 
-    pub fn update(&mut self, input: &Input, interface: &mut Interface, asset_registry: &mut AssetRegistry) {
-        if input.is_mouse_button_down(MouseButton::Left) && self.is_hovered(input, interface) {
-            let element_size = interface.get_element_size(self.background_element_id).unwrap();
-            let element_position = interface.get_element_screen_position(self.background_element_id).unwrap();
+    pub fn update(&mut self, input: &Input, interface: &mut Interface, asset_registry: &mut AssetRegistry) -> SliderUpdateResult {
+        let mut result = SliderUpdateResult {
+            change: None,
+            value: self.value,
+            did_start_drag: self.check_activate_drag(input, interface),
+        };
 
-            let element_start_x = element_position.x - element_size.x / 2.0;
-            let element_end_x = element_position.x + element_size.x / 2.0;
-            let normalised_value = (interface.map_mouse_position(input).x - element_start_x) / (element_end_x - element_start_x);
-
-            self.set_normalised_value(normalised_value, interface, asset_registry);
+        if !interface.is_element_dragged(self.id) {
+            return result;
         }
+
+        self.handle_drag(input, interface, asset_registry);
+
+        result.change = Some(self.value - result.value);
+        result.value = self.value;
+        result
+    }
+
+    /// Check if we should enable dragging
+    fn check_activate_drag(&self, input: &Input, interface: &mut Interface) -> bool {
+        if input.is_mouse_button_down(MouseButton::Left) && self.is_hovered(input, interface) {
+            return interface.try_set_dragged_element(self.id);
+        }
+
+        false
+    }
+
+    fn handle_drag(&mut self, input: &Input, interface: &mut Interface, asset_registry: &mut AssetRegistry) {
+        let element_size = interface.get_element_size(self.background_element_id).unwrap();
+        let element_position = interface.get_element_screen_position(self.background_element_id).unwrap();
+
+        let element_start_x = element_position.x - element_size.x / 2.0;
+        let element_end_x = element_position.x + element_size.x / 2.0;
+        let normalised_value = (interface.map_mouse_position(input).x - element_start_x) / (element_end_x - element_start_x);
+
+        self.set_normalised_value(normalised_value, interface, asset_registry);
     }
 
     pub fn is_hovered(&self, input: &Input, interface: &Interface) -> bool {
@@ -122,6 +155,10 @@ impl Slider {
     fn value_string(value: f32, decimals: usize) -> String {
         format!("{:.decimals$}", value, decimals = decimals)
     }
+
+    pub fn size(&self, interface: &Interface) -> Vec2 {
+        interface.get_element_size(self.background_element_id).unwrap()
+    }
 }
 
 pub struct SliderBuilder {
@@ -149,8 +186,8 @@ impl SliderBuilder {
             text_color: interface.default_text_color(),
             font_path: None,
             minimum_value: 0.0,
-            maximum_value: 100.0,
-            initial_value: 50.0,
+            maximum_value: 1.0,
+            initial_value: 0.5,
             width: 100.0,
             height: 25.0,
             decimals: 2,
