@@ -194,11 +194,7 @@ impl Interface {
     fn get_anchor_element_data(&self, element_id: u32) -> Result<Option<AnchorElementData>, String> {
         match self.get_anchor_element_id(element_id)? {
             Some(anchor_element_id) => {
-                Ok(Some(AnchorElementData{
-                    id: anchor_element_id,
-                    size: self.get_element_size(anchor_element_id)?,
-                    coordinates: self.get_element_screen_position(anchor_element_id)?,
-                }))
+                Ok(Some(self.get_anchor_data(anchor_element_id).unwrap()))
             },
             None => Ok(None),
         }
@@ -222,9 +218,18 @@ impl Interface {
         }
     }
 
-    pub fn get_element_size(&self, element_id: u32) -> Result<Vec2, String> {
+    /// get the base size of the element, not counting it's scale
+    pub fn get_element_base_size(&self, element_id: u32) -> Result<Vec2, String> {
         match self.get_element(element_id) {
             Some(element) => Ok(element.get_size()),
+            None => Err(format!("failed to get size because element with id {} was not found", element_id)),
+        }
+    }
+
+    /// get the base size of the element multiplied by its scale
+    pub fn get_element_size(&self, element_id: u32) -> Result<Vec2, String> {        
+        match self.get_element(element_id) {
+            Some(element) => Ok(element.get_size() * element.get_scale()),
             None => Err(format!("failed to get size because element with id {} was not found", element_id)),
         }
     }

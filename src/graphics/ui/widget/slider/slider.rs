@@ -11,6 +11,7 @@ pub struct Slider {
     maximum_value: f32,
     decimals: usize,
     id: u32,
+    scale: Vec2,
 }
 
 pub struct SliderUpdateResult {
@@ -33,6 +34,7 @@ impl Slider {
         let mut text = Text::new(Self::value_string(builder.initial_value, builder.decimals), &font_id, TextBuilder::new()
             .with_color(builder.text_color)
             .with_z_index(builder.z_index + 0.02)
+            .with_scale(builder.scale)
         , asset_registry, interface)?;
 
         let background = Rectangle::new(RectangleBuilder::new()
@@ -41,6 +43,7 @@ impl Slider {
             .with_z_index(builder.z_index)
             .with_position(builder.position)
             .with_color(builder.background_color)
+            .with_scale(builder.scale)
         , asset_registry, interface)?;
 
         text.center_at(&background.world_data(), interface.size());
@@ -54,7 +57,7 @@ impl Slider {
             .with_z_index(builder.z_index + 0.01)
             .with_color(builder.progress_color)
             .with_position(Position::ElementAnchor(AnchorPoint::LeftInside(0.0), background_element_id)) // TODO why does it not center at the left?
-            .with_scale(Vec2::new(builder.initial_value / (builder.maximum_value - builder.minimum_value), 1.0))
+            .with_scale(Vec2::new(builder.initial_value / (builder.maximum_value - builder.minimum_value), 1.0) * builder.scale)
         , asset_registry, interface)?;
         let progress_element_id = interface.add_element(progress_rectangle);
 
@@ -67,6 +70,7 @@ impl Slider {
             maximum_value: builder.maximum_value,
             decimals: builder.decimals,
             id: interface.generate_element_id(),
+            scale: builder.scale,
         })
     }
 
@@ -130,7 +134,7 @@ impl Slider {
     }
 
     fn update_progress_element(&self, interface: &mut Interface) {
-        let scale = Vec2::new(self.value / (self.maximum_value - self.minimum_value), 1.0);
+        let scale = Vec2::new(self.value / (self.maximum_value - self.minimum_value), 1.0) * self.scale;
         
         match interface.set_element_scale(self.progress_element_id, scale) {
             Ok(_) => (),
@@ -176,6 +180,7 @@ pub struct SliderBuilder {
     width: f32,
     height: f32,
     decimals: usize,
+    scale: Vec2,
 }
 
 impl SliderBuilder {
@@ -193,6 +198,7 @@ impl SliderBuilder {
             width: 100.0,
             height: 25.0,
             decimals: 2,
+            scale: Vec2::ONE,
         }
     }
 
@@ -249,6 +255,11 @@ impl SliderBuilder {
 
     pub fn with_decimals(mut self, decimals: usize) -> Self {
         self.decimals = decimals;
+        self
+    }
+
+    pub fn with_scale(mut self, scale: Vec2) -> Self {
+        self.scale = scale;
         self
     }
 }

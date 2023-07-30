@@ -24,7 +24,11 @@ impl Position {
                 // We do not use the anchor element id (_element_id), since the given anchor_element_data is already from that id.
                 // anchor_element_data.id == _element_id
                 let anchor_element_data = anchor_element_data.unwrap();
-                anchor_point.to_coordinates(element_size, &anchor_element_data.size, &&anchor_element_data.coordinates)
+                anchor_point.to_coordinates(
+                    element_size, 
+                    &anchor_element_data.size, 
+                    &anchor_element_data.coordinates
+                )
             },
         }
     }

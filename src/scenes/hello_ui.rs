@@ -33,6 +33,7 @@ impl Scene for HelloUi {
             .with_z_index(500.0)
             .with_position(Position::ScreenAnchor(AnchorPoint::BottomLeftInside(20.0, 150.00)))
             .with_initial_value(1.0)
+            .with_scale(Vec2::new(2.0, 2.5))
         , &mut interface, asset_registry)?;
 
         interface.add_text("Rectangle height".to_string(), None, TextBuilder::new()

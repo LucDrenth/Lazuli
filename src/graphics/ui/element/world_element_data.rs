@@ -58,10 +58,12 @@ impl WorldElementData {
 
     // Check if the given position is within this world element
     pub fn is_within(&self, position: Vec2) -> bool {
-        return position.x >= self.position.x - self.size.x / 2.0
-            && position.x < self.position.x + self.size.x / 2.0
-            && position.y >= self.position.y - self.size.y / 2.0
-            && position.y < self.position.y + self.size.y / 2.0
+        let size = self.size * self.scale;
+
+        return position.x >= self.position.x - size.x / 2.0
+            && position.x < self.position.x + size.x / 2.0
+            && position.y >= self.position.y - size.y / 2.0
+            && position.y < self.position.y + size.y / 2.0
     }
 
     pub fn handle_window_resize(&mut self, _new_window_size: &Vec2) {
