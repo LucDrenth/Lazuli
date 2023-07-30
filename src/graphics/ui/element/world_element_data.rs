@@ -24,16 +24,7 @@ impl WorldElementData {
             scale,
         };
 
-        let mut anchor_element_data = None;
-
-        match position_type {
-            Position::Fixed(_, _) => (),
-            Position::ScreenAnchor(_) => (),
-            Position::ElementAnchor(_, element_id) => {
-                anchor_element_data = Some(interface.get_anchor_data(element_id).unwrap());
-            },
-        }
-
+        let anchor_element_data = position_type.get_anchor_element_data(interface);
         result.calculate_position(interface.size().clone(), anchor_element_data);
 
         result
@@ -70,9 +61,11 @@ impl WorldElementData {
         // If we implement screen anchor points we might want to use this function
     }
 
-    // Put our element at the center of the given element (element_to_center_on)
-    pub fn center_at(&mut self, element_to_center_on: &Self, _window_size: &Vec2) {
-        self.position = element_to_center_on.position.clone();
+    pub fn set_position(&mut self, position: Position, interface: &Interface) {
+        self.position_type = position;
+
+        let anchor_element_data = self.position_type.get_anchor_element_data(interface);
+        self.calculate_position(interface.size().clone(), anchor_element_data);
     }
 
     pub fn position(&self) -> &Vec2 { &self.position }

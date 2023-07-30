@@ -1,5 +1,7 @@
 use glam::Vec2;
 
+use crate::graphics::ui::Interface;
+
 use super::{AnchorPoint, AnchorElementData};
 
 #[derive(Clone, Copy)]
@@ -49,6 +51,16 @@ impl Position {
             Position::Fixed(_, _) => None,
             Position::ScreenAnchor(_) => None,
             Position::ElementAnchor(_, element_id) => Some(*element_id),
+        }
+    }
+
+    pub fn get_anchor_element_data(&self, interface: &Interface) -> Option<AnchorElementData> {
+        match self {
+            Position::Fixed(_, _) => None,
+            Position::ScreenAnchor(_) => None,
+            Position::ElementAnchor(_, element_id) => {
+                Some(interface.get_anchor_data(*element_id).unwrap())
+            },
         }
     }
 }

@@ -149,26 +149,6 @@ impl Interface {
         None
     }
 
-    pub fn center_element_at_element(&mut self, element_to_center: u32, element_to_center_at: u32) {
-        let target;
-        match self.get_element(element_to_center_at) {
-            Some(element) => target = element.world_data().clone(),
-            None => {
-                log::engine_warn(format!("failed to center interface element at another element because target (id={}) was not found", element_to_center_at));
-                return;
-            },
-        }
-
-        let window_size = self.size.clone();
-
-        match self.get_mut_element(element_to_center) {
-            Some(element) => element.center_at(&target, &window_size),
-            None => {
-                log::engine_warn(format!("failed to center interface element at another element because element_to_center (id={}) was not found", element_to_center));
-            },
-        }
-    }
-
     pub fn get_element_scale(&self, element_id: u32) -> Result<Vec2, String> {
         match self.get_element(element_id) {
             Some(element) => Ok(element.get_scale()),

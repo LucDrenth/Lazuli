@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{Interface, interface::is_valid_z_index, Text, TextBuilder, Position, shapes::{Rectangle, RectangleBuilder}, element::{ui_element::UiElement, AnchorPoint}}, font::PlainBitmapBuilder}, asset_registry::AssetRegistry, log, input::{Input, MouseButton}};
+use crate::{graphics::{ui::{Interface, interface::is_valid_z_index, Text, TextBuilder, Position, shapes::{Rectangle, RectangleBuilder}, element::AnchorPoint}, font::PlainBitmapBuilder}, asset_registry::AssetRegistry, log, input::{Input, MouseButton}};
 
 pub struct Slider {
     text_element_id: u32,
@@ -30,13 +30,6 @@ impl Slider {
             None => interface.default_font(asset_registry)?,
         };
 
-
-        let mut text = Text::new(Self::value_string(builder.initial_value, builder.decimals), &font_id, TextBuilder::new()
-            .with_color(builder.text_color)
-            .with_z_index(builder.z_index + 0.02)
-            .with_scale(builder.scale)
-        , asset_registry, interface)?;
-
         let background = Rectangle::new(RectangleBuilder::new()
             .with_width(builder.width)
             .with_height(builder.height)
@@ -45,10 +38,6 @@ impl Slider {
             .with_color(builder.background_color)
             .with_scale(builder.scale)
         , asset_registry, interface)?;
-
-        text.center_at(&background.world_data(), interface.size());
-
-        let text_element_id = interface.add_element(text);
         let background_element_id = interface.add_element(background);
 
         let progress_rectangle = Rectangle::new(RectangleBuilder::new()
@@ -60,6 +49,14 @@ impl Slider {
             .with_scale(Vec2::new(builder.initial_value / (builder.maximum_value - builder.minimum_value), 1.0) * builder.scale)
         , asset_registry, interface)?;
         let progress_element_id = interface.add_element(progress_rectangle);
+
+        let text = Text::new(Self::value_string(builder.initial_value, builder.decimals), &font_id, TextBuilder::new()
+            .with_color(builder.text_color)
+            .with_z_index(builder.z_index + 0.02)
+            .with_scale(builder.scale)
+            .with_position(Position::ElementAnchor(AnchorPoint::Center, background_element_id))
+        , asset_registry, interface)?;
+        let text_element_id = interface.add_element(text);
 
         Ok(Self {
             text_element_id,
@@ -164,6 +161,16 @@ impl Slider {
     /// Background is the main element. It defines the position and size of the slider
     pub fn anchor_element_id(&self) -> u32 {
         self.background_element_id
+    }
+
+    pub fn set_scale(&mut self, scale: Vec2, interface: &mut Interface) -> Result<(), String> {
+        self.scale = scale;
+
+        interface.set_element_scale(self.background_element_id, scale)?;
+        interface.set_element_scale(self.text_element_id, scale)?;
+        self.update_progress_element(interface);
+
+        Ok(())
     }
 }
 

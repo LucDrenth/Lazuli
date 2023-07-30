@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, ui::{self, shapes::RectangleBuilder, widget::{Button, ButtonBuilder, Slider, SliderBuilder}, Position, AnchorPoint, TextBuilder}}, event::EventSystem, input::Input, asset_registry::AssetRegistry, log};
+use crate::{graphics::{scene::Scene, ui::{self, shapes::RectangleBuilder, widget::{Button, ButtonBuilder, Slider, SliderBuilder}, Position, AnchorPoint, TextBuilder}}, event::EventSystem, input::{Input, Key}, asset_registry::AssetRegistry, log};
 
 pub struct HelloUi {
     interface: ui::Interface,
@@ -33,7 +33,6 @@ impl Scene for HelloUi {
             .with_z_index(500.0)
             .with_position(Position::ScreenAnchor(AnchorPoint::BottomLeftInside(20.0, 150.00)))
             .with_initial_value(1.0)
-            .with_scale(Vec2::new(2.0, 2.5))
         , &mut interface, asset_registry)?;
 
         interface.add_text("Rectangle height".to_string(), None, TextBuilder::new()
@@ -82,6 +81,11 @@ impl Scene for HelloUi {
             self.slider_1.set_value(1.0, &mut self.interface, asset_registry);
             self.slider_2.set_value(1.0, &mut self.interface, asset_registry);
             self.interface.set_element_scale(self.rectangle_id, Vec2::ONE).expect("");
+        }
+
+        if input.is_key_down(Key::ArrowDown) {
+            _ = self.slider_2.set_scale(Vec2::new(0.7, 0.35), &mut self.interface);
+            _ = self.reset_button.set_scale(Vec2::new(3.0, 3.0), &mut self.interface);
         }
     }
 

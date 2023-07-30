@@ -1,3 +1,5 @@
+use glam::Vec2;
+
 use crate::{graphics::{ui::{Text, TextBuilder, shapes::RectangleBuilder, Interface, self, interface::is_valid_z_index, Position, element::{ui_element::UiElement, AnchorPoint}}, font::PlainBitmapBuilder}, asset_registry::AssetRegistry, input::Input, log};
 
 pub struct Button {
@@ -19,6 +21,7 @@ impl Button {
             .with_color(builder.text_color)
             .with_z_index(builder.z_index + 0.01)
             .with_font_size(builder.font_size)
+            .with_scale(builder.scale)
         , asset_registry, interface)?;
         
         let background_width = text.world_data().width() + builder.padding_x * 2.0;
@@ -30,11 +33,11 @@ impl Button {
             .with_color(builder.background_color)
             .with_z_index(builder.z_index)
             .with_position(builder.position)
+            .with_scale(builder.scale)
         , asset_registry, interface)?;
-
-        text.center_at(&background.world_data(), interface.size());
-
         let background_element_id = interface.add_element(background);
+
+        text.set_position(Position::ElementAnchor(AnchorPoint::Center, background_element_id), interface);
         let text_element_id = interface.add_element(text);
 
         Ok(Self {
@@ -50,6 +53,12 @@ impl Button {
     pub fn is_clicked(&self, input: &Input, interface: &Interface) -> bool {
         interface.is_element_clicked(self.background_element_id, input)
     }
+
+    pub fn set_scale(&mut self, scale: Vec2, interface: &mut Interface) -> Result<(), String> {
+        interface.set_element_scale(self.background_element_id, scale)?;
+        interface.set_element_scale(self.text_element_id, scale)?;
+        Ok(())
+    }
 }
 
 pub struct ButtonBuilder {
@@ -61,6 +70,7 @@ pub struct ButtonBuilder {
     z_index: f32,
     position: Position,
     font_size: f32,
+    scale: Vec2,
 }
 
 impl ButtonBuilder {
@@ -74,6 +84,7 @@ impl ButtonBuilder {
             z_index: 10.0,
             position: Position::ScreenAnchor(AnchorPoint::Center),
             font_size: 14.0,
+            scale: Vec2::ONE,
         }
     }
 
@@ -126,6 +137,11 @@ impl ButtonBuilder {
 
     pub fn with_font_size(mut self, font_size: f32) -> Self {
         self.font_size = font_size;
+        self
+    }
+
+    pub fn with_scale(mut self, scale: Vec2) -> Self {
+        self.scale = scale;
         self
     }
 }

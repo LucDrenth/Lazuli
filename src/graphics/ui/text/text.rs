@@ -48,10 +48,6 @@ impl UiElement for Text {
         &self.world_data
     }
 
-    fn center_at(&mut self, element_to_center_on: &WorldElementData, window_size: &Vec2) {
-        self.world_data.center_at(element_to_center_on, window_size);
-    }
-
     fn handle_window_resize(&mut self, new_window_size: &Vec2) {
         self.world_data.handle_window_resize(new_window_size);
     }
@@ -62,6 +58,7 @@ impl UiElement for Text {
     }
     fn get_size(&self) -> Vec2 { self.world_data.size().clone() }
     fn get_screen_position(&self) -> Vec2 { self.world_data.position().clone() }
+    fn set_position(&mut self, position: Position, interface: &Interface) { self.world_data.set_position(position, interface) }
     
     fn set_text(&mut self, text: &String, asset_registry: &mut AssetRegistry, _window_size: &Vec2) -> Result<(), String> {
         // TODO this shares a lot of code with the 'new' funcion
