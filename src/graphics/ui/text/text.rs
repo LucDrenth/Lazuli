@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{font::Font, Transform, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, Position, element::{world_element_data::WorldElementData, ui_element::UiElement}}, material::Material}, asset_registry::{AssetRegistry, AssetId}, log};
+use crate::{graphics::{font::Font, Transform, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, Position, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, Interface}, material::Material}, asset_registry::{AssetRegistry, AssetId}, log};
 
 use super::glyph::Glyph;
 
@@ -29,7 +29,7 @@ impl UiElement for Text {
         ));
         shader.set_uniform("scale", (self.world_data.scale.x, self.world_data.scale.y));
         shader.set_uniform("zIndex", map_z_index_for_shader(self.world_data.z_index()));
-        shader.set_uniform("worldPosition", self.world_data.shader_coordinates());
+        shader.set_uniform("worldPosition", self.world_data.shader_position());
 
         for glyph in &self.glyphs {
             glyph.draw();
@@ -57,11 +57,13 @@ impl UiElement for Text {
     }
 
     fn get_scale(&self) -> Vec2 { self.world_data.scale }
-    fn set_scale(&mut self, new_scale: Vec2) { self.world_data.scale = new_scale; }
+    fn set_scale(&mut self, new_scale: Vec2, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) { 
+        self.world_data.set_scale(new_scale, window_size, anchor_element_data); 
+    }
     fn get_size(&self) -> Vec2 { self.world_data.size().clone() }
-    fn get_screen_position(&self) -> Vec2 { self.world_data.final_coordinates().clone() }
+    fn get_screen_position(&self) -> Vec2 { self.world_data.position().clone() }
     
-    fn set_text(&mut self, text: &String, asset_registry: &mut AssetRegistry, window_size: &Vec2) -> Result<(), String> {
+    fn set_text(&mut self, text: &String, asset_registry: &mut AssetRegistry, _window_size: &Vec2) -> Result<(), String> {
         // TODO this shares a lot of code with the 'new' funcion
         let font_material_id;
         let font_space_size;
@@ -113,14 +115,14 @@ impl UiElement for Text {
             }
         }
 
-        self.world_data.set_size(Vec2::new(worldspace_width, worldspace_height), window_size);
+        self.world_data.set_size(Vec2::new(worldspace_width, worldspace_height));
 
         Ok(())
     }
 }
 
 impl Text {
-    pub fn new(text: String, font_id: &AssetId<Font>, text_builder: TextBuilder, asset_registry: &mut AssetRegistry, window_size: &Vec2) -> Result<Self, String> {
+    pub fn new(text: String, font_id: &AssetId<Font>, text_builder: TextBuilder, asset_registry: &mut AssetRegistry, interface: &Interface) -> Result<Self, String> {
         let font_material_id;
         let font_space_size;
         let bitmap_spread;
@@ -175,7 +177,8 @@ impl Text {
             text_builder.position
             , text_builder.z_index
             , Vec2::new(worldspace_width, worldspace_height)
-            , window_size
+            , text_builder.scale
+            , interface
         );
 
         Ok(Self { 
@@ -227,6 +230,7 @@ pub struct TextBuilder {
     letter_spacing: f32,
     position: Position,
     z_index: f32,
+    scale: Vec2,
 }
 
 impl TextBuilder {
@@ -235,8 +239,9 @@ impl TextBuilder {
             font_size: 14.0,
             color: (255, 255, 255),
             letter_spacing: 0.04,
-            position: Position::FixedCenter,
+            position: Position::ScreenAnchor(AnchorPoint::Center),
             z_index: 10.0,
+            scale: Vec2::ONE,
         }
     }
 
@@ -267,6 +272,11 @@ impl TextBuilder {
             log::engine_warn(format!("did not set TextBuilder z_index {} because it's not a valid z-index", z_index));
         }
 
+        self
+    }
+
+    pub fn with_scale(mut self, scale: Vec2) -> Self {
+        self.scale = scale;
         self
     }
 }

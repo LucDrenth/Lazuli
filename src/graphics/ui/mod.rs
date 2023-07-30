@@ -10,3 +10,4 @@ pub use text::text::TextBuilder;
 pub use interface::Interface;
 
 pub use element::Position;
+pub use element::AnchorPoint;

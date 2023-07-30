@@ -1,68 +1,80 @@
 use glam::Vec2;
 
-use super::Position;
+use crate::graphics::ui::Interface;
+
+use super::{Position, AnchorElementData};
 
 /// World space data about size and positioning of a UI element
 #[derive(Clone, Copy)]
 pub struct WorldElementData {
     size: Vec2, // given in world space (pixels)
-    final_coordinates: Vec2, // the world space coordinates at which we render the center of the element. (0,0) is the center of the screen
+    position: Vec2, // the world space coordinates at which we render the center of the element. (0,0) is the center of the screen
     position_type: Position,
     z_index: f32,
     pub scale: Vec2,
 }
 
 impl WorldElementData {
-    pub fn new(position_type: Position, z_index: f32, size: Vec2, window_size: &Vec2) -> Self {
-        let final_coordinates = position_type.shader_coordinates(&size, window_size);
-
-        Self {
+    pub fn new(position_type: Position, z_index: f32, size: Vec2, scale: Vec2, interface: &Interface) -> Self {
+        let mut result = Self {
             size,
-            final_coordinates,
+            position: Vec2::ZERO, // to be calculated with calculate_position
             position_type,
             z_index,
-            scale: Vec2::ONE,
+            scale,
+        };
+
+        let mut anchor_element_data = None;
+
+        match position_type {
+            Position::Fixed(_, _) => (),
+            Position::ScreenAnchor(_) => (),
+            Position::ElementAnchor(_, element_id) => {
+                anchor_element_data = Some(interface.get_anchor_data(element_id).unwrap());
+            },
         }
+
+        result.calculate_position(interface.size().clone(), anchor_element_data);
+
+        result
     }
 
-    pub fn final_coordinates(&self) -> &Vec2 {
-        &self.final_coordinates
+    pub fn shader_position(&self) -> (f32, f32) {
+        (self.position.x, self.position.y)
     }
 
-    pub fn recalculate_final_coordinates(&mut self, window_size: &Vec2) {
-        self.final_coordinates = self.position_type.shader_coordinates(&self.size, window_size);
+    fn calculate_position(&mut self, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) {
+        self.position = self.position_type.to_coordinates(self.size * self.scale, window_size, anchor_element_data);
     }
 
-    pub fn shader_coordinates(&self) -> (f32, f32) {
-        (self.final_coordinates.x, self.final_coordinates.y)
-    }
-
-    pub fn set_size(&mut self, size: Vec2, window_size: &Vec2) {
+    pub fn set_size(&mut self, size: Vec2) {
         self.size = size;
-        self.recalculate_final_coordinates(window_size);
+    }
+
+    pub fn set_scale(&mut self, scale: Vec2, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) {
+        self.scale = scale;
+        self.calculate_position(window_size, anchor_element_data);
     }
 
     // Check if the given position is within this world element
     pub fn is_within(&self, position: Vec2) -> bool {
-        return position.x >= self.final_coordinates.x - self.size.x / 2.0
-            && position.x < self.final_coordinates.x + self.size.x / 2.0
-            && position.y >= self.final_coordinates.y - self.size.y / 2.0
-            && position.y < self.final_coordinates.y + self.size.y / 2.0
+        return position.x >= self.position.x - self.size.x / 2.0
+            && position.x < self.position.x + self.size.x / 2.0
+            && position.y >= self.position.y - self.size.y / 2.0
+            && position.y < self.position.y + self.size.y / 2.0
     }
 
-    pub fn handle_window_resize(&mut self, new_window_size: &Vec2) {
-        self.final_coordinates = self.position_type.shader_coordinates(&self.size, new_window_size);
+    pub fn handle_window_resize(&mut self, _new_window_size: &Vec2) {
+        // If we implement screen anchor points we might want to use this function
     }
 
     // Put our element at the center of the given element (element_to_center_on)
-    pub fn center_at(&mut self, element_to_center_on: &Self, window_size: &Vec2) {
-        let width_difference = element_to_center_on.width() - self.width();
-        let height_difference = element_to_center_on.height() - self.height();
-
-        self.position_type = element_to_center_on.position_type.add_offset(width_difference / 2.0, height_difference / 2.0);
-        self.recalculate_final_coordinates(window_size);
+    pub fn center_at(&mut self, element_to_center_on: &Self, _window_size: &Vec2) {
+        self.position = element_to_center_on.position.clone();
     }
 
+    pub fn position(&self) -> &Vec2 { &self.position }
+    pub fn position_type(&self) -> &Position { &self.position_type }
     pub fn size(&self) -> &Vec2 { &self.size }
     pub fn width(&self) -> f32 { self.size.x }
     pub fn height(&self) -> f32 { self.size.y }

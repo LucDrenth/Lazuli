@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{Interface, interface::is_valid_z_index, Text, TextBuilder, Position, shapes::{Rectangle, RectangleBuilder}, element::ui_element::UiElement}, font::PlainBitmapBuilder}, asset_registry::AssetRegistry, log, input::{Input, MouseButton}};
+use crate::{graphics::{ui::{Interface, interface::is_valid_z_index, Text, TextBuilder, Position, shapes::{Rectangle, RectangleBuilder}, element::{ui_element::UiElement, AnchorPoint}}, font::PlainBitmapBuilder}, asset_registry::AssetRegistry, log, input::{Input, MouseButton}};
 
 pub struct Slider {
     text_element_id: u32,
@@ -33,7 +33,7 @@ impl Slider {
         let mut text = Text::new(Self::value_string(builder.initial_value, builder.decimals), &font_id, TextBuilder::new()
             .with_color(builder.text_color)
             .with_z_index(builder.z_index + 0.02)
-        , asset_registry, interface.size())?;
+        , asset_registry, interface)?;
 
         let background = Rectangle::new(RectangleBuilder::new()
             .with_width(builder.width)
@@ -41,24 +41,21 @@ impl Slider {
             .with_z_index(builder.z_index)
             .with_position(builder.position)
             .with_color(builder.background_color)
-        , asset_registry, interface.size())?;
+        , asset_registry, interface)?;
 
-        let mut progress_rectangle =  Rectangle::new(RectangleBuilder::new()
+        text.center_at(&background.world_data(), interface.size());
+
+        let text_element_id = interface.add_element(text);
+        let background_element_id = interface.add_element(background);
+
+        let progress_rectangle = Rectangle::new(RectangleBuilder::new()
             .with_width(builder.width)
             .with_height(builder.height)
             .with_z_index(builder.z_index + 0.01)
             .with_color(builder.progress_color)
-        , asset_registry, interface.size())?;
-        progress_rectangle.set_scale(
-            Vec2::new(builder.initial_value / (builder.maximum_value - builder.minimum_value), 1.0)
-        );
-        // TODO align to the left instead of at the center
-
-        text.center_at(&background.world_data(), interface.size());
-        progress_rectangle.center_at(&background.world_data(), interface.size());
-
-        let text_element_id = interface.add_element(text);
-        let background_element_id = interface.add_element(background);
+            .with_position(Position::ElementAnchor(AnchorPoint::LeftInside(0.0), background_element_id)) // TODO why does it not center at the left?
+            .with_scale(Vec2::new(builder.initial_value / (builder.maximum_value - builder.minimum_value), 1.0))
+        , asset_registry, interface)?;
         let progress_element_id = interface.add_element(progress_rectangle);
 
         Ok(Self {
@@ -159,6 +156,11 @@ impl Slider {
     pub fn size(&self, interface: &Interface) -> Vec2 {
         interface.get_element_size(self.background_element_id).unwrap()
     }
+
+    /// Background is the main element. It defines the position and size of the slider
+    pub fn anchor_element_id(&self) -> u32 {
+        self.background_element_id
+    }
 }
 
 pub struct SliderBuilder {
@@ -180,7 +182,7 @@ impl SliderBuilder {
     pub fn new(interface: &Interface) -> Self {
         Self {
             z_index: 10.0,
-            position: Position::FixedCenter,
+            position: Position::ScreenAnchor(AnchorPoint::Center),
             background_color: interface.default_element_background_color(),
             progress_color: (31, 90, 147),
             text_color: interface.default_text_color(),

@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, element::{world_element_data::WorldElementData, ui_element::UiElement}, Position}, material::Material}, set_attribute, error::opengl, asset_registry::{AssetRegistry, AssetId}, log};
+use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, Position, Interface}, material::Material}, set_attribute, error::opengl, asset_registry::{AssetRegistry, AssetId}, log};
 use crate::graphics::shapes::RECTANGLE_INDICES;
 
 type VertexPosition = [f32; 2];
@@ -30,7 +30,7 @@ impl UiElement for Rectangle {
         ));
         shader.set_uniform("scale", (self.world_data.scale.x, self.world_data.scale.y));
         shader.set_uniform("zIndex", map_z_index_for_shader(self.world_data.z_index()));
-        shader.set_uniform("worldPosition", self.world_data.shader_coordinates());
+        shader.set_uniform("worldPosition", self.world_data.shader_position());
 
         unsafe {
             gl::DrawElements(gl::TRIANGLES, self.ebo.data_size as i32, gl::UNSIGNED_INT, core::ptr::null());
@@ -60,9 +60,11 @@ impl UiElement for Rectangle {
     }
 
     fn get_scale(&self) -> Vec2 { self.world_data.scale }
-    fn set_scale(&mut self, new_scale: Vec2) { self.world_data.scale = new_scale; }
+    fn set_scale(&mut self, new_scale: Vec2, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) { 
+        self.world_data.set_scale(new_scale, window_size, anchor_element_data); 
+    }
     fn get_size(&self) -> Vec2 { self.world_data.size().clone() }
-    fn get_screen_position(&self) -> Vec2 { self.world_data.final_coordinates().clone() }
+    fn get_screen_position(&self) -> Vec2 { self.world_data.position().clone() }
     
     fn set_text(&mut self, text: &String, _asset_registry: &mut AssetRegistry, _window_size: &Vec2) -> Result<(), String> {
         Err(format!("Can not set text of a ui rectangle. Tried with [{}]", text))
@@ -70,7 +72,7 @@ impl UiElement for Rectangle {
 }
 
 impl Rectangle {
-    pub fn new(builder: RectangleBuilder, asset_registry: &mut AssetRegistry, window_size: &Vec2) -> Result<Self, String> {
+    pub fn new(builder: RectangleBuilder, asset_registry: &mut AssetRegistry, interface: &Interface) -> Result<Self, String> {
         let shader_builder = match builder.shader_builder {
             Some(custom_shader_builder) => custom_shader_builder,
             None => Self::default_shader_builder(),
@@ -102,8 +104,9 @@ impl Rectangle {
         let world_data = WorldElementData::new(
             builder.position,
             builder.z_index, 
-            Vec2::new(builder.width, builder.height) ,
-            window_size
+            Vec2::new(builder.width, builder.height),
+            builder.scale,
+            interface
         );
 
         Ok(Self { 
@@ -130,6 +133,7 @@ pub struct RectangleBuilder {
     width: f32,
     height: f32,
     z_index: f32,
+    scale: Vec2,
 }
 
 impl RectangleBuilder {
@@ -137,10 +141,11 @@ impl RectangleBuilder {
         Self {
             color: (126, 126, 126), // gray
             shader_builder: None,
-            position: Position::FixedCenter,
+            position: Position::ScreenAnchor(AnchorPoint::Center),
             width: 100.0,
             height: 40.0,
             z_index: 10.0,
+            scale: Vec2::ONE,
         }
     }
 
@@ -176,6 +181,11 @@ impl RectangleBuilder {
             log::engine_warn(format!("did not set RectangleBuilder z_index {} because it's not a valid z-index", z_index));
         }
 
+        self
+    }
+
+    pub fn with_scale(mut self, scale: Vec2) -> Self {
+        self.scale = scale;
         self
     }
 }

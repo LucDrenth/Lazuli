@@ -2,7 +2,7 @@ use glam::Vec2;
 
 use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_registry::{AssetRegistry, AssetId}, input::{Input, MouseButton}, graphics::font::{Font, PlainBitmapBuilder}, log};
 
-use super::{TextBuilder, Text, shapes::{Rectangle, RectangleBuilder}, element::ui_element::UiElement};
+use super::{TextBuilder, Text, shapes::{Rectangle, RectangleBuilder}, element::{ui_element::UiElement, AnchorElementData}};
 
 const MIN_Z_INDEX: f32 = 1.0;
 const MAX_Z_INDEX: f32 = 10_000.0;
@@ -103,12 +103,12 @@ impl Interface {
             None => self.default_font(asset_registry)?,
         };
 
-        let text = Text::new(text, &font_id_to_use, text_builder, asset_registry, &self.size)?;
+        let text = Text::new(text, &font_id_to_use, text_builder, asset_registry, &self)?;
         Ok(self.add_element(text))
     }
 
     pub fn add_rectangle(&mut self, builder: RectangleBuilder, asset_registry: &mut AssetRegistry) -> Result<u32, String> {
-        let rectangle = Rectangle::new(builder, asset_registry, &self.size)?;
+        let rectangle = Rectangle::new(builder, asset_registry, &self)?;
         Ok(self.add_element(rectangle))
     }
 
@@ -177,12 +177,48 @@ impl Interface {
     }
 
     pub fn set_element_scale(&mut self, element_id: u32, scale: Vec2) -> Result<(), String> {
+        let window_size = self.size().clone();
+
+        let anchor_element_data = self.get_anchor_element_data(element_id)?;
+
         match self.get_mut_element(element_id) {
             Some(element) => {
-                element.set_scale(scale);
+                element.set_scale(scale, window_size, anchor_element_data);
                 Ok(())
             },
             None => Err(format!("failed to set scale because element with id {} was not found", element_id)),
+        }
+    }
+
+    /// Get anchor element data of the anchor element of the given element
+    fn get_anchor_element_data(&self, element_id: u32) -> Result<Option<AnchorElementData>, String> {
+        match self.get_anchor_element_id(element_id)? {
+            Some(anchor_element_id) => {
+                Ok(Some(AnchorElementData{
+                    id: anchor_element_id,
+                    size: self.get_element_size(anchor_element_id)?,
+                    coordinates: self.get_element_screen_position(anchor_element_id)?,
+                }))
+            },
+            None => Ok(None),
+        }
+    }
+
+    /// Get the anchor element data of the given element
+    pub fn get_anchor_data(&self, anchor_element_id: u32) -> Result<AnchorElementData, String> {
+        Ok(AnchorElementData{
+            id: anchor_element_id,
+            size: self.get_element_size(anchor_element_id)?,
+            coordinates: self.get_element_screen_position(anchor_element_id)?,
+        })
+    }
+
+    pub fn get_anchor_element_id(&self, element_id: u32) -> Result<Option<u32>, String> {
+        match self.get_element(element_id) {
+            Some(element) => {
+                Ok(element.world_data().position_type().get_anchor_element_id())
+            },
+            None => Err(format!("failed to get anchor element id because element with id {} was not found", element_id)),
         }
     }
 

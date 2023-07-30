@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, ui::{self, shapes::RectangleBuilder, widget::{Button, ButtonBuilder, Slider, SliderBuilder}, Position, TextBuilder}}, event::EventSystem, input::Input, asset_registry::AssetRegistry, log};
+use crate::{graphics::{scene::Scene, ui::{self, shapes::RectangleBuilder, widget::{Button, ButtonBuilder, Slider, SliderBuilder}, Position, AnchorPoint}}, event::EventSystem, input::Input, asset_registry::AssetRegistry, log};
 
 pub struct HelloUi {
     interface: ui::Interface,
@@ -17,31 +17,31 @@ impl Scene for HelloUi {
 
         let slider_1 = Slider::new(SliderBuilder::new(&interface)
             .with_z_index(500.0)
-            .with_position(Position::FixedTopLeft(20.0, 100.0))
-            .with_initial_value(1.0)
+            .with_position(Position::ScreenAnchor(AnchorPoint::BottomLeftInside(20.0, 100.00)))
+            .with_initial_value(0.5)
         , &mut interface, asset_registry)?;
 
-        interface.add_text("Rectangle width".to_string(), None, TextBuilder::new()
-            .with_position(Position::FixedTopLeft(130.0, 100.0))
-        , asset_registry)?;
+        // interface.add_text("Rectangle width".to_string(), None, TextBuilder::new()
+        //     .with_position(Position::FixedTopLeft(130.0, 100.0))
+        // , asset_registry)?;
 
 
         let slider_2 = Slider::new(SliderBuilder::new(&interface)
             .with_z_index(500.0)
-            .with_position(Position::FixedTopLeft(20.0, 150.0))
+            .with_position(Position::ScreenAnchor(AnchorPoint::BottomLeftInside(20.0, 150.00)))
             .with_initial_value(1.0)
         , &mut interface, asset_registry)?;
 
-        interface.add_text("Rectangle height".to_string(), None, TextBuilder::new()
-            .with_position(Position::FixedTopLeft(130.0, 150.0))
-        , asset_registry)?;
+        // interface.add_text("Rectangle height".to_string(), None, TextBuilder::new()
+        //     .with_position(Position::FixedTopLeft(130.0, 150.0))
+        // , asset_registry)?;
 
 
         let rectangle_id = interface.add_rectangle(RectangleBuilder::new(), asset_registry)?;
 
         
         let reset_button = Button::new("Reset".to_string(), ButtonBuilder::new(&interface)
-            .with_position(Position::FixedBottom(50.0))
+            .with_position(Position::ScreenAnchor(AnchorPoint::LeftInside(20.0)))
         , &mut interface, asset_registry)?;
 
         Ok(Self { 

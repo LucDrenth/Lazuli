@@ -1,4 +1,4 @@
-use crate::{graphics::{ui::{Text, TextBuilder, shapes::RectangleBuilder, Interface, self, interface::is_valid_z_index, Position, element::ui_element::UiElement}, font::PlainBitmapBuilder}, asset_registry::AssetRegistry, input::Input, log};
+use crate::{graphics::{ui::{Text, TextBuilder, shapes::RectangleBuilder, Interface, self, interface::is_valid_z_index, Position, element::{ui_element::UiElement, AnchorPoint}}, font::PlainBitmapBuilder}, asset_registry::AssetRegistry, input::Input, log};
 
 pub struct Button {
     text_element_id: u32,
@@ -19,7 +19,7 @@ impl Button {
             .with_color(builder.text_color)
             .with_z_index(builder.z_index + 0.01)
             .with_font_size(builder.font_size)
-        , asset_registry, interface.size())?;
+        , asset_registry, interface)?;
         
         let background_width = text.world_data().width() + builder.padding_x * 2.0;
         let background_height = text.world_data().height() + builder.padding_y * 2.0;
@@ -30,7 +30,7 @@ impl Button {
             .with_color(builder.background_color)
             .with_z_index(builder.z_index)
             .with_position(builder.position)
-        , asset_registry, interface.size())?;
+        , asset_registry, interface)?;
 
         text.center_at(&background.world_data(), interface.size());
 
@@ -72,7 +72,7 @@ impl ButtonBuilder {
             padding_x: 14.0,
             padding_y: 8.0,
             z_index: 10.0,
-            position: Position::FixedCenter,
+            position: Position::ScreenAnchor(AnchorPoint::Center),
             font_size: 14.0,
         }
     }
