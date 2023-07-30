@@ -77,12 +77,18 @@ impl AnchorPoint {
                 target_coordinates.x - target_size.x / 2.0 + element_size.x / 2.0 + x,
                 target_coordinates.y,
             ),
-            AnchorPoint::LeftOutside(_) => todo!(),
+            AnchorPoint::LeftOutside(x) => Vec2::new(
+                target_coordinates.x - target_size.x / 2.0 - element_size.x / 2.0 - x, 
+                target_coordinates.y,
+            ),
             AnchorPoint::RightInside(x) => Vec2::new(
                 target_coordinates.x + target_size.x / 2.0 - element_size.x / 2.0 - x,
                 target_coordinates.y,
             ),
-            AnchorPoint::RightOutside(_) => todo!(),
+            AnchorPoint::RightOutside(x) => Vec2::new(
+                target_coordinates.x + target_size.x / 2.0 + element_size.x / 2.0 + x, 
+                target_coordinates.y,
+            ),
             AnchorPoint::TopLeftInside(x, y) => Vec2::new(
                 target_coordinates.x - target_size.x / 2.0 + element_size.x / 2.0 + x,
                 target_coordinates.y + target_size.y / 2.0 - element_size.y / 2.0 - y,

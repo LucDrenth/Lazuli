@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, ui::{self, shapes::RectangleBuilder, widget::{Button, ButtonBuilder, Slider, SliderBuilder}, Position, AnchorPoint}}, event::EventSystem, input::Input, asset_registry::AssetRegistry, log};
+use crate::{graphics::{scene::Scene, ui::{self, shapes::RectangleBuilder, widget::{Button, ButtonBuilder, Slider, SliderBuilder}, Position, AnchorPoint, TextBuilder}}, event::EventSystem, input::Input, asset_registry::AssetRegistry, log};
 
 pub struct HelloUi {
     interface: ui::Interface,
@@ -15,15 +15,18 @@ impl Scene for HelloUi {
     {
         let mut interface: ui::Interface = ui::Interface::new(event_system, window_size);
 
+        let rectangle_id = interface.add_rectangle(RectangleBuilder::new(), asset_registry)?;
+        
+
         let slider_1 = Slider::new(SliderBuilder::new(&interface)
             .with_z_index(500.0)
             .with_position(Position::ScreenAnchor(AnchorPoint::BottomLeftInside(20.0, 100.00)))
-            .with_initial_value(0.5)
+            .with_initial_value(1.0)
         , &mut interface, asset_registry)?;
 
-        // interface.add_text("Rectangle width".to_string(), None, TextBuilder::new()
-        //     .with_position(Position::FixedTopLeft(130.0, 100.0))
-        // , asset_registry)?;
+        interface.add_text("Rectangle width".to_string(), None, TextBuilder::new()
+            .with_position(Position::ElementAnchor(AnchorPoint::RightOutside(10.0), slider_1.anchor_element_id()))
+        , asset_registry)?;
 
 
         let slider_2 = Slider::new(SliderBuilder::new(&interface)
@@ -32,12 +35,10 @@ impl Scene for HelloUi {
             .with_initial_value(1.0)
         , &mut interface, asset_registry)?;
 
-        // interface.add_text("Rectangle height".to_string(), None, TextBuilder::new()
-        //     .with_position(Position::FixedTopLeft(130.0, 150.0))
-        // , asset_registry)?;
+        interface.add_text("Rectangle height".to_string(), None, TextBuilder::new()
+        .with_position(Position::ElementAnchor(AnchorPoint::RightOutside(10.0), slider_2.anchor_element_id()))
+        , asset_registry)?;
 
-
-        let rectangle_id = interface.add_rectangle(RectangleBuilder::new(), asset_registry)?;
 
         
         let reset_button = Button::new("Reset".to_string(), ButtonBuilder::new(&interface)
