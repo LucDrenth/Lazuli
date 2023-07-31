@@ -89,7 +89,7 @@ impl ElementRegistry {
             None => self.default_font(asset_registry)?,
         };
 
-        let text = Text::new(text, &font_id_to_use, text_builder, asset_registry, &self)?;
+        let text = Text::new(text, &font_id_to_use, text_builder, asset_registry, self)?;
         Ok(self.add_element(text))
     }
 
@@ -210,10 +210,11 @@ impl ElementRegistry {
 
     pub fn set_text(&mut self, text_element_id: u32, text: &String, asset_registry: &mut AssetRegistry) -> Result<(), String> {
         let window_size: Vec2 = self.window_size.clone();
+        let anchor_data = self.get_anchor_element_data(text_element_id)?;
 
         match self.get_mut_element(text_element_id) {
             Some(element) => {
-                element.set_text(text, asset_registry, &window_size)
+                element.set_text(text, window_size, anchor_data, asset_registry)
             },
             None => Err(format!("failed to set text because element with id {} was not found", text_element_id)),
         }

@@ -17,6 +17,12 @@ pub trait UiElement {
     fn get_screen_position(&self) -> Vec2;
     fn set_position(&mut self, position: Position, element_registry: &ElementRegistry);
 
-    // TODO these are element specific, but need to be accessed from interface it's ui_element collection
-    fn set_text(&mut self, text: &String, asset_registry: &mut AssetRegistry, window_size: &Vec2) -> Result<(), String>;
+    // TODO this is element specific, but need to be accessed from interface it's ui_element collection
+    fn set_text(
+        &mut self, 
+        text: &String, 
+        window_size: Vec2, 
+        anchor_element_data: Option<AnchorElementData>, 
+        asset_registry: &mut AssetRegistry
+    ) -> Result<(), String>;
 }

@@ -38,8 +38,9 @@ impl WorldElementData {
         self.position = self.position_type.to_coordinates(self.size * self.scale, window_size, anchor_element_data);
     }
 
-    pub fn set_size(&mut self, size: Vec2) {
+    pub fn set_size(&mut self, size: Vec2, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) {
         self.size = size;
+        self.calculate_position(window_size, anchor_element_data);
     }
 
     pub fn set_scale(&mut self, scale: Vec2, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) {
