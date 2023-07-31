@@ -67,12 +67,18 @@ impl AnchorPoint {
                 target_coordinates.x,
                 target_coordinates.y + target_size.y / 2.0 - element_size.y / 2.0 - y,
             ),
-            AnchorPoint::TopOutside(_) => todo!(),
+            AnchorPoint::TopOutside(y) => Vec2::new(
+                target_coordinates.x,
+                target_coordinates.y + target_size.y / 2.0 + element_size.y / 2.0 + y,
+            ),
             AnchorPoint::BottomInside(y) => Vec2::new(
                 target_coordinates.x,
                 target_coordinates.y - target_size.y / 2.0 + element_size.y / 2.0 + y,
             ),
-            AnchorPoint::BottomOutside(_) => todo!(),
+            AnchorPoint::BottomOutside(y) => Vec2::new(
+                target_coordinates.x,
+                target_coordinates.y - target_size.y / 2.0 - element_size.y / 2.0 - y,
+            ),
             AnchorPoint::LeftInside(x) => Vec2::new(
                 target_coordinates.x - target_size.x / 2.0 + element_size.x / 2.0 + x,
                 target_coordinates.y,
@@ -93,22 +99,34 @@ impl AnchorPoint {
                 target_coordinates.x - target_size.x / 2.0 + element_size.x / 2.0 + x,
                 target_coordinates.y + target_size.y / 2.0 - element_size.y / 2.0 - y,
             ),
-            AnchorPoint::TopLeftOutside(_, _) => todo!(),
+            AnchorPoint::TopLeftOutside(x, y) => Vec2::new(
+                target_coordinates.x - target_size.x / 2.0 - element_size.x / 2.0 - x, 
+                target_coordinates.y + target_size.y / 2.0 + element_size.y / 2.0 + y,
+            ),
             AnchorPoint::TopRightInside(x, y) => Vec2::new(
                 target_coordinates.x + target_size.x / 2.0 - element_size.x / 2.0 - x,
                 target_coordinates.y + target_size.y / 2.0 - element_size.y / 2.0 - y,
             ),
-            AnchorPoint::TopRightOutside(_, _) => todo!(),
+            AnchorPoint::TopRightOutside(x, y) =>  Vec2::new(
+                target_coordinates.x + target_size.x / 2.0 + element_size.x / 2.0 + x, 
+                target_coordinates.y + target_size.y / 2.0 + element_size.y / 2.0 + y,
+            ),
             AnchorPoint::BottomLeftInside(x, y) => Vec2::new(
                 target_coordinates.x - target_size.x / 2.0 + element_size.x / 2.0 + x,
                 target_coordinates.y - target_size.y / 2.0 + element_size.y / 2.0 + y,
             ),
-            AnchorPoint::BottomLeftOutside(_, _) => todo!(),
+            AnchorPoint::BottomLeftOutside(x, y) => Vec2::new(
+                target_coordinates.x - target_size.x / 2.0 - element_size.x / 2.0 - x, 
+                target_coordinates.y - target_size.y / 2.0 - element_size.y / 2.0 - y,
+            ),
             AnchorPoint::BottomRightInside(x, y) => Vec2::new(
                 target_coordinates.x + target_size.x / 2.0 - element_size.x / 2.0 - x,
                 target_coordinates.y - target_size.y / 2.0 + element_size.y / 2.0 + y,
             ),
-            AnchorPoint::BottomRightOutside(_, _) => todo!(),
+            AnchorPoint::BottomRightOutside(x, y) => Vec2::new(
+                target_coordinates.x + target_size.x / 2.0 + element_size.x / 2.0 + x, 
+                target_coordinates.y - target_size.y / 2.0 - element_size.y / 2.0 - y,
+            ),
         }
     }
 

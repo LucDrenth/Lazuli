@@ -59,6 +59,11 @@ impl Button {
         element_registry.set_element_scale(self.text_element_id, scale)?;
         Ok(())
     }
+
+    /// Background is the main element. It defines the position and size of the slider
+    pub fn anchor_element_id(&self) -> u32 {
+        self.background_element_id
+    }
 }
 
 pub struct ButtonBuilder {
