@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{ElementRegistry, interface::is_valid_z_index, Text, TextBuilder, Position, shapes::{Rectangle, RectangleBuilder}, element::AnchorPoint}, font::PlainBitmapBuilder}, asset_registry::AssetRegistry, log, input::{Input, MouseButton}};
+use crate::{graphics::{ui::{ElementRegistry, interface::{is_valid_z_index, self}, Text, TextBuilder, Position, shapes::{Rectangle, RectangleBuilder}, element::AnchorPoint}, font::PlainBitmapBuilder}, asset_registry::AssetRegistry, log, input::{Input, MouseButton}};
 
 pub struct Slider {
     text_element_id: u32,
@@ -12,8 +12,10 @@ pub struct Slider {
     decimals: usize,
     id: u32,
     scale: Vec2,
+    z_index: f32,
 }
 
+#[derive(Clone, Copy)]
 pub struct SliderUpdateResult {
     pub change_amount: f32,
     pub new_value: f32,
@@ -68,6 +70,7 @@ impl Slider {
             decimals: builder.decimals,
             id: element_registry.generate_element_id(),
             scale: builder.scale,
+            z_index: builder.z_index,
         })
     }
 
@@ -172,6 +175,10 @@ impl Slider {
 
         Ok(())
     }
+
+    pub fn z_index(&self) -> f32 {
+        self.z_index
+    }
 }
 
 pub struct SliderBuilder {
@@ -191,13 +198,13 @@ pub struct SliderBuilder {
 }
 
 impl SliderBuilder {
-    pub fn new(element_registry: &ElementRegistry) -> Self {
+    pub fn new() -> Self {
         Self {
             z_index: 10.0,
             position: Position::ScreenAnchor(AnchorPoint::Center),
-            background_color: element_registry.default_element_background_color(),
+            background_color: interface::default_element_background_color(),
             progress_color: (31, 90, 147),
-            text_color: element_registry.default_text_color(),
+            text_color: interface::default_text_color(),
             font_path: None,
             minimum_value: 0.0,
             maximum_value: 1.0,

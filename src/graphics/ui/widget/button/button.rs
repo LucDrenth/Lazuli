@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{Text, TextBuilder, shapes::RectangleBuilder, ElementRegistry, self, interface::is_valid_z_index, Position, element::{ui_element::UiElement, AnchorPoint}}, font::PlainBitmapBuilder}, asset_registry::AssetRegistry, input::Input, log};
+use crate::{graphics::{ui::{Text, TextBuilder, shapes::RectangleBuilder, ElementRegistry, self, interface::{is_valid_z_index, self}, Position, element::{ui_element::UiElement, AnchorPoint}}, font::PlainBitmapBuilder}, asset_registry::AssetRegistry, input::Input, log};
 
 pub struct Button {
     text_element_id: u32,
@@ -74,10 +74,10 @@ pub struct ButtonBuilder {
 }
 
 impl ButtonBuilder {
-    pub fn new(element_registry: &ElementRegistry) -> Self {
+    pub fn new() -> Self {
         Self {
-            background_color: element_registry.default_element_background_color(),
-            text_color: element_registry.default_text_color(),
+            background_color: interface::default_element_background_color(),
+            text_color: interface::default_text_color(),
             font_path: None,
             padding_x: 14.0,
             padding_y: 8.0,

@@ -15,7 +15,6 @@ pub struct ElementRegistry {
     dragged_element_id: Option<u32>, // element that is currently being dragged. Will be set to None on left mouse button up
     elements: Vec<ElementEntry>,
     current_element_id: u32,
-    
 }
 
 impl ElementRegistry {
@@ -257,8 +256,6 @@ impl ElementRegistry {
             .with_font_size(50.0)
         , None)
     }
-    pub fn default_text_color(&self) -> (u8, u8, u8) { (239, 239, 239) }
-    pub fn default_element_background_color(&self) -> (u8, u8, u8) { (56, 56, 56) }
 
     pub fn size(&self) -> &Vec2 { &self.window_size }
     pub fn width(&self) -> f32 { self.window_size.x }
