@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{asset_registry::{AssetRegistry, AssetId}, graphics::{material::Material, ui::Interface}};
+use crate::{asset_registry::{AssetRegistry, AssetId}, graphics::{material::Material, ui::ElementRegistry}};
 
 use super::{world_element_data::WorldElementData, AnchorElementData, Position};
 
@@ -15,7 +15,7 @@ pub trait UiElement {
     fn set_scale(&mut self, new_scale: Vec2, window_size: Vec2, anchor_element_data: Option<AnchorElementData>);
     fn get_size(&self) -> Vec2;
     fn get_screen_position(&self) -> Vec2;
-    fn set_position(&mut self, position: Position, interface: &Interface);
+    fn set_position(&mut self, position: Position, element_registry: &ElementRegistry);
 
     // TODO these are element specific, but need to be accessed from interface it's ui_element collection
     fn set_text(&mut self, text: &String, asset_registry: &mut AssetRegistry, window_size: &Vec2) -> Result<(), String>;

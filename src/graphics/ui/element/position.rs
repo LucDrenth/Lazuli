@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::graphics::ui::Interface;
+use crate::graphics::ui::ElementRegistry;
 
 use super::{AnchorPoint, AnchorElementData};
 
@@ -54,12 +54,12 @@ impl Position {
         }
     }
 
-    pub fn get_anchor_element_data(&self, interface: &Interface) -> Option<AnchorElementData> {
+    pub fn get_anchor_element_data(&self, element_registry: &ElementRegistry) -> Option<AnchorElementData> {
         match self {
             Position::Fixed(_, _) => None,
             Position::ScreenAnchor(_) => None,
             Position::ElementAnchor(_, element_id) => {
-                Some(interface.get_anchor_data(*element_id).unwrap())
+                Some(element_registry.get_anchor_data(*element_id).unwrap())
             },
         }
     }

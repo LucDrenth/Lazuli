@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::graphics::ui::Interface;
+use crate::graphics::ui::ElementRegistry;
 
 use super::{Position, AnchorElementData};
 
@@ -15,7 +15,7 @@ pub struct WorldElementData {
 }
 
 impl WorldElementData {
-    pub fn new(position_type: Position, z_index: f32, size: Vec2, scale: Vec2, interface: &Interface) -> Self {
+    pub fn new(position_type: Position, z_index: f32, size: Vec2, scale: Vec2, element_registry: &ElementRegistry) -> Self {
         let mut result = Self {
             size,
             position: Vec2::ZERO, // to be calculated with calculate_position
@@ -24,8 +24,8 @@ impl WorldElementData {
             scale,
         };
 
-        let anchor_element_data = position_type.get_anchor_element_data(interface);
-        result.calculate_position(interface.size().clone(), anchor_element_data);
+        let anchor_element_data = position_type.get_anchor_element_data(element_registry);
+        result.calculate_position(element_registry.size().clone(), anchor_element_data);
 
         result
     }
@@ -61,11 +61,11 @@ impl WorldElementData {
         // If we implement screen anchor points we might want to use this function
     }
 
-    pub fn set_position(&mut self, position: Position, interface: &Interface) {
+    pub fn set_position(&mut self, position: Position, element_registry: &ElementRegistry) {
         self.position_type = position;
 
-        let anchor_element_data = self.position_type.get_anchor_element_data(interface);
-        self.calculate_position(interface.size().clone(), anchor_element_data);
+        let anchor_element_data = self.position_type.get_anchor_element_data(element_registry);
+        self.calculate_position(element_registry.size().clone(), anchor_element_data);
     }
 
     pub fn position(&self) -> &Vec2 { &self.position }

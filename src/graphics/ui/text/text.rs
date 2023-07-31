@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{font::Font, Transform, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, Position, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, Interface}, material::Material}, asset_registry::{AssetRegistry, AssetId}, log};
+use crate::{graphics::{font::Font, Transform, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, Position, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, ElementRegistry}, material::Material}, asset_registry::{AssetRegistry, AssetId}, log};
 
 use super::glyph::Glyph;
 
@@ -58,7 +58,7 @@ impl UiElement for Text {
     }
     fn get_size(&self) -> Vec2 { self.world_data.size().clone() }
     fn get_screen_position(&self) -> Vec2 { self.world_data.position().clone() }
-    fn set_position(&mut self, position: Position, interface: &Interface) { self.world_data.set_position(position, interface) }
+    fn set_position(&mut self, position: Position, element_registry: &ElementRegistry) { self.world_data.set_position(position, element_registry) }
     
     fn set_text(&mut self, text: &String, asset_registry: &mut AssetRegistry, _window_size: &Vec2) -> Result<(), String> {
         // TODO this shares a lot of code with the 'new' funcion
@@ -119,7 +119,7 @@ impl UiElement for Text {
 }
 
 impl Text {
-    pub fn new(text: String, font_id: &AssetId<Font>, text_builder: TextBuilder, asset_registry: &mut AssetRegistry, interface: &Interface) -> Result<Self, String> {
+    pub fn new(text: String, font_id: &AssetId<Font>, text_builder: TextBuilder, asset_registry: &mut AssetRegistry, element_registry: &ElementRegistry) -> Result<Self, String> {
         let font_material_id;
         let font_space_size;
         let bitmap_spread;
@@ -175,7 +175,7 @@ impl Text {
             , text_builder.z_index
             , Vec2::new(worldspace_width, worldspace_height)
             , text_builder.scale
-            , interface
+            , element_registry
         );
 
         Ok(Self { 

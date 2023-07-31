@@ -1,8 +1,6 @@
 use glam::Vec2;
 
-use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_registry::{AssetRegistry, AssetId}, input::{Input, MouseButton}, graphics::font::{Font, PlainBitmapBuilder}, log};
-
-use super::{TextBuilder, Text, shapes::{Rectangle, RectangleBuilder}, element::{ui_element::UiElement, AnchorElementData}};
+use crate::{asset_registry::{AssetRegistry, AssetId}, input::{Input, MouseButton}, graphics::{font::{Font, PlainBitmapBuilder}, ui::{element::{ui_element::UiElement, AnchorElementData}, Text, TextBuilder, shapes::{RectangleBuilder, Rectangle}}}, log};
 
 const MIN_Z_INDEX: f32 = 1.0;
 const MAX_Z_INDEX: f32 = 10_000.0;
@@ -12,58 +10,47 @@ struct ElementEntry {
     element: Box<dyn UiElement>,
 }
 
-pub struct Interface {
-    window_resize_listener: EventReader<WindowResizeEvent>,
-    size: Vec2,
+pub struct ElementRegistry {
+    window_size: Vec2,
     dragged_element_id: Option<u32>, // element that is currently being dragged. Will be set to None on left mouse button up
-
     elements: Vec<ElementEntry>,
     current_element_id: u32,
     
 }
 
-impl Interface {
-    pub fn new(event_system: &mut EventSystem, window_size: Vec2) -> Self {
-        let window_resize_listener = event_system.register::<WindowResizeEvent>();
-
+impl ElementRegistry {
+    pub fn new(window_size: Vec2) -> Self {
         Self {
-            window_resize_listener,
             elements: vec![],
             current_element_id: 0,
-            size: window_size,
+            window_size,
             dragged_element_id: None,
         }
     }
 
-    pub fn update(&mut self, asset_registry: &mut AssetRegistry, input: &Input) {
+    pub fn update(&mut self, _asset_registry: &mut AssetRegistry, input: &Input) {
         if input.is_mouse_button_up(MouseButton::Left) {
             self.dragged_element_id = None;
         }
-
-        self.handle_window_resize(asset_registry);
     }
 
-    fn handle_window_resize(&mut self, asset_registry: &mut AssetRegistry) {
-        match self.window_resize_listener.read().last() {
-            Some(e) => {
-                self.size = Vec2::new(e.width as f32, e.height as f32);
+    pub fn handle_window_resize(&mut self, window_size: Vec2, asset_registry: &mut AssetRegistry) {
+        self.window_size = window_size;
+        let view_uniform = to_view_uniform(self.window_size.x, self.window_size.y);
 
-                // update view uniform of all ui elements
-                for element_entry in self.elements.iter_mut() {
-                    element_entry.element.handle_window_resize(&self.size);
-                    let shader_id;
+        // update view uniform of all ui elements
+        for element_entry in self.elements.iter_mut() {
+            element_entry.element.handle_window_resize(&self.window_size);
+            let shader_id;
 
-                    match asset_registry.get_material_by_id(element_entry.element.material_id()) {
-                        Some(material) => {
-                            shader_id = material.shader_id.duplicate();
-                        }
-                        None => continue,
-                    }
-
-                    asset_registry.get_shader_by_id(&shader_id).unwrap().set_uniform("view", to_view_uniform(e.width as f32, e.height as f32));
+            match asset_registry.get_material_by_id(element_entry.element.material_id()) {
+                Some(material) => {
+                    shader_id = material.shader_id.duplicate();
                 }
-            },
-            None => (),            
+                None => continue,
+            }
+
+            asset_registry.get_shader_by_id(&shader_id).unwrap().set_uniform("view", view_uniform);
         }
     }
 
@@ -223,7 +210,7 @@ impl Interface {
     }
 
     pub fn set_text(&mut self, text_element_id: u32, text: &String, asset_registry: &mut AssetRegistry) -> Result<(), String> {
-        let window_size: Vec2 = self.size.clone();
+        let window_size: Vec2 = self.window_size.clone();
 
         match self.get_mut_element(text_element_id) {
             Some(element) => {
@@ -236,8 +223,8 @@ impl Interface {
     // map mouse position so that (0, 0) is the center
     pub fn map_mouse_position(&self, input: &Input) -> Vec2 {
         Vec2 {
-            x: input.get_mouse_position_x() as f32 - self.size.x / 2.0,
-            y: -(input.get_mouse_position_y() as f32 - self.size.y / 2.0),
+            x: input.get_mouse_position_x() as f32 - self.window_size.x / 2.0,
+            y: -(input.get_mouse_position_y() as f32 - self.window_size.y / 2.0),
         }
     }
 
@@ -273,9 +260,9 @@ impl Interface {
     pub fn default_text_color(&self) -> (u8, u8, u8) { (239, 239, 239) }
     pub fn default_element_background_color(&self) -> (u8, u8, u8) { (56, 56, 56) }
 
-    pub fn size(&self) -> &Vec2 { &self.size }
-    pub fn width(&self) -> f32 { self.size.x }
-    pub fn height(&self) -> f32 { self.size.y }
+    pub fn size(&self) -> &Vec2 { &self.window_size }
+    pub fn width(&self) -> f32 { self.window_size.x }
+    pub fn height(&self) -> f32 { self.window_size.y }
 }
 
 fn to_view_uniform(window_width: f32, window_height: f32) -> (f32, f32) {

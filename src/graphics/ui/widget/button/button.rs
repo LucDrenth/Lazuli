@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{Text, TextBuilder, shapes::RectangleBuilder, Interface, self, interface::is_valid_z_index, Position, element::{ui_element::UiElement, AnchorPoint}}, font::PlainBitmapBuilder}, asset_registry::AssetRegistry, input::Input, log};
+use crate::{graphics::{ui::{Text, TextBuilder, shapes::RectangleBuilder, ElementRegistry, self, interface::is_valid_z_index, Position, element::{ui_element::UiElement, AnchorPoint}}, font::PlainBitmapBuilder}, asset_registry::AssetRegistry, input::Input, log};
 
 pub struct Button {
     text_element_id: u32,
@@ -8,13 +8,13 @@ pub struct Button {
 }
 
 impl Button {
-    pub fn new(label: String, builder: ButtonBuilder, interface: &mut Interface, asset_registry: &mut AssetRegistry) -> Result<Self, String> {
+    pub fn new(label: String, builder: ButtonBuilder, element_registry: &mut ElementRegistry, asset_registry: &mut AssetRegistry) -> Result<Self, String> {
         let font_id = match builder.font_path {
             Some(font_path) => asset_registry.load_font(PlainBitmapBuilder::new()
                 .with_font_file_path(font_path)
                 .with_font_size(50.0)
                 , None)?,
-            None => interface.default_font(asset_registry)?,
+            None => element_registry.default_font(asset_registry)?,
         };
 
         let mut text = Text::new(label, &font_id, TextBuilder::new()
@@ -22,7 +22,7 @@ impl Button {
             .with_z_index(builder.z_index + 0.01)
             .with_font_size(builder.font_size)
             .with_scale(builder.scale)
-        , asset_registry, interface)?;
+        , asset_registry, element_registry)?;
         
         let background_width = text.world_data().width() + builder.padding_x * 2.0;
         let background_height = text.world_data().height() + builder.padding_y * 2.0;
@@ -34,11 +34,11 @@ impl Button {
             .with_z_index(builder.z_index)
             .with_position(builder.position)
             .with_scale(builder.scale)
-        , asset_registry, interface)?;
-        let background_element_id = interface.add_element(background);
+        , asset_registry, element_registry)?;
+        let background_element_id = element_registry.add_element(background);
 
-        text.set_position(Position::ElementAnchor(AnchorPoint::Center, background_element_id), interface);
-        let text_element_id = interface.add_element(text);
+        text.set_position(Position::ElementAnchor(AnchorPoint::Center, background_element_id), element_registry);
+        let text_element_id = element_registry.add_element(text);
 
         Ok(Self {
             text_element_id,
@@ -46,17 +46,17 @@ impl Button {
         })
     }
 
-    pub fn is_hovered(&self, input: &Input, interface: &Interface) -> bool {
-        interface.is_element_hovered(self.background_element_id, input)
+    pub fn is_hovered(&self, input: &Input, element_registry: &ElementRegistry) -> bool {
+        element_registry.is_element_hovered(self.background_element_id, input)
     }
 
-    pub fn is_clicked(&self, input: &Input, interface: &Interface) -> bool {
-        interface.is_element_clicked(self.background_element_id, input)
+    pub fn is_clicked(&self, input: &Input, element_registry: &ElementRegistry) -> bool {
+        element_registry.is_element_clicked(self.background_element_id, input)
     }
 
-    pub fn set_scale(&mut self, scale: Vec2, interface: &mut Interface) -> Result<(), String> {
-        interface.set_element_scale(self.background_element_id, scale)?;
-        interface.set_element_scale(self.text_element_id, scale)?;
+    pub fn set_scale(&mut self, scale: Vec2, element_registry: &mut ElementRegistry) -> Result<(), String> {
+        element_registry.set_element_scale(self.background_element_id, scale)?;
+        element_registry.set_element_scale(self.text_element_id, scale)?;
         Ok(())
     }
 }
@@ -74,10 +74,10 @@ pub struct ButtonBuilder {
 }
 
 impl ButtonBuilder {
-    pub fn new(interface: &Interface) -> Self {
+    pub fn new(element_registry: &ElementRegistry) -> Self {
         Self {
-            background_color: interface.default_element_background_color(),
-            text_color: interface.default_text_color(),
+            background_color: element_registry.default_element_background_color(),
+            text_color: element_registry.default_text_color(),
             font_path: None,
             padding_x: 14.0,
             padding_y: 8.0,

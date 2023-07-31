@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, Position, Interface}, material::Material}, set_attribute, error::opengl, asset_registry::{AssetRegistry, AssetId}, log};
+use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, Position, ElementRegistry}, material::Material}, set_attribute, error::opengl, asset_registry::{AssetRegistry, AssetId}, log};
 use crate::graphics::shapes::RECTANGLE_INDICES;
 
 type VertexPosition = [f32; 2];
@@ -61,7 +61,7 @@ impl UiElement for Rectangle {
     }
     fn get_size(&self) -> Vec2 { self.world_data.size().clone() }
     fn get_screen_position(&self) -> Vec2 { self.world_data.position().clone() }
-    fn set_position(&mut self, position: Position, interface: &Interface) { self.world_data.set_position(position, interface) }
+    fn set_position(&mut self, position: Position, element_registry: &ElementRegistry) { self.world_data.set_position(position, element_registry) }
     
     fn set_text(&mut self, text: &String, _asset_registry: &mut AssetRegistry, _window_size: &Vec2) -> Result<(), String> {
         Err(format!("Can not set text of a ui rectangle. Tried with [{}]", text))
@@ -69,7 +69,7 @@ impl UiElement for Rectangle {
 }
 
 impl Rectangle {
-    pub fn new(builder: RectangleBuilder, asset_registry: &mut AssetRegistry, interface: &Interface) -> Result<Self, String> {
+    pub fn new(builder: RectangleBuilder, asset_registry: &mut AssetRegistry, element_registry: &ElementRegistry) -> Result<Self, String> {
         let shader_builder = match builder.shader_builder {
             Some(custom_shader_builder) => custom_shader_builder,
             None => Self::default_shader_builder(),
@@ -103,7 +103,7 @@ impl Rectangle {
             builder.z_index, 
             Vec2::new(builder.width, builder.height),
             builder.scale,
-            interface
+            element_registry
         );
 
         Ok(Self { 

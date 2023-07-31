@@ -1,22 +1,22 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, font::PlainBitmapBuilder, ui::{self, TextBuilder}}, event::EventSystem, input::Input, asset_registry::AssetRegistry};
+use crate::{graphics::{scene::Scene, font::PlainBitmapBuilder, ui::{TextBuilder, Interface}}, event::EventSystem, input::Input, asset_registry::AssetRegistry};
 
 pub struct HelloText {
-    interface: ui::Interface,
+    interface: Interface,
 }
 
 impl Scene for HelloText {
     fn new(event_system: &mut EventSystem, window_size: Vec2, asset_registry: &mut AssetRegistry) -> Result<Self, String> 
     {
-        let mut interface: ui::Interface = ui::Interface::new(event_system, window_size);
+        let mut interface = Interface::new(event_system, window_size);
 
 
         let plain_font_id = asset_registry.load_font(PlainBitmapBuilder::new()
             .with_font_size(50.0)
         , None)?;
         
-        interface.add_text("Welcome to Lazuli engine".to_string(), Some(&plain_font_id), TextBuilder::new()
+        interface.mut_element_registry().add_text("Welcome to Lazuli engine".to_string(), Some(&plain_font_id), TextBuilder::new()
             .with_font_size(25.0)
             .with_color((255, 255, 255))
             .with_letter_spacing(0.05)
@@ -38,8 +38,8 @@ impl Scene for HelloText {
         //     .with_color((255, 255, 255))
         //     .with_letter_spacing(0.05)
         //     .with_position(ui::Position::FixedBottom(-100.0))
-        // , asset_registry, &interface.size())?;
-        // interface.add_element(sdf_text);
+        // , asset_registry, &element_registry.size())?;
+        // element_registry.add_element(sdf_text);
         
 
         let result = Self { 
