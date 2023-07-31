@@ -14,7 +14,7 @@ impl Button {
                 .with_font_file_path(font_path)
                 .with_font_size(50.0)
                 , None)?,
-            None => element_registry.default_font(asset_registry)?,
+            None => interface::default_font(asset_registry)?,
         };
 
         let mut text = Text::new(label, &font_id, TextBuilder::new()

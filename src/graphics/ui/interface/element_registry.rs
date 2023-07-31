@@ -1,6 +1,8 @@
 use glam::Vec2;
 
-use crate::{asset_registry::{AssetRegistry, AssetId}, input::{Input, MouseButton}, graphics::{font::{Font, PlainBitmapBuilder}, ui::{element::{ui_element::UiElement, AnchorElementData}, Text, TextBuilder, shapes::{RectangleBuilder, Rectangle}}}, log};
+use crate::{asset_registry::{AssetRegistry, AssetId}, input::{Input, MouseButton}, graphics::{font::Font, ui::{element::{ui_element::UiElement, AnchorElementData}, Text, TextBuilder, shapes::{RectangleBuilder, Rectangle}}}, log};
+
+use super::interface;
 
 const MIN_Z_INDEX: f32 = 1.0;
 const MAX_Z_INDEX: f32 = 10_000.0;
@@ -86,7 +88,7 @@ impl ElementRegistry {
     pub fn add_text(&mut self, text: String, font_id: Option<&AssetId<Font>>, text_builder: TextBuilder, asset_registry: &mut AssetRegistry) -> Result<u32, String> {
         let font_id_to_use = match font_id {
             Some(id) => id.duplicate(),
-            None => self.default_font(asset_registry)?,
+            None => interface::default_font(asset_registry)?,
         };
 
         let text = Text::new(text, &font_id_to_use, text_builder, asset_registry, self)?;
@@ -248,14 +250,6 @@ impl ElementRegistry {
             Some(dragged_element_id) => dragged_element_id == element_id,
             None => false,
         }
-    }
-
-    // TODO make these default values configurable
-    pub fn default_font(&self, asset_registry: &mut AssetRegistry) -> Result<AssetId<Font>, String> {
-        asset_registry.load_font(PlainBitmapBuilder::new()
-            .with_font_file_path("./assets/fonts/roboto.ttf".to_string())
-            .with_font_size(50.0)
-        , None)
     }
 
     pub fn size(&self) -> &Vec2 { &self.window_size }

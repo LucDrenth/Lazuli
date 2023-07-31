@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_registry::AssetRegistry, input::Input, graphics::ui::widget::{SliderBuilder, SliderUpdateResult}};
+use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_registry::{AssetRegistry, AssetId}, input::Input, graphics::{ui::widget::{SliderBuilder, SliderUpdateResult}, font::{Font, PlainBitmapBuilder}}};
 
 use super::{ElementRegistry, widget_registry::WidgetRegistry};
 
@@ -51,5 +51,12 @@ impl Interface {
     pub fn mut_element_registry(&mut self) -> &mut ElementRegistry { &mut self.element_registry }
 }
 
+// TODO make these configurable
 pub fn default_text_color() -> (u8, u8, u8) { (239, 239, 239) }
 pub fn default_element_background_color() -> (u8, u8, u8) { (56, 56, 56) }
+pub fn default_font(asset_registry: &mut AssetRegistry) -> Result<AssetId<Font>, String> {
+    asset_registry.load_font(PlainBitmapBuilder::new()
+        .with_font_file_path("./assets/fonts/roboto.ttf".to_string())
+        .with_font_size(50.0)
+    , None)
+}
