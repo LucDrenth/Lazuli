@@ -83,7 +83,7 @@ impl ButtonBuilder {
             padding_y: 8.0,
             z_index: 10.0,
             position: Position::ScreenAnchor(AnchorPoint::Center),
-            font_size: 14.0,
+            font_size: interface::default_font_size(),
             scale: Vec2::ONE,
         }
     }

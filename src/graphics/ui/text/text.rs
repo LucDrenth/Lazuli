@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{font::Font, Transform, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, Position, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, ElementRegistry}, material::Material}, asset_registry::{AssetRegistry, AssetId}, log};
+use crate::{graphics::{font::Font, Transform, ui::{interface::{is_valid_z_index, map_z_index_for_shader, self}, Position, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, ElementRegistry}, material::Material}, asset_registry::{AssetRegistry, AssetId}, log};
 
 use super::glyph::Glyph;
 
@@ -196,7 +196,7 @@ pub struct TextBuilder {
 impl TextBuilder {
     pub fn new() -> Self {
         TextBuilder { 
-            font_size: 14.0,
+            font_size: interface::default_font_size(),
             color: (255, 255, 255),
             letter_spacing: 0.04,
             position: Position::ScreenAnchor(AnchorPoint::Center),

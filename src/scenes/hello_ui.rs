@@ -21,6 +21,7 @@ impl Scene for HelloUi {
             .with_z_index(400.0)
             .with_position(Position::ScreenAnchor(AnchorPoint::BottomLeftInside(10.0, 120.00)))
             .with_initial_value(1.0)
+            .with_font_size(20.0)
         , asset_registry)?;
 
         let anchor = interface.slider_anchor_element_id(width_slider_id).unwrap();

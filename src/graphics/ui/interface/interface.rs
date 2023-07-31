@@ -54,6 +54,9 @@ impl Interface {
 // TODO make these configurable
 pub fn default_text_color() -> (u8, u8, u8) { (239, 239, 239) }
 pub fn default_element_background_color() -> (u8, u8, u8) { (56, 56, 56) }
+pub fn default_font_size() -> f32 {
+    14.0
+}
 pub fn default_font(asset_registry: &mut AssetRegistry) -> Result<AssetId<Font>, String> {
     asset_registry.load_font(PlainBitmapBuilder::new()
         .with_font_file_path("./assets/fonts/roboto.ttf".to_string())
