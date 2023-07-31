@@ -57,6 +57,7 @@ impl Slider {
             .with_z_index(builder.z_index + 0.02)
             .with_scale(builder.scale)
             .with_position(Position::ElementAnchor(AnchorPoint::Center, background_element_id))
+            .with_font_size(builder.font_size)
         , asset_registry, element_registry)?;
         let text_element_id = element_registry.add_element(text);
 
@@ -188,6 +189,7 @@ pub struct SliderBuilder {
     z_index: f32,
     position: Position,
     font_path: Option<String>,
+    font_size: f32,
     minimum_value: f32,
     maximum_value: f32,
     initial_value: f32,
@@ -206,6 +208,7 @@ impl SliderBuilder {
             progress_color: (31, 90, 147),
             text_color: interface::default_text_color(),
             font_path: None,
+            font_size: interface::default_font_size(),
             minimum_value: 0.0,
             maximum_value: 1.0,
             initial_value: 0.5,
@@ -234,6 +237,11 @@ impl SliderBuilder {
 
     pub fn with_font_path(mut self, font_path: String) -> Self {
         self.font_path = Some(font_path);
+        self
+    }
+
+    pub fn with_font_size(mut self, font_size: f32) -> Self {
+        self.font_size = font_size;
         self
     }
 
