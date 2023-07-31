@@ -30,13 +30,13 @@ impl WidgetRegistry {
 
     pub fn add_slider(&mut self, builder: SliderBuilder, element_registry: &mut ElementRegistry, asset_registry: &mut AssetRegistry) -> Result<u32, String> {
         let slider = Slider::new(builder, element_registry, asset_registry)?;
+        
         self.slider_id += 1;
         self.sliders.push(SliderEntry {
             slider,
             id: self.slider_id,
             update_result: None,
         });
-
         self.sort_sliders_by_z_index();
 
         Ok(self.slider_id)
@@ -63,25 +63,41 @@ impl WidgetRegistry {
     }
 
     pub fn slider_anchor_element_id(&self, slider_id: u32) -> Option<u32> {
+        match self.get_slider(slider_id) {
+            Some(slider) => {
+                Some(slider.anchor_element_id())
+            },
+            None => {
+                log::warn(format!("Returning None for slider_anchor_element_id because slider with id {} was not found", slider_id));
+                None
+            },
+        }
+    }
+
+    pub fn set_slider_value(&mut self, value: f32, slider_id: u32, element_registry: &mut ElementRegistry, asset_registry: &mut AssetRegistry) {
+        match self.get_mut_slider(slider_id) {
+            Some(slider) => slider.set_value(value, element_registry, asset_registry),
+            None => log::warn(format!("Failed to set slider value because slider with id {} was not found", slider_id)),
+        }
+    }
+
+    fn get_slider(&self, slider_id: u32) -> Option<&Slider> {
         for entry in self.sliders.iter() {
             if entry.id == slider_id {
-                return Some(entry.slider.anchor_element_id());
+                return Some(&entry.slider);
             }
         }
-
-        log::warn(format!("Returning None for slider_anchor_element_id because slider with id {} was not found", slider_id));
 
         None
     }
 
-    pub fn set_slider_value(&mut self, value: f32, slider_id: u32, element_registry: &mut ElementRegistry, asset_registry: &mut AssetRegistry) {
+    fn get_mut_slider(&mut self, slider_id: u32) -> Option<&mut Slider> {
         for entry in self.sliders.iter_mut() {
             if entry.id == slider_id {
-                entry.slider.set_value(value, element_registry, asset_registry);
-                return
+                return Some(&mut entry.slider);
             }
         }
 
-        log::warn(format!("Failed to set slider value because slider with id {} was not found", slider_id));
+        None
     }
 }
