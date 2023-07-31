@@ -15,8 +15,8 @@ pub struct Slider {
 }
 
 pub struct SliderUpdateResult {
-    pub change: Option<f32>,
-    pub value: f32,
+    pub change_amount: f32,
+    pub new_value: f32,
     pub did_start_drag: bool,
 }
 
@@ -71,22 +71,22 @@ impl Slider {
         })
     }
 
-    pub fn update(&mut self, input: &Input, interface: &mut Interface, asset_registry: &mut AssetRegistry) -> SliderUpdateResult {
-        let mut result = SliderUpdateResult {
-            change: None,
-            value: self.value,
-            did_start_drag: self.check_activate_drag(input, interface),
-        };
+    /// Returns Some if there is a change by dragging the slider
+    pub fn update(&mut self, input: &Input, interface: &mut Interface, asset_registry: &mut AssetRegistry) -> Option<SliderUpdateResult> {
+        let did_start_drag = self.check_activate_drag(input, interface);
 
         if !interface.is_element_dragged(self.id) {
-            return result;
+            return None;
         }
 
+        let old_value = self.value;
         self.handle_drag(input, interface, asset_registry);
 
-        result.change = Some(self.value - result.value);
-        result.value = self.value;
-        result
+        Some(SliderUpdateResult{
+            change_amount: self.value - old_value,
+            new_value: self.value,
+            did_start_drag,
+        })
     }
 
     /// Check if we should enable dragging

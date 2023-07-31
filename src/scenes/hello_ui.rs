@@ -57,25 +57,24 @@ impl Scene for HelloUi {
     fn update(&mut self, _: &mut EventSystem, input: &Input, asset_registry: &mut AssetRegistry) {
         self.interface.update(asset_registry, input);
 
-        // TODO update in order of z index
-        let result = self.slider_1.update(input, &mut self.interface, asset_registry);
-        if result.change.is_some() {
+        // TODO update in order of z index so that if they are (partly) at the same position, we always drag the upper one
+        self.slider_1.update(input, &mut self.interface, asset_registry).map(|result| {
             self.interface.set_element_scale(self.rectangle_id, Vec2 { 
-                x: result.value, 
+                x: result.new_value, 
                 y: self.interface.get_element_scale(self.rectangle_id).unwrap().y,
             }).unwrap();
-        }
-        if result.did_start_drag {
-            log::engine_info("start drag".to_string());
-        }
 
-        let result = self.slider_2.update(input, &mut self.interface, asset_registry);
-        if result.change.is_some() {
+            if result.did_start_drag {
+                log::engine_info("start drag".to_string());
+            }
+        });
+
+        self.slider_2.update(input, &mut self.interface, asset_registry).map(|result| {
             self.interface.set_element_scale(self.rectangle_id, Vec2 { 
                 x: self.interface.get_element_scale(self.rectangle_id).unwrap().x,
-                y: result.value, 
+                y: result.new_value, 
             }).unwrap();
-        }
+        });
 
         if self.reset_button.is_clicked(input, &self.interface) {
             self.slider_1.set_value(1.0, &mut self.interface, asset_registry);
