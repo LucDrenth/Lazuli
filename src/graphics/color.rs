@@ -27,7 +27,7 @@ impl Color {
         );
     }
 
-    /// Ignores any alpha value
+    /// If the value does not have any alpha, alpha will be set to 1.0
     pub fn to_rgba_tuple(&self) -> (u8, u8, u8, f32) {
         match self {
             Color::Rgb(r, g, b) => (*r, *g, *b, 1.0),
@@ -36,7 +36,6 @@ impl Color {
         }
     }
 
-    /// Ignores any alpha value
     pub fn to_normalised_rgba_tuple(&self) -> (f32, f32, f32, f32) {
         let tuple = self.to_rgba_tuple();
 
@@ -65,6 +64,7 @@ pub fn hex_to_rgb(hex: &String) -> (u8, u8, u8) {
     )
 }
 
+/// If the input does not have any alpha, alpha will be set to 1.0
 pub fn hex_to_rgba(hex: &String) -> (u8, u8, u8, f32) {
     match is_valid_hex(hex) {
         Ok(_) => (),
