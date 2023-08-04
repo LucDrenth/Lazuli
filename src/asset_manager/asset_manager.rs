@@ -4,14 +4,14 @@ use crate::graphics::{texture::{Texture, TextureImage}, font::{Font, BitmapBuild
 
 use super::{AssetId, asset_collection::AssetCollection};
 
-pub struct AssetRegistry {
+pub struct AssetManager {
     textures: AssetCollection<Texture, Option<String>>,
     fonts: AssetCollection<Font, u64>,
     shaders: AssetCollection<ShaderProgram, u64>,
     materials: AssetCollection<Material, u64>,
 }
 
-impl AssetRegistry {
+impl AssetManager {
     pub fn new() -> Self {
         Self {
             textures: AssetCollection::new(),

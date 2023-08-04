@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, Position, ElementRegistry}, material::Material}, set_attribute, error::opengl, asset_registry::{AssetRegistry, AssetId}, log};
+use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, Position, ElementRegistry}, material::Material}, set_attribute, error::opengl, asset_manager::{AssetManager, AssetId}, log};
 use crate::graphics::shapes::RECTANGLE_INDICES;
 
 type VertexPosition = [f32; 2];
@@ -16,9 +16,9 @@ pub struct Rectangle {
 }
 
 impl UiElement for Rectangle {
-    fn draw(&self, asset_registry: &mut AssetRegistry) {
-        let shader_id = asset_registry.get_material_by_id(&self.material_id).unwrap().shader_id.duplicate();
-        let shader = asset_registry.get_shader_by_id(&shader_id).unwrap();
+    fn draw(&self, asset_manager: &mut AssetManager) {
+        let shader_id = asset_manager.get_material_by_id(&self.material_id).unwrap().shader_id.duplicate();
+        let shader = asset_manager.get_shader_by_id(&shader_id).unwrap();
 
         shader.apply();
         self.vao.bind();
@@ -65,14 +65,14 @@ impl UiElement for Rectangle {
 }
 
 impl Rectangle {
-    pub fn new(builder: RectangleBuilder, asset_registry: &mut AssetRegistry, element_registry: &ElementRegistry) -> Result<Self, String> {
+    pub fn new(builder: RectangleBuilder, asset_manager: &mut AssetManager, element_registry: &ElementRegistry) -> Result<Self, String> {
         let shader_builder = match builder.shader_builder {
             Some(custom_shader_builder) => custom_shader_builder,
             None => Self::default_shader_builder(),
         };
 
-        let shader_id = asset_registry.load_shader(shader_builder)?;
-        let material_id = asset_registry.load_material(&shader_id)?;
+        let shader_id = asset_manager.load_shader(shader_builder)?;
+        let material_id = asset_manager.load_material(&shader_id)?;
 
         let vertices: [Vertex; 4] = [
             Vertex([-builder.width / 2.0, -builder.height / 2.0]), // bottom left
@@ -90,7 +90,7 @@ impl Rectangle {
         let mut ebo = Buffer::new_ebo();
         ebo.set_data(&RECTANGLE_INDICES, gl::STATIC_DRAW);
 
-        let position_attribute = asset_registry.get_shader_by_id(&shader_id).unwrap().get_attribute_location("position")
+        let position_attribute = asset_manager.get_shader_by_id(&shader_id).unwrap().get_attribute_location("position")
             .expect("Could not get position attribute");
         set_attribute!(vao, position_attribute, Vertex::0);
 

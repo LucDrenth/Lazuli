@@ -3,11 +3,11 @@ use std::{fs, path::Path};
 use glam::Vec2;
 
 use serde::{Deserialize, Serialize};
-use crate::{graphics::scene::Scene, event::EventSystem, input::Input, asset_registry::AssetRegistry, log};
+use crate::{graphics::scene::Scene, event::EventSystem, input::Input, asset_manager::AssetManager, log};
 
 pub struct HelloJson {}
 impl Scene for HelloJson {
-    fn new(_event_system: &mut EventSystem, _window_size: Vec2, _: &mut AssetRegistry) -> Result<Self, String>
+    fn new(_event_system: &mut EventSystem, _window_size: Vec2, _: &mut AssetManager) -> Result<Self, String>
     {
         let data = MyStruct {
             id: 15,
@@ -24,8 +24,8 @@ impl Scene for HelloJson {
         Ok(result)
     }
 
-    fn update(&mut self, _: &mut EventSystem, _: &Input, _: &mut AssetRegistry) {}
-    unsafe fn draw(&self, _: &mut AssetRegistry) {}
+    fn update(&mut self, _: &mut EventSystem, _: &Input, _: &mut AssetManager) {}
+    unsafe fn draw(&self, _: &mut AssetManager) {}
 }
 
 #[derive(Serialize, Deserialize)]

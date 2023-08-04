@@ -1,4 +1,4 @@
-use crate::asset_registry::{AssetRegistry, AssetId};
+use crate::asset_manager::{AssetManager, AssetId};
 
 use super::{shader::ShaderProgram, texture::Texture};
 
@@ -15,8 +15,8 @@ impl Material {
         }
     }
 
-    pub fn add_texture(&mut self, texture_id: AssetId<Texture>, asset_registry: &mut AssetRegistry) {
-        asset_registry.get_shader_by_id(&self.shader_id).unwrap().set_uniform(
+    pub fn add_texture(&mut self, texture_id: AssetId<Texture>, asset_manager: &mut AssetManager) {
+        asset_manager.get_shader_by_id(&self.shader_id).unwrap().set_uniform(
             format!("texture{}", self.texture_ids.len()).as_str(), 
             self.texture_ids.len() as i32
         );
@@ -28,16 +28,16 @@ impl Material {
         self.texture_ids.push(texture_id);
     }
 
-    pub fn activate(&self, asset_registry: &mut AssetRegistry) {
-        asset_registry.get_shader_by_id(&self.shader_id).unwrap().apply();
+    pub fn activate(&self, asset_manager: &mut AssetManager) {
+        asset_manager.get_shader_by_id(&self.shader_id).unwrap().apply();
         
         for (index, texture_id) in self.texture_ids.iter().enumerate() {
-            asset_registry.get_texture_by_id(texture_id).unwrap().activate(index);
+            asset_manager.get_texture_by_id(texture_id).unwrap().activate(index);
         }
     }
 
-    pub fn shader<'a>(&'a self, asset_registry: &'a mut AssetRegistry) -> Option<&ShaderProgram> {
-        asset_registry.get_shader_by_id(&self.shader_id)
+    pub fn shader<'a>(&'a self, asset_manager: &'a mut AssetManager) -> Option<&ShaderProgram> {
+        asset_manager.get_shader_by_id(&self.shader_id)
     }
 
     pub fn texture_ids_copy(&self) -> Vec<AssetId<Texture>> {

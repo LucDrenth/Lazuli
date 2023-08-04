@@ -1,6 +1,6 @@
 use std::{fs::File, io::Read, collections::HashMap};
 
-use crate::{graphics::{texture::ImageType, shader::ShaderProgram, material::Material}, asset_registry::{AssetRegistry, AssetId}, log};
+use crate::{graphics::{texture::ImageType, shader::ShaderProgram, material::Material}, asset_manager::{AssetManager, AssetId}, log};
 
 use super::{BitmapCharacter, Bitmap, bitmap::BitmapBuilder, bitmap_cache};
 
@@ -18,14 +18,14 @@ pub struct Font {
 /// * `bitmap_builder` -
 /// * `shader` - None to use the default text shader
 impl Font {
-    pub fn new(bitmap_builder: impl BitmapBuilder, shader_id: AssetId<ShaderProgram>, asset_registry: &mut AssetRegistry) -> Result<Self, String> {
+    pub fn new(bitmap_builder: impl BitmapBuilder, shader_id: AssetId<ShaderProgram>, asset_manager: &mut AssetManager) -> Result<Self, String> {
         match load_font(bitmap_builder.font_file_path()) {
             Ok(font) => {
                 let bitmap = Self::get_bitmap(font, bitmap_builder.font_file_path(), &bitmap_builder)?;
 
-                let texture_id = asset_registry.load_texture_from_image(bitmap.image())?.duplicate();
-                let material_id = asset_registry.load_material(&shader_id)?.duplicate();
-                asset_registry.add_material_texture(&material_id, &texture_id);
+                let texture_id = asset_manager.load_texture_from_image(bitmap.image())?.duplicate();
+                let material_id = asset_manager.load_material(&shader_id)?.duplicate();
+                asset_manager.add_material_texture(&material_id, &texture_id);
 
                 Ok(Self { 
                     bitmap,
@@ -64,8 +64,8 @@ impl Font {
         self.bitmap.spread()
     }
 
-    // pub fn material<'a>(&'a self, asset_registry: &'a AssetRegistry) -> Option<&mut Material> {
-    //     asset_registry.get_material_by_id(self.material_id)
+    // pub fn material<'a>(&'a self, asset_manager: &'a AssetManager) -> Option<&mut Material> {
+    //     asset_manager.get_material_by_id(self.material_id)
     // }
 
     fn get_bitmap(font: rusttype::Font<'static>, path: &String, bitmap_builder: &impl BitmapBuilder) -> Result<Box<dyn Bitmap>, String> {

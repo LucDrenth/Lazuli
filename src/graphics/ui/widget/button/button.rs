@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{Text, TextBuilder, shapes::RectangleBuilder, ElementRegistry, self, interface::{is_valid_z_index, self}, Position, element::{ui_element::UiElement, AnchorPoint}}, font::PlainBitmapBuilder}, asset_registry::AssetRegistry, input::Input, log};
+use crate::{graphics::{ui::{Text, TextBuilder, shapes::RectangleBuilder, ElementRegistry, self, interface::{is_valid_z_index, self}, Position, element::{ui_element::UiElement, AnchorPoint}}, font::PlainBitmapBuilder}, asset_manager::AssetManager, input::Input, log};
 
 pub struct Button {
     text_element_id: u32,
@@ -8,13 +8,13 @@ pub struct Button {
 }
 
 impl Button {
-    pub fn new(label: String, builder: ButtonBuilder, element_registry: &mut ElementRegistry, asset_registry: &mut AssetRegistry) -> Result<Self, String> {
+    pub fn new(label: String, builder: ButtonBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<Self, String> {
         let font_id = match builder.font_path {
-            Some(font_path) => asset_registry.load_font(PlainBitmapBuilder::new()
+            Some(font_path) => asset_manager.load_font(PlainBitmapBuilder::new()
                 .with_font_file_path(font_path)
                 .with_font_size(50.0)
                 , None)?,
-            None => interface::default_font(asset_registry)?,
+            None => interface::default_font(asset_manager)?,
         };
 
         let mut text = Text::new(label, &font_id, TextBuilder::new()
@@ -22,7 +22,7 @@ impl Button {
             .with_z_index(builder.z_index + 0.01)
             .with_font_size(builder.font_size)
             .with_scale(builder.scale)
-        , asset_registry, element_registry)?;
+        , asset_manager, element_registry)?;
         
         let background_width = text.world_data().width() + builder.padding_x * 2.0;
         let background_height = text.world_data().height() + builder.padding_y * 2.0;
@@ -34,7 +34,7 @@ impl Button {
             .with_z_index(builder.z_index)
             .with_position(builder.position)
             .with_scale(builder.scale)
-        , asset_registry, element_registry)?;
+        , asset_manager, element_registry)?;
         let background_element_id = element_registry.add_rectangle(background);
 
         text.set_position(Position::ElementAnchor(AnchorPoint::Center, background_element_id), element_registry);

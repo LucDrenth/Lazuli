@@ -2,7 +2,7 @@ use std::any::TypeId;
 
 use glam::Vec2;
 
-use crate::{asset_registry::{AssetRegistry, AssetId}, input::{Input, MouseButton}, graphics::{font::Font, ui::{element::{ui_element::UiElement, AnchorElementData}, Text, TextBuilder, shapes::{RectangleBuilder, Rectangle}}}, log};
+use crate::{asset_manager::{AssetManager, AssetId}, input::{Input, MouseButton}, graphics::{font::Font, ui::{element::{ui_element::UiElement, AnchorElementData}, Text, TextBuilder, shapes::{RectangleBuilder, Rectangle}}}, log};
 
 use super::{interface, element_list::{ElementList, OrderedElementsItem, self}};
 
@@ -38,17 +38,17 @@ impl ElementRegistry {
         }
     }
 
-    pub fn update(&mut self, _asset_registry: &mut AssetRegistry, input: &Input) {
+    pub fn update(&mut self, _asset_manager: &mut AssetManager, input: &Input) {
         if input.is_mouse_button_up(MouseButton::Left) {
             self.dragged_element_id = None;
         }
     }
 
-    pub fn draw(&self, asset_registry: &mut AssetRegistry) {
+    pub fn draw(&self, asset_manager: &mut AssetManager) {
         for ordered_item in self.ordered_elements.iter() {
             match self.get_ui_element_by_index(ordered_item.element_type, ordered_item.index) {
                 Some(element) => {
-                    element.draw(asset_registry);
+                    element.draw(asset_manager);
                 },
                 None => {
                     log::engine_warn(format!("Failed to draw ElementRegistry item because we could not get it from ordered item {:?}", ordered_item));
@@ -110,13 +110,13 @@ impl ElementRegistry {
         return None
     }
 
-    pub fn create_text(&mut self, text: String, font_id: Option<&AssetId<Font>>, text_builder: TextBuilder, asset_registry: &mut AssetRegistry) -> Result<u32, String> {
+    pub fn create_text(&mut self, text: String, font_id: Option<&AssetId<Font>>, text_builder: TextBuilder, asset_manager: &mut AssetManager) -> Result<u32, String> {
         let font_id_to_use = match font_id {
             Some(id) => id.duplicate(),
-            None => interface::default_font(asset_registry)?,
+            None => interface::default_font(asset_manager)?,
         };
 
-        let text_element = Text::new(text, &font_id_to_use, text_builder, asset_registry, self)?;
+        let text_element = Text::new(text, &font_id_to_use, text_builder, asset_manager, self)?;
         Ok(self.add_text(text_element))
     }
 
@@ -126,8 +126,8 @@ impl ElementRegistry {
         id
     }
 
-    pub fn create_rectangle(&mut self, builder: RectangleBuilder, asset_registry: &mut AssetRegistry) -> Result<u32, String> {
-        let rectangle_element = Rectangle::new(builder, asset_registry, self)?;
+    pub fn create_rectangle(&mut self, builder: RectangleBuilder, asset_manager: &mut AssetManager) -> Result<u32, String> {
+        let rectangle_element = Rectangle::new(builder, asset_manager, self)?;
         Ok(self.add_rectangle(rectangle_element))
     }
 
@@ -149,7 +149,7 @@ impl ElementRegistry {
         self.ordered_elements = ordered_elements;
     }
 
-    pub fn handle_window_resize(&mut self, window_size: Vec2, asset_registry: &mut AssetRegistry) {
+    pub fn handle_window_resize(&mut self, window_size: Vec2, asset_manager: &mut AssetManager) {
         self.window_size = window_size.clone();
         let view_uniform = to_view_uniform(self.window_size.x, self.window_size.y);
 
@@ -164,14 +164,14 @@ impl ElementRegistry {
 
                     let shader_id;
 
-                    match asset_registry.get_material_by_id(element.material_id()) {
+                    match asset_manager.get_material_by_id(element.material_id()) {
                         Some(material) => {
                             shader_id = material.shader_id.duplicate();
                         }
                         None => continue,
                     }
 
-                    asset_registry.get_shader_by_id(&shader_id).unwrap().set_uniform("view", view_uniform);
+                    asset_manager.get_shader_by_id(&shader_id).unwrap().set_uniform("view", view_uniform);
                 },
                 None => {
                     log::engine_warn(format!("Failed to handle ElementRegistry window resize for element because we could not get it from ordered item {:?}"
@@ -275,13 +275,13 @@ impl ElementRegistry {
         }
     }
 
-    pub fn set_text(&mut self, text_element_id: u32, text: &String, asset_registry: &mut AssetRegistry) -> Result<(), String> {
+    pub fn set_text(&mut self, text_element_id: u32, text: &String, asset_manager: &mut AssetManager) -> Result<(), String> {
         let window_size: Vec2 = self.window_size.clone();
         let anchor_data = self.get_anchor_element_data(text_element_id)?;
 
         match self.text_elements.get_mut_by_id(text_element_id) {
             Some(text_element) => {
-                text_element.set_text(text, window_size, anchor_data, asset_registry)
+                text_element.set_text(text, window_size, anchor_data, asset_manager)
             },
             None => Err(format!("failed to set text because element with id {} was not found", text_element_id)),
         }

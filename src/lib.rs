@@ -8,7 +8,7 @@ pub mod event;
 pub mod input;
 pub mod time;
 pub mod math;
-pub mod asset_registry;
+pub mod asset_manager;
 
 mod log;
 pub use log::info;

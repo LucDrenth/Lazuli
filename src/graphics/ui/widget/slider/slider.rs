@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{ElementRegistry, interface::{is_valid_z_index, self}, Text, TextBuilder, Position, shapes::{Rectangle, RectangleBuilder}, element::AnchorPoint}, font::PlainBitmapBuilder}, asset_registry::AssetRegistry, log, input::{Input, MouseButton}};
+use crate::{graphics::{ui::{ElementRegistry, interface::{is_valid_z_index, self}, Text, TextBuilder, Position, shapes::{Rectangle, RectangleBuilder}, element::AnchorPoint}, font::PlainBitmapBuilder}, asset_manager::AssetManager, log, input::{Input, MouseButton}};
 
 pub struct Slider {
     text_element_id: u32,
@@ -23,13 +23,13 @@ pub struct SliderUpdateResult {
 }
 
 impl Slider {
-    pub fn new(builder: SliderBuilder, element_registry: &mut ElementRegistry, asset_registry: &mut AssetRegistry) -> Result<Self, String> {
+    pub fn new(builder: SliderBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<Self, String> {
         let font_id = match builder.font_path {
-            Some(font_path) => asset_registry.load_font(PlainBitmapBuilder::new()
+            Some(font_path) => asset_manager.load_font(PlainBitmapBuilder::new()
                 .with_font_file_path(font_path)
                 .with_font_size(50.0)
                 , None)?,
-            None => interface::default_font(asset_registry)?,
+            None => interface::default_font(asset_manager)?,
         };
 
         let background = Rectangle::new(RectangleBuilder::new()
@@ -39,7 +39,7 @@ impl Slider {
             .with_position(builder.position)
             .with_color(builder.background_color)
             .with_scale(builder.scale)
-        , asset_registry, element_registry)?;
+        , asset_manager, element_registry)?;
         let background_element_id = element_registry.add_rectangle(background);
 
         let progress_rectangle = Rectangle::new(RectangleBuilder::new()
@@ -49,7 +49,7 @@ impl Slider {
             .with_color(builder.progress_color)
             .with_position(Position::ElementAnchor(AnchorPoint::LeftInside(0.0), background_element_id)) // TODO why does it not center at the left?
             .with_scale(Vec2::new(builder.initial_value / (builder.maximum_value - builder.minimum_value), 1.0) * builder.scale)
-        , asset_registry, element_registry)?;
+        , asset_manager, element_registry)?;
         let progress_element_id = element_registry.add_rectangle(progress_rectangle);
 
         let text = Text::new(Self::value_string(builder.initial_value, builder.decimals), &font_id, TextBuilder::new()
@@ -58,7 +58,7 @@ impl Slider {
             .with_scale(builder.scale)
             .with_position(Position::ElementAnchor(AnchorPoint::Center, background_element_id))
             .with_font_size(builder.font_size)
-        , asset_registry, element_registry)?;
+        , asset_manager, element_registry)?;
         let text_element_id = element_registry.add_text(text);
 
         Ok(Self {
@@ -76,7 +76,7 @@ impl Slider {
     }
 
     /// Returns Some if there is a change by dragging the slider
-    pub fn update(&mut self, input: &Input, element_registry: &mut ElementRegistry, asset_registry: &mut AssetRegistry) -> Option<SliderUpdateResult> {
+    pub fn update(&mut self, input: &Input, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Option<SliderUpdateResult> {
         let did_start_drag = self.check_activate_drag(input, element_registry);
 
         if !element_registry.is_element_dragged(self.id) {
@@ -84,7 +84,7 @@ impl Slider {
         }
 
         let old_value = self.value;
-        self.handle_drag(input, element_registry, asset_registry);
+        self.handle_drag(input, element_registry, asset_manager);
 
         Some(SliderUpdateResult{
             change_amount: self.value - old_value,
@@ -102,7 +102,7 @@ impl Slider {
         false
     }
 
-    fn handle_drag(&mut self, input: &Input, element_registry: &mut ElementRegistry, asset_registry: &mut AssetRegistry) {
+    fn handle_drag(&mut self, input: &Input, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) {
         let element_size = element_registry.get_element_size(self.background_element_id).unwrap();
         let element_position = element_registry.get_element_screen_position(self.background_element_id).unwrap();
 
@@ -110,7 +110,7 @@ impl Slider {
         let element_end_x = element_position.x + element_size.x / 2.0;
         let normalised_value = (element_registry.map_mouse_position(input).x - element_start_x) / (element_end_x - element_start_x);
 
-        self.set_normalised_value(normalised_value, element_registry, asset_registry);
+        self.set_normalised_value(normalised_value, element_registry, asset_manager);
     }
 
     pub fn is_hovered(&self, input: &Input, element_registry: &ElementRegistry) -> bool {
@@ -119,19 +119,19 @@ impl Slider {
 
     pub fn value(&self) -> f32 { self.value }
 
-    pub fn set_value(&mut self, value: f32, element_registry: &mut ElementRegistry, asset_registry: &mut AssetRegistry) {
+    pub fn set_value(&mut self, value: f32, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) {
         self.value = value.clamp(self.minimum_value, self.maximum_value);
         self.update_progress_element(element_registry);
-        self.update_text_element(element_registry, asset_registry)
+        self.update_text_element(element_registry, asset_manager)
     }
 
-    pub fn translate_value(&mut self, extra_value: f32, element_registry: &mut ElementRegistry, asset_registry: &mut AssetRegistry) {
-        self.set_value(self.value + extra_value, element_registry, asset_registry);
+    pub fn translate_value(&mut self, extra_value: f32, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) {
+        self.set_value(self.value + extra_value, element_registry, asset_manager);
     }
 
-    pub fn set_normalised_value(&mut self, normalised_value: f32, element_registry: &mut ElementRegistry, asset_registry: &mut AssetRegistry) {
+    pub fn set_normalised_value(&mut self, normalised_value: f32, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) {
         let value = (self.maximum_value - self.minimum_value) * normalised_value + self.minimum_value;
-        self.set_value(value, element_registry, asset_registry);
+        self.set_value(value, element_registry, asset_manager);
     }
 
     fn update_progress_element(&self, element_registry: &mut ElementRegistry) {
@@ -145,8 +145,8 @@ impl Slider {
         }
     }
 
-    fn update_text_element(&mut self, element_registry: &mut ElementRegistry, asset_registry: &mut AssetRegistry) {
-        match element_registry.set_text(self.text_element_id, &Self::value_string(self.value, self.decimals), asset_registry) {
+    fn update_text_element(&mut self, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) {
+        match element_registry.set_text(self.text_element_id, &Self::value_string(self.value, self.decimals), asset_manager) {
             Ok(_) => (),
             Err(err) => {
                 log::engine_warn(format!("failed to update slider text: {}", err));

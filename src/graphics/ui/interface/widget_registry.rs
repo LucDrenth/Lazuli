@@ -1,4 +1,4 @@
-use crate::{graphics::ui::widget::{Slider, SliderBuilder, SliderUpdateResult}, asset_registry::AssetRegistry, input::Input, log};
+use crate::{graphics::ui::widget::{Slider, SliderBuilder, SliderUpdateResult}, asset_manager::AssetManager, input::Input, log};
 
 use super::ElementRegistry;
 
@@ -22,14 +22,14 @@ impl WidgetRegistry {
         }
     }
 
-    pub fn update(&mut self, input: &Input, element_registry: &mut ElementRegistry, asset_registry: &mut AssetRegistry) {
+    pub fn update(&mut self, input: &Input, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) {
         for entry in self.sliders.iter_mut() {
-            entry.update_result = entry.slider.update(input, element_registry, asset_registry);
+            entry.update_result = entry.slider.update(input, element_registry, asset_manager);
         }
     }
 
-    pub fn add_slider(&mut self, builder: SliderBuilder, element_registry: &mut ElementRegistry, asset_registry: &mut AssetRegistry) -> Result<u32, String> {
-        let slider = Slider::new(builder, element_registry, asset_registry)?;
+    pub fn add_slider(&mut self, builder: SliderBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<u32, String> {
+        let slider = Slider::new(builder, element_registry, asset_manager)?;
         
         self.slider_id += 1;
         self.sliders.push(SliderEntry {
@@ -74,9 +74,9 @@ impl WidgetRegistry {
         }
     }
 
-    pub fn set_slider_value(&mut self, value: f32, slider_id: u32, element_registry: &mut ElementRegistry, asset_registry: &mut AssetRegistry) {
+    pub fn set_slider_value(&mut self, value: f32, slider_id: u32, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) {
         match self.get_mut_slider(slider_id) {
-            Some(slider) => slider.set_value(value, element_registry, asset_registry),
+            Some(slider) => slider.set_value(value, element_registry, asset_manager),
             None => log::engine_warn(format!("Failed to set slider value because slider with id {} was not found", slider_id)),
         }
     }

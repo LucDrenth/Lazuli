@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{font::Font, Transform, ui::{interface::{is_valid_z_index, map_z_index_for_shader, self}, Position, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, ElementRegistry}, material::Material}, asset_registry::{AssetRegistry, AssetId}, log};
+use crate::{graphics::{font::Font, Transform, ui::{interface::{is_valid_z_index, map_z_index_for_shader, self}, Position, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, ElementRegistry}, material::Material}, asset_manager::{AssetManager, AssetId}, log};
 
 use super::glyph::Glyph;
 
@@ -17,10 +17,10 @@ pub struct Text {
 }
 
 impl UiElement for Text {
-    fn draw(&self, asset_registry: &mut AssetRegistry) {
-        asset_registry.activate_material(&self.material_id);
+    fn draw(&self, asset_manager: &mut AssetManager) {
+        asset_manager.activate_material(&self.material_id);
 
-        let shader = asset_registry.get_material_shader(&self.material_id).unwrap();
+        let shader = asset_manager.get_material_shader(&self.material_id).unwrap();
 
         shader.set_uniform("color", (
             (self.color.0 as f32 / 255.0),
@@ -62,9 +62,9 @@ impl UiElement for Text {
 }
 
 impl Text {
-    pub fn new(text: String, font_id: &AssetId<Font>, text_builder: TextBuilder, asset_registry: &mut AssetRegistry, element_registry: &mut ElementRegistry) -> Result<Self, String> {
+    pub fn new(text: String, font_id: &AssetId<Font>, text_builder: TextBuilder, asset_manager: &mut AssetManager, element_registry: &mut ElementRegistry) -> Result<Self, String> {
         let font_material_id;
-        match asset_registry.get_font_by_id(font_id) {
+        match asset_manager.get_font_by_id(font_id) {
             Some(font) => {
                 font_material_id = font.material_id.duplicate();
             },
@@ -94,19 +94,19 @@ impl Text {
             &result.text.clone(), 
             element_registry.size().clone(), 
             result.world_data.position_type().get_anchor_element_data(element_registry), 
-            asset_registry
+            asset_manager
         )?;
 
         Ok(result)
     }
 
-    pub fn set_text(&mut self, text: &String, window_size: Vec2, anchor_element_data: Option<AnchorElementData>, asset_registry: &mut AssetRegistry) -> Result<(), String> {
+    pub fn set_text(&mut self, text: &String, window_size: Vec2, anchor_element_data: Option<AnchorElementData>, asset_manager: &mut AssetManager) -> Result<(), String> {
         let font_space_size;
         let bitmap_spread;
         let total_width;
         let bitmap_characters;
 
-        match asset_registry.get_font_by_id(&self.font_id) {
+        match asset_manager.get_font_by_id(&self.font_id) {
             Some(font) => {
                 font_space_size = font.space_size;
                 bitmap_spread = (font.bitmap_spread() as f32) * 2.0 / font.line_height() as f32;
@@ -120,8 +120,8 @@ impl Text {
         let worldspace_width = (start_x * self.font_size * 2.0).abs();
         let worldspace_height = self.font_size;
 
-        let shader_id = asset_registry.get_material_by_id(&self.material_id).unwrap().shader_id.duplicate();
-        let shader = asset_registry.get_shader_by_id(&shader_id).unwrap();
+        let shader_id = asset_manager.get_material_by_id(&self.material_id).unwrap().shader_id.duplicate();
+        let shader = asset_manager.get_shader_by_id(&shader_id).unwrap();
 
         self.glyphs = Vec::new();
 

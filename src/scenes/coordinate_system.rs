@@ -3,7 +3,7 @@ use std::f32::consts::{PI, TAU};
 use glam::{Vec3, Vec2};
 use rand::{Rng, rngs::ThreadRng};
 
-use crate::{graphics::{scene::Scene, Cube, shader::{PATH_COLORED_FRAG, ShaderBuilder}, Transform, Camera, Shape, material::Material}, event::{EventSystem, self}, input::{Input, Key}, time, asset_registry::{AssetRegistry, AssetId}};
+use crate::{graphics::{scene::Scene, Cube, shader::{PATH_COLORED_FRAG, ShaderBuilder}, Transform, Camera, Shape, material::Material}, event::{EventSystem, self}, input::{Input, Key}, time, asset_manager::{AssetManager, AssetId}};
 
 pub struct CoordinateSystem {
     material_id: AssetId<Material>,
@@ -17,15 +17,15 @@ pub struct CoordinateSystem {
 }
 
 impl Scene for CoordinateSystem {
-    fn new(event_system: &mut EventSystem, window_size: Vec2, asset_registry: &mut AssetRegistry) -> Result<Self, String> {
+    fn new(event_system: &mut EventSystem, window_size: Vec2, asset_manager: &mut AssetManager) -> Result<Self, String> {
         event_system.send(event::LockCursor{});
         event_system.send(event::HideCursor{});
 
-        let shader_id = asset_registry.load_shader(ShaderBuilder::new()
+        let shader_id = asset_manager.load_shader(ShaderBuilder::new()
             .with_vertex_shader_path("./assets/shaders/with-camera.vert".to_string())
             .with_fragment_shader_path(PATH_COLORED_FRAG.to_string())
         ).unwrap();
-        let material_id = asset_registry.load_material(&shader_id).unwrap();
+        let material_id = asset_manager.load_material(&shader_id).unwrap();
 
         let mut cubes = vec![];
         let mut transforms = vec![];
@@ -34,7 +34,7 @@ impl Scene for CoordinateSystem {
         let mut rng = rand::thread_rng();
 
         for _ in 0..15 {
-            let cube = Cube::new_colored(asset_registry.get_shader_by_id(&shader_id).unwrap());
+            let cube = Cube::new_colored(asset_manager.get_shader_by_id(&shader_id).unwrap());
             cubes.push(cube);
 
             let mut transform = Transform::new();
@@ -57,7 +57,7 @@ impl Scene for CoordinateSystem {
         camera.translate_z(-40.0);
 
         {
-            let shader = asset_registry.get_shader_by_id(&shader_id).unwrap();
+            let shader = asset_manager.get_shader_by_id(&shader_id).unwrap();
             shader.set_uniform("projection", camera.projection_for_shader());
             shader.set_uniform("view", camera.view_for_shader());
         }
@@ -76,14 +76,14 @@ impl Scene for CoordinateSystem {
         Ok(result)
     }
 
-    fn update(&mut self, _: &mut EventSystem, input: &Input, asset_registry: &mut AssetRegistry) {
+    fn update(&mut self, _: &mut EventSystem, input: &Input, asset_manager: &mut AssetManager) {
         for i in 0..self.cubes.len() {
             self.transforms[i].rotate(&self.rotations[i]);
         }
 
         // self.poll_axis_movement(input);
         self.poll_free_movement(input);
-        self.poll_zoom(input, asset_registry);
+        self.poll_zoom(input, asset_manager);
         
         if input.did_mouse_move() {
             self.camera.rotate(input.get_mouse_moved_x() as f32 / 50.0, input.get_mouse_moved_y() as f32 / 50.0);
@@ -93,11 +93,11 @@ impl Scene for CoordinateSystem {
             self.camera.look_at(self.transforms[0].position);
         }
 
-        asset_registry.get_material_shader(&self.material_id).unwrap().set_uniform("view", self.camera.view_for_shader());
+        asset_manager.get_material_shader(&self.material_id).unwrap().set_uniform("view", self.camera.view_for_shader());
     }
 
-    unsafe fn draw(&self, asset_registry: &mut AssetRegistry) {
-        let shader = asset_registry.get_material_shader(&self.material_id).unwrap();
+    unsafe fn draw(&self, asset_manager: &mut AssetManager) {
+        let shader = asset_manager.get_material_shader(&self.material_id).unwrap();
 
         for i in 0..self.cubes.len() {
             shader.set_uniform("model", self.transforms[i].for_shader());
@@ -135,12 +135,12 @@ impl CoordinateSystem {
         }
     }
 
-    fn poll_zoom(&mut self, input: &Input, asset_registry: &mut AssetRegistry) {
+    fn poll_zoom(&mut self, input: &Input, asset_manager: &mut AssetManager) {
         let scroll_y = input.get_scroll_y() as f32 * self.zoom_speed * time::DELTA;
 
         if scroll_y != 0.0 {
             self.camera.zoom(scroll_y);
-            asset_registry.get_material_shader(&self.material_id).unwrap().set_uniform("projection", self.camera.projection_for_shader());
+            asset_manager.get_material_shader(&self.material_id).unwrap().set_uniform("projection", self.camera.projection_for_shader());
         }
     }
 }

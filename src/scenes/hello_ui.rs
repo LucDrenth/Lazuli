@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, ui::{shapes::RectangleBuilder, widget::{Button, ButtonBuilder, SliderBuilder}, Position, AnchorPoint, TextBuilder, Interface}}, event::EventSystem, input::Input, asset_registry::AssetRegistry, log};
+use crate::{graphics::{scene::Scene, ui::{shapes::RectangleBuilder, widget::{Button, ButtonBuilder, SliderBuilder}, Position, AnchorPoint, TextBuilder, Interface}}, event::EventSystem, input::Input, asset_manager::AssetManager, log};
 
 pub struct HelloUi {
     interface: Interface,
@@ -11,41 +11,41 @@ pub struct HelloUi {
 }
 
 impl Scene for HelloUi {
-    fn new(event_system: &mut EventSystem, window_size: Vec2, asset_registry: &mut AssetRegistry) -> Result<Self, String> 
+    fn new(event_system: &mut EventSystem, window_size: Vec2, asset_manager: &mut AssetManager) -> Result<Self, String> 
     {
         let mut interface = Interface::new(event_system, window_size);
 
-        let rectangle_id = interface.mut_element_registry().create_rectangle(RectangleBuilder::new(), asset_registry)?;
+        let rectangle_id = interface.mut_element_registry().create_rectangle(RectangleBuilder::new(), asset_manager)?;
         
         let width_slider_id = interface.add_slider(SliderBuilder::new()
             .with_z_index(400.0)
             .with_position(Position::ScreenAnchor(AnchorPoint::BottomLeftInside(10.0, 120.00)))
             .with_initial_value(1.0)
-        , asset_registry)?;
+        , asset_manager)?;
 
         let anchor = interface.slider_anchor_element_id(width_slider_id).unwrap();
         interface.mut_element_registry().create_text("Rectangle width".to_string(), None, TextBuilder::new()
             .with_position(Position::ElementAnchor(AnchorPoint::RightOutside(10.0), anchor))
             .with_z_index(400.0)
-        , asset_registry)?;
+        , asset_manager)?;
 
 
         let height_slider_id = interface.add_slider(SliderBuilder::new()
             .with_z_index(500.0)
             .with_position(Position::ScreenAnchor(AnchorPoint::BottomLeftInside(10.0, 150.00)))
             .with_initial_value(1.0)
-        , asset_registry)?;
+        , asset_manager)?;
 
         let anchor = interface.slider_anchor_element_id(height_slider_id).unwrap();
         interface.mut_element_registry().create_text("Rectangle height".to_string(), None, TextBuilder::new()
             .with_position(Position::ElementAnchor(AnchorPoint::RightOutside(10.0), anchor))
             .with_z_index(500.0)
-        , asset_registry)?;
+        , asset_manager)?;
 
 
         let reset_button = Button::new("Reset".to_string(), ButtonBuilder::new()
             .with_position(Position::ScreenAnchor(AnchorPoint::LeftInside(20.0)))
-        , interface.mut_element_registry(), asset_registry)?;
+        , interface.mut_element_registry(), asset_manager)?;
 
         Ok(Self { 
             interface,
@@ -56,8 +56,8 @@ impl Scene for HelloUi {
         })
     }
 
-    fn update(&mut self, _: &mut EventSystem, input: &Input, asset_registry: &mut AssetRegistry) {
-        self.interface.update(asset_registry, input);
+    fn update(&mut self, _: &mut EventSystem, input: &Input, asset_manager: &mut AssetManager) {
+        self.interface.update(asset_manager, input);
 
         self.interface.slider_update_result(self.width_slider_id).map(|result|{
             let y = self.interface.mut_element_registry().get_element_scale(self.rectangle_id).unwrap().y;
@@ -80,13 +80,13 @@ impl Scene for HelloUi {
         });
 
         if self.reset_button.is_clicked(input, self.interface.mut_element_registry()) {
-            self.interface.set_slider_value(1.0, self.width_slider_id, asset_registry);
-            self.interface.set_slider_value(1.0, self.height_slider_id, asset_registry);
+            self.interface.set_slider_value(1.0, self.width_slider_id, asset_manager);
+            self.interface.set_slider_value(1.0, self.height_slider_id, asset_manager);
             self.interface.mut_element_registry().set_element_scale(self.rectangle_id, Vec2::ONE).expect("");
         }
     }
 
-    unsafe fn draw(&self, asset_registry: &mut AssetRegistry) {
-        self.interface.draw(asset_registry);
+    unsafe fn draw(&self, asset_manager: &mut AssetManager) {
+        self.interface.draw(asset_manager);
     }
 }

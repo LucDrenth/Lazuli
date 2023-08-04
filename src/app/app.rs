@@ -1,6 +1,6 @@
 use std::env;
 
-use crate::asset_registry::AssetRegistry;
+use crate::asset_manager::AssetManager;
 use crate::event::EventSystem;
 use crate::graphics::scene::Scene;
 use crate::graphics::window::{Window, GlutinWindow};
@@ -11,7 +11,7 @@ pub struct App {
     pub event_system: EventSystem,
     window: Box<dyn Window>,
     input: Input,
-    pub asset_registry: AssetRegistry,
+    pub asset_manager: AssetManager,
 }
 
 impl App {
@@ -22,9 +22,9 @@ impl App {
         let mut event_system = EventSystem::new();
         let window = Self::create_window(&mut event_system);
         let input = Input::new();
-        let asset_registry = AssetRegistry::new();
+        let asset_manager = AssetManager::new();
 
-        let app = Self { event_system, window, input, asset_registry };
+        let app = Self { event_system, window, input, asset_manager };
         app.run::<T>();
     }
 
@@ -34,8 +34,8 @@ impl App {
     }
 
     fn run<T: Scene + 'static>(mut self) {
-        let scene = T::new(&mut self.event_system, self.window.get_size(), &mut self.asset_registry).expect("App failed to create initial scene");
+        let scene = T::new(&mut self.event_system, self.window.get_size(), &mut self.asset_manager).expect("App failed to create initial scene");
         let renderer = Renderer::new(Box::new(scene)).expect("App failed to create renderer");
-        self.window.run(renderer, self.event_system, self.input, self.asset_registry);
+        self.window.run(renderer, self.event_system, self.input, self.asset_manager);
     }
 }
