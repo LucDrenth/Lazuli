@@ -1,8 +1,10 @@
+use std::any::TypeId;
+
 use glam::Vec2;
 
 use crate::{asset_registry::{AssetRegistry, AssetId}, input::{Input, MouseButton}, graphics::{font::Font, ui::{element::{ui_element::UiElement, AnchorElementData}, Text, TextBuilder, shapes::{RectangleBuilder, Rectangle}}}, log};
 
-use super::interface;
+use super::{interface, element_list::{ElementList, OrderedElementsItem, self}};
 
 const MIN_Z_INDEX: f32 = 1.0;
 const MAX_Z_INDEX: f32 = 10_000.0;
@@ -13,17 +15,24 @@ struct ElementEntry {
 }
 
 pub struct ElementRegistry {
+    text_elements: ElementList<Text>,
+    rectangle_elements: ElementList<Rectangle>,
+
+    /// list of ordered elements, ordered by z_index, so list starts with 
+    /// the elements with the highest z_index
+    ordered_elements: Vec<OrderedElementsItem>,
+
     window_size: Vec2,
     dragged_element_id: Option<u32>, // element that is currently being dragged. Will be set to None on left mouse button up
-    elements: Vec<ElementEntry>,
-    current_element_id: u32,
 }
 
 impl ElementRegistry {
     pub fn new(window_size: Vec2) -> Self {
         Self {
-            elements: vec![],
-            current_element_id: 0,
+            text_elements: ElementList::<Text>::new(),
+            rectangle_elements: ElementList::<Rectangle>::new(),
+            ordered_elements: vec![],
+
             window_size,
             dragged_element_id: None,
         }
@@ -35,78 +44,154 @@ impl ElementRegistry {
         }
     }
 
-    pub fn handle_window_resize(&mut self, window_size: Vec2, asset_registry: &mut AssetRegistry) {
-        self.window_size = window_size;
-        let view_uniform = to_view_uniform(self.window_size.x, self.window_size.y);
-
-        // update view uniform of all ui elements
-        for element_entry in self.elements.iter_mut() {
-            element_entry.element.handle_window_resize(&self.window_size);
-            let shader_id;
-
-            match asset_registry.get_material_by_id(element_entry.element.material_id()) {
-                Some(material) => {
-                    shader_id = material.shader_id.duplicate();
-                }
-                None => continue,
-            }
-
-            asset_registry.get_shader_by_id(&shader_id).unwrap().set_uniform("view", view_uniform);
-        }
-    }
-
     pub fn draw(&self, asset_registry: &mut AssetRegistry) {
-        for element_entry in self.elements.iter() {
-            element_entry.element.draw(asset_registry);
+        for ordered_item in self.ordered_elements.iter() {
+            match self.get_ui_element_by_index(ordered_item.element_type, ordered_item.index) {
+                Some(element) => {
+                    element.draw(asset_registry);
+                },
+                None => {
+                    log::engine_warn(format!("Failed to draw ElementRegistry item because we could not get it from ordered item {:?}", ordered_item));
+                },
+            }
         }
     }
 
-    pub fn add_element(&mut self, element: impl UiElement + 'static) -> u32 {
-        self.current_element_id += 1;
-
-        let new_element = ElementEntry { 
-            id: self.current_element_id, 
-            element: Box::new(element),
-        };
-
-        self.elements.push(new_element);
-        self.sort_elements_by_z_index();
-
-        self.current_element_id
+    /// The prefered way of getting a ui_element
+    fn get_ui_element_by_index(&self, type_id: TypeId, index: usize) -> Option<Box<&dyn UiElement>> {
+        if type_id == TypeId::of::<Rectangle>() {
+            match self.rectangle_elements.get_by_index(index) {
+                Some(el) => Some(Box::new(el)),
+                None => None,
+            }
+        } else if type_id == TypeId::of::<Text>() {
+            match self.text_elements.get_by_index(index) {
+                Some(el) => Some(Box::new(el)),
+                None => None,
+            }     
+        } else {
+            panic!("Unhandled element type")
+        }
+    }
+    fn get_mut_ui_element_by_index(&mut self, type_id: TypeId, index: usize) -> Option<Box<&mut dyn UiElement>> {
+        if type_id == TypeId::of::<Rectangle>() {
+            match self.rectangle_elements.get_mut_by_index(index) {
+                Some(el) => Some(Box::new(el)),
+                None => None,
+            }
+        } else if type_id == TypeId::of::<Text>() {
+            match self.text_elements.get_mut_by_index(index) {
+                Some(el) => Some(Box::new(el)),
+                None => None,
+            }     
+        } else {
+            panic!("Unhandled element type")
+        }
     }
 
-    pub fn generate_element_id(&mut self) -> u32 {
-        self.current_element_id += 1;
-        self.current_element_id
+    /// If the itemType and index are known, it's better to use get_ui_element_by_index. This is because
+    /// this function looks up the itemType and index and then uses get_ui_element_by_index
+    fn get_ui_element_by_id(&self, id: u32) -> Option<Box<&dyn UiElement>> {
+        for ordered_element in self.ordered_elements.iter() {
+            if ordered_element.item_id == id {
+                return self.get_ui_element_by_index(ordered_element.element_type, ordered_element.index);
+            }
+        }
+
+        return None
+    }
+    fn get_mut_ui_element_by_id(&mut self, id: u32) -> Option<Box<&mut dyn UiElement>> {
+        for ordered_element in self.ordered_elements.iter() {
+            if ordered_element.item_id == id {
+                return self.get_mut_ui_element_by_index(ordered_element.element_type, ordered_element.index);
+            }
+        }
+
+        return None
     }
 
-    // Sort elements so that the elements with the highest z-index are at the start of the list
-    fn sort_elements_by_z_index(&mut self) {
-        self.elements.sort_by(|a, b| a.element.world_data().z_index().total_cmp(&b.element.world_data().z_index()));
-    }
-
-    pub fn add_text(&mut self, text: String, font_id: Option<&AssetId<Font>>, text_builder: TextBuilder, asset_registry: &mut AssetRegistry) -> Result<u32, String> {
+    pub fn create_text(&mut self, text: String, font_id: Option<&AssetId<Font>>, text_builder: TextBuilder, asset_registry: &mut AssetRegistry) -> Result<u32, String> {
         let font_id_to_use = match font_id {
             Some(id) => id.duplicate(),
             None => interface::default_font(asset_registry)?,
         };
 
-        let text = Text::new(text, &font_id_to_use, text_builder, asset_registry, self)?;
-        Ok(self.add_element(text))
+        let text_element = Text::new(text, &font_id_to_use, text_builder, asset_registry, self)?;
+        Ok(self.add_text(text_element))
     }
 
-    pub fn add_rectangle(&mut self, builder: RectangleBuilder, asset_registry: &mut AssetRegistry) -> Result<u32, String> {
-        let rectangle = Rectangle::new(builder, asset_registry, &self)?;
-        Ok(self.add_element(rectangle))
+    pub fn add_text(&mut self, text_element: Text) -> u32 {
+        let id = self.text_elements.add(text_element);
+        self.update_ordered_elements();
+        id
+    }
+
+    pub fn create_rectangle(&mut self, builder: RectangleBuilder, asset_registry: &mut AssetRegistry) -> Result<u32, String> {
+        let rectangle_element = Rectangle::new(builder, asset_registry, self)?;
+        Ok(self.add_rectangle(rectangle_element))
+    }
+
+    pub fn add_rectangle(&mut self, rectangle_element: Rectangle) -> u32 {
+        let id = self.rectangle_elements.add(rectangle_element);
+        self.update_ordered_elements();
+        id
+    }
+
+    fn update_ordered_elements(&mut self) {
+        let mut ordered_elements: Vec<OrderedElementsItem> = vec![];
+        
+        // Append the ordered elements of every element list
+        ordered_elements.append(&mut self.text_elements.ordered_element_items());
+        ordered_elements.append(&mut self.rectangle_elements.ordered_element_items());
+
+        ordered_elements.sort_by(|a, b| a.z_index.total_cmp(&b.z_index));
+
+        self.ordered_elements = ordered_elements;
+    }
+
+    pub fn handle_window_resize(&mut self, window_size: Vec2, asset_registry: &mut AssetRegistry) {
+        self.window_size = window_size.clone();
+        let view_uniform = to_view_uniform(self.window_size.x, self.window_size.y);
+
+        // update view uniform of all ui elements
+        for i in 0..self.ordered_elements.len() {
+            let element_type = self.ordered_elements[i].element_type;
+            let element_index = self.ordered_elements[i].index;
+
+            match self.get_mut_ui_element_by_index(element_type, element_index) {
+                Some(element) => {
+                    element.handle_window_resize(&window_size);
+
+                    let shader_id;
+
+                    match asset_registry.get_material_by_id(element.material_id()) {
+                        Some(material) => {
+                            shader_id = material.shader_id.duplicate();
+                        }
+                        None => continue,
+                    }
+
+                    asset_registry.get_shader_by_id(&shader_id).unwrap().set_uniform("view", view_uniform);
+                },
+                None => {
+                    log::engine_warn(format!("Failed to handle ElementRegistry window resize for element because we could not get it from ordered item {:?}"
+                    , self.ordered_elements[i]));
+                },
+            }
+        }
+    }
+
+    pub fn generate_element_id(&mut self) -> u32 {
+        element_list::generate_id()
     }
 
     pub fn is_element_hovered(&self, element_id: u32, input: &Input) -> bool {
-        match self.get_element(element_id) {
+        match self.get_ui_element_by_id(element_id) {
             Some(element) => {
                 element.world_data().is_within(self.map_mouse_position(&input))
             }
             None => {
-                log::engine_warn(format!("interface is_element_hovered for element {} returned false because element was not found", element_id));
+                log::engine_warn(format!("ElementRegistry.is_element_hovered for element id {} returned false because element was not found", element_id));
                 false
             }
         }
@@ -117,28 +202,8 @@ impl ElementRegistry {
             && self.is_element_hovered(element_id, input)
     }
 
-    fn get_element(&self, element_id: u32) -> Option<&Box<dyn UiElement>> {
-        for element_entry in self.elements.iter() {
-            if element_entry.id == element_id {
-                return Some(&element_entry.element)
-            }
-        }
-
-        None
-    }
-
-    fn get_mut_element(&mut self, element_id: u32) -> Option<&mut Box<dyn UiElement>> {
-        for element_entry in self.elements.iter_mut() {
-            if element_entry.id == element_id {
-                return Some(&mut element_entry.element)
-            }
-        }
-
-        None
-    }
-
     pub fn get_element_scale(&self, element_id: u32) -> Result<Vec2, String> {
-        match self.get_element(element_id) {
+        match self.get_ui_element_by_id(element_id) {
             Some(element) => Ok(element.get_scale()),
             None => Err(format!("failed to get scale because element with id {} was not found", element_id)),
         }
@@ -149,7 +214,7 @@ impl ElementRegistry {
 
         let anchor_element_data = self.get_anchor_element_data(element_id)?;
 
-        match self.get_mut_element(element_id) {
+        match self.get_mut_ui_element_by_id(element_id) {
             Some(element) => {
                 element.set_scale(scale, window_size, anchor_element_data);
                 Ok(())
@@ -178,7 +243,7 @@ impl ElementRegistry {
     }
 
     pub fn get_anchor_element_id(&self, element_id: u32) -> Result<Option<u32>, String> {
-        match self.get_element(element_id) {
+        match self.get_ui_element_by_id(element_id) {
             Some(element) => {
                 Ok(element.world_data().position_type().get_anchor_element_id())
             },
@@ -188,7 +253,7 @@ impl ElementRegistry {
 
     /// get the base size of the element, not counting it's scale
     pub fn get_element_base_size(&self, element_id: u32) -> Result<Vec2, String> {
-        match self.get_element(element_id) {
+        match self.get_ui_element_by_id(element_id) {
             Some(element) => Ok(element.get_size()),
             None => Err(format!("failed to get size because element with id {} was not found", element_id)),
         }
@@ -196,7 +261,7 @@ impl ElementRegistry {
 
     /// get the base size of the element multiplied by its scale
     pub fn get_element_size(&self, element_id: u32) -> Result<Vec2, String> {        
-        match self.get_element(element_id) {
+        match self.get_ui_element_by_id(element_id) {
             Some(element) => Ok(element.get_size() * element.get_scale()),
             None => Err(format!("failed to get size because element with id {} was not found", element_id)),
         }
@@ -204,7 +269,7 @@ impl ElementRegistry {
 
     /// Get the position of the element as the center pixel (in world space)
     pub fn get_element_screen_position(&self, element_id: u32) -> Result<Vec2, String> {
-        match self.get_element(element_id) {
+        match self.get_ui_element_by_id(element_id) {
             Some(element) => Ok(element.get_screen_position()),
             None => Err(format!("failed to get size because element with id {} was not found", element_id)),
         }
@@ -214,7 +279,7 @@ impl ElementRegistry {
         let window_size: Vec2 = self.window_size.clone();
         let anchor_data = self.get_anchor_element_data(text_element_id)?;
 
-        match self.get_mut_element(text_element_id) {
+        match self.get_mut_ui_element_by_id(text_element_id) {
             Some(element) => {
                 element.set_text(text, window_size, anchor_data, asset_registry)
             },

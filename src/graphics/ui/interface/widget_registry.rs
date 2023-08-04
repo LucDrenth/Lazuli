@@ -57,7 +57,7 @@ impl WidgetRegistry {
             }
         }
 
-        log::warn(format!("Returning None for slider_update_result because slider with id {} was not found", slider_id));
+        log::engine_warn(format!("Returning None for slider_update_result because slider with id {} was not found", slider_id));
 
         None
     }
@@ -68,7 +68,7 @@ impl WidgetRegistry {
                 Some(slider.anchor_element_id())
             },
             None => {
-                log::warn(format!("Returning None for slider_anchor_element_id because slider with id {} was not found", slider_id));
+                log::engine_warn(format!("Returning None for slider_anchor_element_id because slider with id {} was not found", slider_id));
                 None
             },
         }
@@ -77,7 +77,7 @@ impl WidgetRegistry {
     pub fn set_slider_value(&mut self, value: f32, slider_id: u32, element_registry: &mut ElementRegistry, asset_registry: &mut AssetRegistry) {
         match self.get_mut_slider(slider_id) {
             Some(slider) => slider.set_value(value, element_registry, asset_registry),
-            None => log::warn(format!("Failed to set slider value because slider with id {} was not found", slider_id)),
+            None => log::engine_warn(format!("Failed to set slider value because slider with id {} was not found", slider_id)),
         }
     }
 

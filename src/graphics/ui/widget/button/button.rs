@@ -35,10 +35,10 @@ impl Button {
             .with_position(builder.position)
             .with_scale(builder.scale)
         , asset_registry, element_registry)?;
-        let background_element_id = element_registry.add_element(background);
+        let background_element_id = element_registry.add_rectangle(background);
 
         text.set_position(Position::ElementAnchor(AnchorPoint::Center, background_element_id), element_registry);
-        let text_element_id = element_registry.add_element(text);
+        let text_element_id = element_registry.add_text(text);
 
         Ok(Self {
             text_element_id,

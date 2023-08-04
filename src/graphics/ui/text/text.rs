@@ -17,7 +17,7 @@ pub struct Text {
 }
 
 impl UiElement for Text {
-    fn draw(&self, asset_registry: &mut AssetRegistry) {   
+    fn draw(&self, asset_registry: &mut AssetRegistry) {
         asset_registry.activate_material(&self.material_id);
 
         let shader = asset_registry.get_material_shader(&self.material_id).unwrap();
@@ -182,6 +182,10 @@ impl Text {
 
         return total_width - letter_spacing + spread;
     }
+
+    // TODO remove later
+    pub fn a_text_only_function(&self) {}
+    pub fn a_mut_text_only_function(&mut self) {}
 }
 
 pub struct TextBuilder {

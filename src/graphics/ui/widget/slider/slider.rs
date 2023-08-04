@@ -40,7 +40,7 @@ impl Slider {
             .with_color(builder.background_color)
             .with_scale(builder.scale)
         , asset_registry, element_registry)?;
-        let background_element_id = element_registry.add_element(background);
+        let background_element_id = element_registry.add_rectangle(background);
 
         let progress_rectangle = Rectangle::new(RectangleBuilder::new()
             .with_width(builder.width)
@@ -50,7 +50,7 @@ impl Slider {
             .with_position(Position::ElementAnchor(AnchorPoint::LeftInside(0.0), background_element_id)) // TODO why does it not center at the left?
             .with_scale(Vec2::new(builder.initial_value / (builder.maximum_value - builder.minimum_value), 1.0) * builder.scale)
         , asset_registry, element_registry)?;
-        let progress_element_id = element_registry.add_element(progress_rectangle);
+        let progress_element_id = element_registry.add_rectangle(progress_rectangle);
 
         let text = Text::new(Self::value_string(builder.initial_value, builder.decimals), &font_id, TextBuilder::new()
             .with_color(builder.text_color)
@@ -59,7 +59,7 @@ impl Slider {
             .with_position(Position::ElementAnchor(AnchorPoint::Center, background_element_id))
             .with_font_size(builder.font_size)
         , asset_registry, element_registry)?;
-        let text_element_id = element_registry.add_element(text);
+        let text_element_id = element_registry.add_text(text);
 
         Ok(Self {
             text_element_id,
@@ -149,7 +149,7 @@ impl Slider {
         match element_registry.set_text(self.text_element_id, &Self::value_string(self.value, self.decimals), asset_registry) {
             Ok(_) => (),
             Err(err) => {
-                log::warn(format!("failed to update slider text: {}", err));
+                log::engine_warn(format!("failed to update slider text: {}", err));
             },
         }
     }

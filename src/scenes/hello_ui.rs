@@ -15,7 +15,7 @@ impl Scene for HelloUi {
     {
         let mut interface = Interface::new(event_system, window_size);
 
-        let rectangle_id = interface.mut_element_registry().add_rectangle(RectangleBuilder::new(), asset_registry)?;
+        let rectangle_id = interface.mut_element_registry().create_rectangle(RectangleBuilder::new(), asset_registry)?;
         
         let width_slider_id = interface.add_slider(SliderBuilder::new()
             .with_z_index(400.0)
@@ -24,7 +24,7 @@ impl Scene for HelloUi {
         , asset_registry)?;
 
         let anchor = interface.slider_anchor_element_id(width_slider_id).unwrap();
-        interface.mut_element_registry().add_text("Rectangle width".to_string(), None, TextBuilder::new()
+        interface.mut_element_registry().create_text("Rectangle width".to_string(), None, TextBuilder::new()
             .with_position(Position::ElementAnchor(AnchorPoint::RightOutside(10.0), anchor))
             .with_z_index(400.0)
         , asset_registry)?;
@@ -37,7 +37,7 @@ impl Scene for HelloUi {
         , asset_registry)?;
 
         let anchor = interface.slider_anchor_element_id(height_slider_id).unwrap();
-        interface.mut_element_registry().add_text("Rectangle height".to_string(), None, TextBuilder::new()
+        interface.mut_element_registry().create_text("Rectangle height".to_string(), None, TextBuilder::new()
             .with_position(Position::ElementAnchor(AnchorPoint::RightOutside(10.0), anchor))
             .with_z_index(500.0)
         , asset_registry)?;
