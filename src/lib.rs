@@ -10,10 +10,11 @@ pub mod time;
 pub mod math;
 pub mod asset_manager;
 
-mod log;
-pub use log::info;
-pub use log::warn;
-pub use log::err;
+// TODO only expose the 3 commented out functions from `mod log`
+pub mod log;
+// pub use log::info;
+// pub use log::warn;
+// pub use log::err;
 
 pub extern crate glam;
 pub extern crate gl;

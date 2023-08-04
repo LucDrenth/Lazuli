@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{ElementRegistry, interface::{is_valid_z_index, self}, Text, TextBuilder, Position, shapes::{Rectangle, RectangleBuilder}, element::AnchorPoint}, font::PlainBitmapBuilder}, asset_manager::AssetManager, log, input::{Input, MouseButton}};
+use crate::{graphics::{ui::{ElementRegistry, interface::{is_valid_z_index, self}, Text, TextBuilder, Position, shapes::{Rectangle, RectangleBuilder}, element::AnchorPoint}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, log, input::{Input, MouseButton}};
 
 pub struct Slider {
     text_element_id: u32,
@@ -183,9 +183,9 @@ impl Slider {
 }
 
 pub struct SliderBuilder {
-    background_color: (u8, u8, u8),
-    progress_color: (u8, u8, u8),
-    text_color: (u8, u8, u8),
+    background_color: Color,
+    progress_color: Color,
+    text_color: Color,
     z_index: f32,
     position: Position,
     font_path: Option<String>,
@@ -205,7 +205,7 @@ impl SliderBuilder {
             z_index: 10.0,
             position: Position::ScreenAnchor(AnchorPoint::Center),
             background_color: interface::default_element_background_color(),
-            progress_color: (31, 90, 147),
+            progress_color: Color::Rgb(31, 90, 147),
             text_color: interface::default_text_color(),
             font_path: None,
             font_size: interface::default_font_size(),
@@ -230,8 +230,18 @@ impl SliderBuilder {
         self
     }
 
-    pub fn with_text_color(mut self, text_color: (u8, u8, u8)) -> Self {
+    pub fn with_text_color(mut self, text_color: Color) -> Self {
         self.text_color = text_color;
+        self
+    }
+
+    pub fn with_background_color(mut self, background_color: Color) -> Self {
+        self.background_color = background_color;
+        self
+    }
+
+    pub fn with_progress_color(mut self, progress_color: Color) -> Self {
+        self.progress_color = progress_color;
         self
     }
 

@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_manager::{AssetManager, AssetId}, input::Input, graphics::{ui::widget::{SliderBuilder, SliderUpdateResult}, font::{Font, PlainBitmapBuilder}}};
+use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_manager::{AssetManager, AssetId}, input::Input, graphics::{ui::widget::{SliderBuilder, SliderUpdateResult}, font::{Font, PlainBitmapBuilder}, Color}};
 
 use super::{ElementRegistry, widget_registry::WidgetRegistry};
 
@@ -52,8 +52,8 @@ impl Interface {
 }
 
 // TODO make these configurable
-pub fn default_text_color() -> (u8, u8, u8) { (239, 239, 239) }
-pub fn default_element_background_color() -> (u8, u8, u8) { (56, 56, 56) }
+pub fn default_text_color() -> Color { Color::Rgb(239, 239, 239) }
+pub fn default_element_background_color() -> Color { Color::Rgb(56, 56, 56) }
 pub fn default_font_size() -> f32 {
     14.0
 }

@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{font::Font, Transform, ui::{interface::{is_valid_z_index, map_z_index_for_shader, self}, Position, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, ElementRegistry}, material::Material}, asset_manager::{AssetManager, AssetId}, log};
+use crate::{graphics::{font::Font, Transform, ui::{interface::{is_valid_z_index, map_z_index_for_shader, self}, Position, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, ElementRegistry}, material::Material, Color}, asset_manager::{AssetManager, AssetId}, log};
 
 use super::glyph::Glyph;
 
@@ -9,7 +9,7 @@ pub struct Text {
     glyphs: Vec<Glyph>,
     pub transform: Transform,
     pub letter_spacing: f32,
-    pub color: (u8, u8, u8),
+    pub color: Color,
     font_size: f32, // the font height in pixels
     world_data: WorldElementData,
     pub font_id: AssetId<Font>,
@@ -22,11 +22,7 @@ impl UiElement for Text {
 
         let shader = asset_manager.get_material_shader(&self.material_id).unwrap();
 
-        shader.set_uniform("color", (
-            (self.color.0 as f32 / 255.0),
-            (self.color.1 as f32 / 255.0),
-            (self.color.2 as f32 / 255.0),
-        ));
+        shader.set_uniform("color", self.color.to_normalised_rgb_tuple());
         shader.set_uniform("scale", (self.world_data.scale.x, self.world_data.scale.y));
         shader.set_uniform("zIndex", map_z_index_for_shader(self.world_data.z_index()));
         shader.set_uniform("worldPosition", self.world_data.shader_position());
@@ -190,7 +186,7 @@ impl Text {
 
 pub struct TextBuilder {
     font_size: f32, // size in pixels
-    color: (u8, u8, u8),
+    color: Color,
     letter_spacing: f32,
     position: Position,
     z_index: f32,
@@ -201,7 +197,7 @@ impl TextBuilder {
     pub fn new() -> Self {
         TextBuilder { 
             font_size: interface::default_font_size(),
-            color: (255, 255, 255),
+            color: interface::default_text_color(),
             letter_spacing: 0.04,
             position: Position::ScreenAnchor(AnchorPoint::Center),
             z_index: 10.0,
@@ -214,7 +210,7 @@ impl TextBuilder {
         self
     }
 
-    pub fn with_color(mut self, color: (u8, u8, u8)) -> Self {
+    pub fn with_color(mut self, color: Color) -> Self {
         self.color = color;
         self
     }

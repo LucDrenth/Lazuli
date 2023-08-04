@@ -17,3 +17,6 @@ pub use transform::Transform;
 pub use camera::Camera;
 pub use camera::LookDirectionLimits;
 pub use camera::ZoomLimits;
+
+pub mod color;
+pub use color::Color;

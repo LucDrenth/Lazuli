@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, font::PlainBitmapBuilder, ui::{TextBuilder, Interface}}, event::EventSystem, input::Input, asset_manager::AssetManager};
+use crate::{graphics::{scene::Scene, font::PlainBitmapBuilder, ui::{TextBuilder, Interface}, Color}, event::EventSystem, input::Input, asset_manager::AssetManager};
 
 pub struct HelloText {
     interface: Interface,
@@ -18,7 +18,7 @@ impl Scene for HelloText {
         
         interface.mut_element_registry().create_text("Welcome to Lazuli engine".to_string(), Some(&plain_font_id), TextBuilder::new()
             .with_font_size(25.0)
-            .with_color((255, 255, 255))
+            .with_color(Color::Rgb(255, 255, 255))
             .with_letter_spacing(0.05)
         , asset_manager)?;
 

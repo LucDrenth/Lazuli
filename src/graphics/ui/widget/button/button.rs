@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{Text, TextBuilder, shapes::RectangleBuilder, ElementRegistry, self, interface::{is_valid_z_index, self}, Position, element::{ui_element::UiElement, AnchorPoint}}, font::PlainBitmapBuilder}, asset_manager::AssetManager, input::Input, log};
+use crate::{graphics::{ui::{Text, TextBuilder, shapes::RectangleBuilder, ElementRegistry, self, interface::{is_valid_z_index, self}, Position, element::{ui_element::UiElement, AnchorPoint}}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, input::Input, log};
 
 pub struct Button {
     text_element_id: u32,
@@ -67,8 +67,8 @@ impl Button {
 }
 
 pub struct ButtonBuilder {
-    background_color: (u8, u8, u8),
-    text_color: (u8, u8, u8),
+    background_color: Color,
+    text_color: Color,
     font_path: Option<String>,
     padding_x: f32,
     padding_y: f32,
@@ -93,12 +93,12 @@ impl ButtonBuilder {
         }
     }
 
-    pub fn with_background_color(mut self, background_color: (u8, u8, u8)) -> Self {
+    pub fn with_background_color(mut self, background_color: Color) -> Self {
         self.background_color = background_color;
         self
     }
 
-    pub fn with_text_color(mut self, text_color: (u8, u8, u8)) -> Self {
+    pub fn with_text_color(mut self, text_color: Color) -> Self {
         self.text_color = text_color;
         self
     }

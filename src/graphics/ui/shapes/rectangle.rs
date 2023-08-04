@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, Position, ElementRegistry}, material::Material}, set_attribute, error::opengl, asset_manager::{AssetManager, AssetId}, log};
+use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, Position, ElementRegistry}, material::Material, Color}, set_attribute, error::opengl, asset_manager::{AssetManager, AssetId}, log};
 use crate::graphics::shapes::RECTANGLE_INDICES;
 
 type VertexPosition = [f32; 2];
@@ -12,7 +12,7 @@ pub struct Rectangle {
     ebo: Buffer,
     material_id: AssetId<Material>,
     world_data: WorldElementData,
-    color: (u8, u8, u8),
+    color: Color,
 }
 
 impl UiElement for Rectangle {
@@ -23,11 +23,7 @@ impl UiElement for Rectangle {
         shader.apply();
         self.vao.bind();
 
-        shader.set_uniform("color", (
-            (self.color.0 as f32 / 255.0),
-            (self.color.1 as f32 / 255.0),
-            (self.color.2 as f32 / 255.0),
-        ));
+        shader.set_uniform("color", self.color.to_normalised_rgb_tuple());
         shader.set_uniform("scale", (self.world_data.scale.x, self.world_data.scale.y));
         shader.set_uniform("zIndex", map_z_index_for_shader(self.world_data.z_index()));
         shader.set_uniform("worldPosition", self.world_data.shader_position());
@@ -120,7 +116,7 @@ impl Rectangle {
 }
 
 pub struct RectangleBuilder {
-    color: (u8, u8, u8),
+    color: Color,
     position: Position,
     shader_builder: Option<ShaderBuilder>,
     width: f32,
@@ -132,7 +128,7 @@ pub struct RectangleBuilder {
 impl RectangleBuilder {
     pub fn new() -> Self {
         Self {
-            color: (126, 126, 126), // gray
+            color: Color::Rgb(126, 126, 126), // gray
             shader_builder: None,
             position: Position::ScreenAnchor(AnchorPoint::Center),
             width: 100.0,
@@ -142,7 +138,7 @@ impl RectangleBuilder {
         }
     }
 
-    pub fn with_color(mut self, color: (u8, u8, u8)) -> Self {
+    pub fn with_color(mut self, color: Color) -> Self {
         self.color = color;
         self
     }
