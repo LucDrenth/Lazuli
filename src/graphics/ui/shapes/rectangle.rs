@@ -62,10 +62,6 @@ impl UiElement for Rectangle {
     fn get_size(&self) -> Vec2 { self.world_data.size().clone() }
     fn get_screen_position(&self) -> Vec2 { self.world_data.position().clone() }
     fn set_position(&mut self, position: Position, element_registry: &ElementRegistry) { self.world_data.set_position(position, element_registry) }
-    
-    fn set_text(&mut self, text: &String, _window_size: Vec2, _anchor_element_data: Option<AnchorElementData>, _asset_registry: &mut AssetRegistry) -> Result<(), String> {
-        Err(format!("Can not set text of a ui rectangle. Tried with [{}]", text))
-    }
 }
 
 impl Rectangle {

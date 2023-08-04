@@ -59,8 +59,48 @@ impl UiElement for Text {
     fn get_size(&self) -> Vec2 { self.world_data.size().clone() }
     fn get_screen_position(&self) -> Vec2 { self.world_data.position().clone() }
     fn set_position(&mut self, position: Position, element_registry: &ElementRegistry) { self.world_data.set_position(position, element_registry) }
-    
-    fn set_text(&mut self, text: &String, window_size: Vec2, anchor_element_data: Option<AnchorElementData>, asset_registry: &mut AssetRegistry) -> Result<(), String> {
+}
+
+impl Text {
+    pub fn new(text: String, font_id: &AssetId<Font>, text_builder: TextBuilder, asset_registry: &mut AssetRegistry, element_registry: &mut ElementRegistry) -> Result<Self, String> {
+        let font_material_id;
+        match asset_registry.get_font_by_id(font_id) {
+            Some(font) => {
+                font_material_id = font.material_id.duplicate();
+            },
+            None => return Err(format!("Failed to get font by id {}", font_id.id())),
+        }
+
+        let world_data = WorldElementData::new(
+            text_builder.position
+            , text_builder.z_index
+            , Vec2::new(0.0, 0.0)
+            , text_builder.scale
+            , element_registry
+        );
+
+        let mut result = Self { 
+            text, 
+            glyphs: vec![],
+            transform: Transform::new(),
+            letter_spacing: text_builder.letter_spacing,
+            color: text_builder.color,
+            font_size: text_builder.font_size,
+            world_data,
+            font_id: font_id.duplicate(),
+            material_id: font_material_id,
+        };
+        result.set_text(
+            &result.text.clone(), 
+            element_registry.size().clone(), 
+            result.world_data.position_type().get_anchor_element_data(element_registry), 
+            asset_registry
+        )?;
+
+        Ok(result)
+    }
+
+    pub fn set_text(&mut self, text: &String, window_size: Vec2, anchor_element_data: Option<AnchorElementData>, asset_registry: &mut AssetRegistry) -> Result<(), String> {
         let font_space_size;
         let bitmap_spread;
         let total_width;
@@ -112,46 +152,6 @@ impl UiElement for Text {
         self.world_data.set_size(Vec2::new(worldspace_width, worldspace_height), window_size, anchor_element_data);
 
         Ok(())
-    }
-}
-
-impl Text {
-    pub fn new(text: String, font_id: &AssetId<Font>, text_builder: TextBuilder, asset_registry: &mut AssetRegistry, element_registry: &mut ElementRegistry) -> Result<Self, String> {
-        let font_material_id;
-        match asset_registry.get_font_by_id(font_id) {
-            Some(font) => {
-                font_material_id = font.material_id.duplicate();
-            },
-            None => return Err(format!("Failed to get font by id {}", font_id.id())),
-        }
-
-        let world_data = WorldElementData::new(
-            text_builder.position
-            , text_builder.z_index
-            , Vec2::new(0.0, 0.0)
-            , text_builder.scale
-            , element_registry
-        );
-
-        let mut result = Self { 
-            text, 
-            glyphs: vec![],
-            transform: Transform::new(),
-            letter_spacing: text_builder.letter_spacing,
-            color: text_builder.color,
-            font_size: text_builder.font_size,
-            world_data,
-            font_id: font_id.duplicate(),
-            material_id: font_material_id,
-        };
-        result.set_text(
-            &result.text.clone(), 
-            element_registry.size().clone(), 
-            result.world_data.position_type().get_anchor_element_data(element_registry), 
-            asset_registry
-        )?;
-
-        Ok(result)
     }
 
     /// Calculate the total width of the text, in local space, ignoring characters that do not have a glyph

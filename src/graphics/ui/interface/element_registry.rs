@@ -279,9 +279,9 @@ impl ElementRegistry {
         let window_size: Vec2 = self.window_size.clone();
         let anchor_data = self.get_anchor_element_data(text_element_id)?;
 
-        match self.get_mut_ui_element_by_id(text_element_id) {
-            Some(element) => {
-                element.set_text(text, window_size, anchor_data, asset_registry)
+        match self.text_elements.get_mut_by_id(text_element_id) {
+            Some(text_element) => {
+                text_element.set_text(text, window_size, anchor_data, asset_registry)
             },
             None => Err(format!("failed to set text because element with id {} was not found", text_element_id)),
         }
