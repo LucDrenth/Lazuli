@@ -2,17 +2,12 @@ use std::any::TypeId;
 
 use glam::Vec2;
 
-use crate::{asset_manager::{AssetManager, AssetId}, input::{Input, MouseButton}, graphics::{font::Font, ui::{element::{ui_element::UiElement, AnchorElementData}, Text, TextBuilder, shapes::{RectangleBuilder, Rectangle}}}, log};
+use crate::{asset_manager::{AssetManager, AssetId}, input::{Input, MouseButton}, graphics::{font::Font, ui::{element::{ui_element::UiElement, AnchorElementData}, Text, TextBuilder, shapes::{RectangleBuilder, Rectangle}, Position}}, log};
 
-use super::{interface, element_list::{ElementList, OrderedElementsItem, self}};
+use super::{interface, element_list::{ElementList, OrderedElementsItem, self}, anchor_tree::AnchorTree};
 
 const MIN_Z_INDEX: f32 = 1.0;
 const MAX_Z_INDEX: f32 = 10_000.0;
-
-struct ElementEntry {
-    id: u32,
-    element: Box<dyn UiElement>,
-}
 
 pub struct ElementRegistry {
     text_elements: ElementList<Text>,
@@ -24,6 +19,8 @@ pub struct ElementRegistry {
 
     window_size: Vec2,
     dragged_element_id: Option<u32>, // element that is currently being dragged. Will be set to None on left mouse button up
+
+    anchor_tree: AnchorTree,
 }
 
 impl ElementRegistry {
@@ -35,6 +32,8 @@ impl ElementRegistry {
 
             window_size,
             dragged_element_id: None,
+
+            anchor_tree: AnchorTree::new(),
         }
     }
 
@@ -122,7 +121,12 @@ impl ElementRegistry {
 
     pub fn add_text(&mut self, text_element: Text) -> u32 {
         let id = self.text_elements.add(text_element);
+
         self.update_ordered_elements();
+
+        let position = self.text_elements.last().unwrap().world_data().position_type().clone();
+        self.register_in_anchor_tree(TypeId::of::<Text>(), id, &position);
+        
         id
     }
 
@@ -133,7 +137,12 @@ impl ElementRegistry {
 
     pub fn add_rectangle(&mut self, rectangle_element: Rectangle) -> u32 {
         let id = self.rectangle_elements.add(rectangle_element);
+
         self.update_ordered_elements();
+
+        let position = self.rectangle_elements.last().unwrap().world_data().position_type().clone();
+        self.register_in_anchor_tree(TypeId::of::<Rectangle>(), id, &position);
+
         id
     }
 
@@ -147,6 +156,29 @@ impl ElementRegistry {
         ordered_elements.sort_by(|a, b| a.z_index.total_cmp(&b.z_index));
 
         self.ordered_elements = ordered_elements;
+    }
+
+    pub fn register_in_anchor_tree(&mut self, type_id: TypeId, element_id: u32, position: &Position) {
+        match position {
+            Position::Fixed(_, _) => self.anchor_tree.add_fixed_anchor(type_id, element_id),
+            Position::ScreenAnchor(_) => self.anchor_tree.add_screen_anchor(type_id, element_id),
+            Position::ElementAnchor(_, anchor_id) => {
+                for ordered_element in self.ordered_elements.iter() {
+                    if ordered_element.item_id == *anchor_id {
+                        self.anchor_tree.add_element_anchor(
+                            ordered_element.element_type, 
+                            ordered_element.item_id, 
+                            type_id, 
+                            element_id
+                        );
+
+                        return;
+                    }
+                }
+
+                log::engine_warn(format!("Failed to register element in anchor tree because we could not found its anchor element by id {}", anchor_id));
+            },
+        }
     }
 
     pub fn handle_window_resize(&mut self, window_size: Vec2, asset_manager: &mut AssetManager) {
@@ -315,6 +347,10 @@ impl ElementRegistry {
             Some(dragged_element_id) => dragged_element_id == element_id,
             None => false,
         }
+    }
+
+    pub fn print_anchor_tree(&self) {
+        self.anchor_tree.print();
     }
 
     pub fn size(&self) -> &Vec2 { &self.window_size }

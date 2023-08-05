@@ -88,4 +88,12 @@ impl<T: UiElement + 'static> ElementList<T> {
     
         ordered_elements
     }
+
+    pub fn last(&self) -> Option<&T> {
+        if self.elements.is_empty() {
+            return None;
+        } else {
+            return Some(&self.elements.last().unwrap().element);
+        }
+    }
 }

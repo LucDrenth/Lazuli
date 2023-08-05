@@ -6,7 +6,8 @@ use super::{AnchorPoint, AnchorElementData};
 
 #[derive(Clone, Copy, Debug)]
 pub enum Position {
-    /// Exact positions
+    /// Exact positions, where (0, 0) is the center of the screen. 
+    /// For the axises: +y goes up, -y goes down, +x goes right, -x goes left
     Fixed(f32, f32),
     /// Anchored to a point on the screen
     ScreenAnchor(AnchorPoint),
