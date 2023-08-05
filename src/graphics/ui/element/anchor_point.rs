@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum AnchorPoint {
     /// * `x` - centered
     /// * `y` - centered

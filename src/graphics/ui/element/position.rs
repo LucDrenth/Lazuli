@@ -4,7 +4,7 @@ use crate::graphics::ui::ElementRegistry;
 
 use super::{AnchorPoint, AnchorElementData};
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum Position {
     /// Exact positions
     Fixed(f32, f32),
