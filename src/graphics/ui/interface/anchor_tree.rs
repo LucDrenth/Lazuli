@@ -1,5 +1,6 @@
 use std::any::TypeId;
 
+#[derive(Debug, Clone, Copy)]
 pub struct AnchorElementIdentifier {
     pub type_id: TypeId,
     pub element_id: u32,
@@ -7,20 +8,19 @@ pub struct AnchorElementIdentifier {
 
 /// An element that is anchored to a previous element in the tree, and has 0 or more elements anchored to it
 pub struct AnchoredElement {
-    type_id: TypeId,
-    element_id: u32,
+    identifier: AnchorElementIdentifier,
     anchored_elements: Vec<AnchoredElement>,
 }
 
 impl AnchoredElement {
     fn new(type_id: TypeId, element_id: u32) -> Self {
-        Self { type_id, element_id, anchored_elements: vec![] }
+        Self { identifier: AnchorElementIdentifier { type_id, element_id }, anchored_elements: vec![] }
     }
 
     /// Print itself to the standard output, for debugging purpouses
     pub fn print(&self, depth: usize) {
         let tabs = "\t".repeat(depth);
-        println!("{}{}", tabs, self.element_id);
+        println!("{}{}", tabs, self.identifier.element_id);
         for element in &self.anchored_elements {
             element.print(depth + 1);
         }
@@ -28,7 +28,7 @@ impl AnchoredElement {
 
     /// Returns none if no element was found
     pub fn get(&self, type_id: TypeId, element_id: u32) -> Option<&Self> {
-        if self.type_id == type_id && self.element_id == element_id {
+        if self.identifier.type_id == type_id && self.identifier.element_id == element_id {
             return Some(self);
         }
 
@@ -43,7 +43,7 @@ impl AnchoredElement {
 
     /// Returns none if no element was found
     pub fn get_mut(&mut self, type_id: TypeId, element_id: u32) -> Option<&mut Self> {
-        if self.type_id == type_id && self.element_id == element_id {
+        if self.identifier.type_id == type_id && self.identifier.element_id == element_id {
             return Some(self);
         }
 
@@ -58,7 +58,7 @@ impl AnchoredElement {
 
     /// Returns none if no element was found
     pub fn get_by_id(&self, element_id: u32) -> Option<&Self> {
-        if self.element_id == element_id {
+        if self.identifier.element_id == element_id {
             return Some(self);
         }
 
@@ -73,7 +73,7 @@ impl AnchoredElement {
 
     /// Returns none if no element was found
     pub fn get_mut_by_id(&mut self, element_id: u32) -> Option<&mut Self> {
-        if self.element_id == element_id {
+        if self.identifier.element_id == element_id {
             return Some(self);
         }
 
@@ -90,13 +90,8 @@ impl AnchoredElement {
         self.anchored_elements.push(Self::new(type_id, element_id));
     }
 
-    pub fn to_identifier(&self) -> AnchorElementIdentifier {
-        AnchorElementIdentifier { type_id: self.type_id, element_id: self.element_id }
-    }
-
     pub fn anchored_elements(&self) -> &Vec<AnchoredElement> { &self.anchored_elements }
-    pub fn type_id(&self) -> TypeId { self.type_id }
-    pub fn element_id(&self) -> u32 { self.element_id }
+    pub fn identifier(&self) -> &AnchorElementIdentifier { &self.identifier }
 }
 
 pub struct AnchorTree {
@@ -198,8 +193,8 @@ impl AnchorTree {
         match self.get_by_id(parent_id) {
             Some(parent) => {
                 for child in parent.anchored_elements.iter() {
-                    result.push(AnchorElementIdentifier { type_id: child.type_id, element_id: child.element_id });
-                    result.append(&mut self.get_children(child.element_id));
+                    result.push(AnchorElementIdentifier { type_id: child.identifier.type_id, element_id: child.identifier.element_id });
+                    result.append(&mut self.get_children(child.identifier.element_id));
                 }
             },
             None => (),

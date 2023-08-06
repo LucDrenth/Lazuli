@@ -288,7 +288,7 @@ impl ElementRegistry {
     }
 
     pub fn update_anchor_tree(&mut self, element_id: u32) {
-        let parent = self.anchor_tree.get_by_id(element_id).unwrap().to_identifier();
+        let parent = self.anchor_tree.get_by_id(element_id).unwrap().identifier().clone();
         self.update_anchor_element_position(&parent);
 
         let children = self.anchor_tree.get_children(element_id);
