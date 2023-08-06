@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, ui::{shapes::RectangleBuilder, widget::{Button, ButtonBuilder, SliderBuilder}, Position, AnchorPoint, TextBuilder, Interface}}, event::EventSystem, input::Input, asset_manager::AssetManager, log};
+use crate::{graphics::{scene::Scene, ui::{shapes::RectangleBuilder, widget::{Button, ButtonBuilder, SliderBuilder}, Position, AnchorPoint, TextBuilder, Interface}, Color}, event::EventSystem, input::Input, asset_manager::AssetManager, log};
 
 pub struct HelloUi {
     interface: Interface,
@@ -16,6 +16,10 @@ impl Scene for HelloUi {
         let mut interface = Interface::new(event_system, window_size);
 
         let rectangle_id = interface.mut_element_registry().create_rectangle(RectangleBuilder::new(), asset_manager)?;
+        let _ = interface.mut_element_registry().create_rectangle(RectangleBuilder::new()
+            .with_color(Color::Rgb(100, 5, 255))
+            .with_position(Position::ElementAnchor(AnchorPoint::RightOutside(5.0), rectangle_id))
+        , asset_manager)?;
         
         let width_slider_id = interface.add_slider(SliderBuilder::new()
             .with_z_index(400.0)

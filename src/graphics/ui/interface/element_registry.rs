@@ -88,6 +88,37 @@ impl ElementRegistry {
         }
     }
 
+    fn get_ui_element_by_type_and_id(&self, type_id: TypeId, id: u32) -> Option<Box<&dyn UiElement>> {
+        if type_id == TypeId::of::<Rectangle>() {
+            match self.rectangle_elements.get_by_id(id) {
+                Some(el) => Some(Box::new(el)),
+                None => None,
+            }
+        } else if type_id == TypeId::of::<Text>() {
+            match self.text_elements.get_by_id(id) {
+                Some(el) => Some(Box::new(el)),
+                None => None,
+            }  
+        } else {
+            panic!("Unhandled element type")
+        }
+    }
+    fn get_mut_ui_element_by_type_and_id(&mut self, type_id: TypeId, id: u32) -> Option<Box<&mut dyn UiElement>> {
+        if type_id == TypeId::of::<Rectangle>() {
+            match self.rectangle_elements.get_mut_by_id(id) {
+                Some(el) => Some(Box::new(el)),
+                None => None,
+            }
+        } else if type_id == TypeId::of::<Text>() {
+            match self.text_elements.get_mut_by_id(id) {
+                Some(el) => Some(Box::new(el)),
+                None => None,
+            }  
+        } else {
+            panic!("Unhandled element type")
+        }
+    }
+
     /// If the itemType and index are known, it's better to use get_ui_element_by_index. This is because
     /// this function looks up the itemType and index and then uses get_ui_element_by_index
     fn get_ui_element_by_id(&self, id: u32) -> Option<Box<&dyn UiElement>> {
@@ -249,9 +280,33 @@ impl ElementRegistry {
         match self.get_mut_ui_element_by_id(element_id) {
             Some(element) => {
                 element.set_scale(scale, window_size, anchor_element_data);
+                self.update_anchor_tree(element_id);
                 Ok(())
             },
             None => Err(format!("failed to set scale because element with id {} was not found", element_id)),
+        }
+    }
+
+    pub fn update_anchor_tree(&mut self, element_id: u32) {
+        for child in self.anchor_tree.get_by_id(element_id).unwrap().anchored_elements().iter() {
+            let anchor_element_data = self.get_anchor_element_data(child.element_id()).unwrap();
+
+            if child.type_id() == TypeId::of::<Rectangle>() {
+                self.rectangle_elements
+                    .get_mut_by_id(child.element_id()).unwrap()
+                    .recalculate_position(self.window_size.clone(), anchor_element_data);
+            } else if child.type_id() == TypeId::of::<Text>() {
+                self.text_elements
+                    .get_mut_by_id(child.element_id()).unwrap()
+                    .recalculate_position(self.window_size.clone(), anchor_element_data);
+            } else {
+                panic!("Unhandled element type")
+            }
+
+            for inner_child in child.anchored_elements() {
+                // TODO can we solve this error by looping through the upper most for loop (and possible this one) by index?
+                // self.update_anchor_tree(inner_child.element_id());
+            }
         }
     }
 
@@ -313,7 +368,9 @@ impl ElementRegistry {
 
         match self.text_elements.get_mut_by_id(text_element_id) {
             Some(text_element) => {
-                text_element.set_text(text, window_size, anchor_data, asset_manager)
+                text_element.set_text(text, window_size, anchor_data, asset_manager)?;
+                self.update_anchor_tree(text_element_id);
+                Ok(())
             },
             None => Err(format!("failed to set text because element with id {} was not found", text_element_id)),
         }

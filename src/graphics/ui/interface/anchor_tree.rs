@@ -51,9 +51,43 @@ impl AnchoredElement {
         None
     }
 
+    /// Returns none if no element was found
+    pub fn get_by_id(&self, element_id: u32) -> Option<&Self> {
+        if self.element_id == element_id {
+            return Some(self);
+        }
+
+        for element in self.anchored_elements.iter() {
+            if let Some(matching_element) = element.get_by_id(element_id) {
+                return Some(matching_element);
+            }
+        }
+
+        None
+    }
+
+    /// Returns none if no element was found
+    pub fn get_mut_by_id(&mut self, element_id: u32) -> Option<&mut Self> {
+        if self.element_id == element_id {
+            return Some(self);
+        }
+
+        for element in self.anchored_elements.iter_mut() {
+            if let Some(matching_element) = element.get_mut_by_id(element_id) {
+                return Some(matching_element);
+            }
+        }
+
+        None
+    }
+
     pub fn push(&mut self, type_id: TypeId, element_id: u32) {
         self.anchored_elements.push(Self::new(type_id, element_id));
     }
+
+    pub fn anchored_elements(&self) -> &Vec<AnchoredElement> { &self.anchored_elements }
+    pub fn type_id(&self) -> TypeId { self.type_id }
+    pub fn element_id(&self) -> u32 { self.element_id }
 }
 
 pub struct AnchorTree {
@@ -117,6 +151,28 @@ impl AnchorTree {
     pub fn get_mut(&mut self, type_id: TypeId, element_id: u32) -> Option<&mut AnchoredElement> {
         for entry in self.screen_tree.iter_mut() {
             match entry.get_mut(type_id, element_id) {
+                Some(element) => return Some(element),
+                None => (),
+            }
+        }
+
+        None
+    }
+
+    pub fn get_by_id(&self, element_id: u32) -> Option<&AnchoredElement> {
+        for entry in self.screen_tree.iter() {
+            match entry.get_by_id(element_id) {
+                Some(element) => return Some(&element),
+                None => (),
+            }
+        }
+
+        None
+    }
+
+    pub fn get_mut_by_id(&mut self, element_id: u32) -> Option<&mut AnchoredElement> {
+        for entry in self.screen_tree.iter_mut() {
+            match entry.get_mut_by_id(element_id) {
                 Some(element) => return Some(element),
                 None => (),
             }

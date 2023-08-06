@@ -44,6 +44,10 @@ impl UiElement for Text {
         &self.world_data
     }
 
+    fn recalculate_position(&mut self, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) {
+        self.world_data.calculate_position(window_size, anchor_element_data);
+    }
+
     fn handle_window_resize(&mut self, new_window_size: &Vec2) {
         self.world_data.handle_window_resize(new_window_size);
     }
