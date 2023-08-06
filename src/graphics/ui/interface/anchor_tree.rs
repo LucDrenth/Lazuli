@@ -1,5 +1,10 @@
 use std::any::TypeId;
 
+pub struct AnchorElementIdentifier {
+    pub type_id: TypeId,
+    pub element_id: u32,
+}
+
 /// An element that is anchored to a previous element in the tree, and has 0 or more elements anchored to it
 pub struct AnchoredElement {
     type_id: TypeId,
@@ -83,6 +88,10 @@ impl AnchoredElement {
 
     pub fn push(&mut self, type_id: TypeId, element_id: u32) {
         self.anchored_elements.push(Self::new(type_id, element_id));
+    }
+
+    pub fn to_identifier(&self) -> AnchorElementIdentifier {
+        AnchorElementIdentifier { type_id: self.type_id, element_id: self.element_id }
     }
 
     pub fn anchored_elements(&self) -> &Vec<AnchoredElement> { &self.anchored_elements }
@@ -179,5 +188,23 @@ impl AnchorTree {
         }
 
         None
+    }
+
+    /// Return a list of all elements child elements of a parent, in an order that can be used
+    /// for updating the elements from parent to child
+    pub fn get_children(&self, parent_id: u32) -> Vec<AnchorElementIdentifier> {
+        let mut result = vec![];
+
+        match self.get_by_id(parent_id) {
+            Some(parent) => {
+                for child in parent.anchored_elements.iter() {
+                    result.push(AnchorElementIdentifier { type_id: child.type_id, element_id: child.element_id });
+                    result.append(&mut self.get_children(child.element_id));
+                }
+            },
+            None => (),
+        }
+
+        result
     }
 }

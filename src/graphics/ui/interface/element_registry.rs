@@ -4,7 +4,7 @@ use glam::Vec2;
 
 use crate::{asset_manager::{AssetManager, AssetId}, input::{Input, MouseButton}, graphics::{font::Font, ui::{element::{ui_element::UiElement, AnchorElementData}, Text, TextBuilder, shapes::{RectangleBuilder, Rectangle}, Position}}, log};
 
-use super::{interface, element_list::{ElementList, OrderedElementsItem, self}, anchor_tree::AnchorTree};
+use super::{interface, element_list::{ElementList, OrderedElementsItem, self}, anchor_tree::{AnchorTree, AnchorElementIdentifier}};
 
 const MIN_Z_INDEX: f32 = 1.0;
 const MAX_Z_INDEX: f32 = 10_000.0;
@@ -288,25 +288,28 @@ impl ElementRegistry {
     }
 
     pub fn update_anchor_tree(&mut self, element_id: u32) {
-        for child in self.anchor_tree.get_by_id(element_id).unwrap().anchored_elements().iter() {
-            let anchor_element_data = self.get_anchor_element_data(child.element_id()).unwrap();
+        let parent = self.anchor_tree.get_by_id(element_id).unwrap().to_identifier();
+        self.update_anchor_element_position(&parent);
 
-            if child.type_id() == TypeId::of::<Rectangle>() {
-                self.rectangle_elements
-                    .get_mut_by_id(child.element_id()).unwrap()
-                    .recalculate_position(self.window_size.clone(), anchor_element_data);
-            } else if child.type_id() == TypeId::of::<Text>() {
-                self.text_elements
-                    .get_mut_by_id(child.element_id()).unwrap()
-                    .recalculate_position(self.window_size.clone(), anchor_element_data);
-            } else {
-                panic!("Unhandled element type")
-            }
+        let children = self.anchor_tree.get_children(element_id);
+        for child in children.iter() {
+            self.update_anchor_element_position(&child);
+        }
+    }
 
-            for inner_child in child.anchored_elements() {
-                // TODO can we solve this error by looping through the upper most for loop (and possible this one) by index?
-                // self.update_anchor_tree(inner_child.element_id());
-            }
+    fn update_anchor_element_position(&mut self, anchor_identifier: &AnchorElementIdentifier) {
+        let anchor_element_data = self.get_anchor_element_data(anchor_identifier.element_id).unwrap();
+
+        if anchor_identifier.type_id == TypeId::of::<Rectangle>() {
+            self.rectangle_elements
+                .get_mut_by_id(anchor_identifier.element_id).unwrap()
+                .recalculate_position(self.window_size.clone(), anchor_element_data);
+        } else if anchor_identifier.type_id == TypeId::of::<Text>() {
+            self.text_elements
+                .get_mut_by_id(anchor_identifier.element_id).unwrap()
+                .recalculate_position(self.window_size.clone(), anchor_element_data);
+        } else {
+            panic!("Unhandled element type")
         }
     }
 
