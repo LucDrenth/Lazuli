@@ -7,6 +7,7 @@ pub struct Button {
     background_element_id: u32,
     mouse_action_to_activate: InputAction,
     mouse_button_to_activate: MouseButton,
+    z_index: f32,
 }
 
 impl Button {
@@ -47,6 +48,7 @@ impl Button {
             background_element_id,
             mouse_action_to_activate: builder.mouse_action_to_activate,
             mouse_button_to_activate: builder.mouse_button_to_activate,
+            z_index: builder.z_index,
         })
     }
 
@@ -55,7 +57,7 @@ impl Button {
     }
 
     pub fn is_clicked(&self, input: &Input, element_registry: &ElementRegistry) -> bool {
-        element_registry.is_element_clicked(
+        !element_registry.is_any_element_dragged() && element_registry.is_element_clicked(
             self.background_element_id, 
             self.mouse_button_to_activate,
             &self.mouse_action_to_activate, 
@@ -81,6 +83,10 @@ impl Button {
     pub fn hide(&self, element_registry: &mut ElementRegistry) {
         _ = element_registry.hide_element(self.background_element_id);
         _ = element_registry.hide_element(self.text_element_id);
+    }
+
+    pub fn z_index(&self) -> f32 {
+        self.z_index
     }
 }
 

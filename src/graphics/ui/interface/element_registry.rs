@@ -430,9 +430,16 @@ impl ElementRegistry {
         did_update
     }
 
-    pub fn is_element_dragged(&mut self, element_id: u32) -> bool {
+    pub fn is_element_dragged(&self, element_id: u32) -> bool {
         match self.dragged_element_id {
             Some(dragged_element_id) => dragged_element_id == element_id,
+            None => false,
+        }
+    }
+
+    pub fn is_any_element_dragged(&self) -> bool {
+        match self.dragged_element_id {
+            Some(_) => true,
             None => false,
         }
     }

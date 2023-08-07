@@ -1,12 +1,12 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, ui::{shapes::RectangleBuilder, widget::{Button, ButtonBuilder, SliderBuilder}, Position, AnchorPoint, TextBuilder, Interface}, Color}, event::EventSystem, input::{Input, Key}, asset_manager::AssetManager, log};
+use crate::{graphics::{scene::Scene, ui::{shapes::RectangleBuilder, widget::{ButtonBuilder, SliderBuilder}, Position, AnchorPoint, TextBuilder, Interface}, Color}, event::EventSystem, input::{Input, Key}, asset_manager::AssetManager, log};
 
 pub struct HelloUi {
     interface: Interface,
     width_slider_id: u32,
     height_slider_id: u32,
-    reset_button: Button,
+    reset_button_id: u32,
     rectangle_id: u32,
 }
 
@@ -47,16 +47,16 @@ impl Scene for HelloUi {
         , asset_manager)?;
 
 
-        let reset_button = Button::new("Reset".to_string(), ButtonBuilder::new()
+        let reset_button_id = interface.add_button("Reset".to_string(), ButtonBuilder::new()
             .with_position(Position::ScreenAnchor(AnchorPoint::LeftInside(20.0)))
-        , interface.mut_element_registry(), asset_manager)?;
+        , asset_manager)?;
 
         Ok(Self { 
             interface,
             width_slider_id,
             height_slider_id,
             rectangle_id,
-            reset_button,
+            reset_button_id,
         })
     }
 
@@ -83,17 +83,17 @@ impl Scene for HelloUi {
             }).unwrap();
         });
 
-        if self.reset_button.is_clicked(input, self.interface.mut_element_registry()) {
+        if self.interface.is_button_clicked(self.reset_button_id) {
             self.interface.set_slider_value(1.0, self.width_slider_id, asset_manager);
             self.interface.set_slider_value(1.0, self.height_slider_id, asset_manager);
-            self.interface.mut_element_registry().set_element_scale(self.rectangle_id, Vec2::ONE).expect("");
+            self.interface.mut_element_registry().set_element_scale(self.rectangle_id, Vec2::ONE).unwrap();
         }
 
         if input.is_key_down(Key::ArrowUp) {
-            _ = self.reset_button.show(self.interface.mut_element_registry());
+            _ = self.interface.show_button(self.reset_button_id);
         }
         if input.is_key_down(Key::ArrowDown) {
-            _ = self.reset_button.hide(self.interface.mut_element_registry());
+            _ = self.interface.hide_button(self.reset_button_id);
         }
     }
 

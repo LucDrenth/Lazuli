@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_manager::{AssetManager, AssetId}, input::Input, graphics::{ui::widget::{SliderBuilder, SliderUpdateResult}, font::{Font, PlainBitmapBuilder}, Color}};
+use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_manager::{AssetManager, AssetId}, input::Input, graphics::{ui::widget::{SliderBuilder, SliderUpdateResult, ButtonBuilder}, font::{Font, PlainBitmapBuilder}, Color}};
 
 use super::{ElementRegistry, widget_registry::WidgetRegistry};
 
@@ -46,6 +46,28 @@ impl Interface {
     }
     pub fn set_slider_value(&mut self, value: f32, slider_id: u32, asset_manager: &mut AssetManager) {
         self.widget_registry.set_slider_value(value, slider_id, &mut self.element_registry, asset_manager);
+    }
+    pub fn show_slider(&mut self, slider_id: u32) {
+        self.widget_registry.show_slider(slider_id, &mut self.element_registry);
+    }
+    pub fn hide_slider(&mut self, slider_id: u32) {
+        self.widget_registry.hide_slider(slider_id, &mut self.element_registry);
+    }
+
+    pub fn add_button(&mut self, label: String, builder: ButtonBuilder, asset_manager: &mut AssetManager) -> Result<u32, String> {
+        self.widget_registry.add_button(label, builder, &mut self.element_registry, asset_manager)
+    }
+    pub fn is_button_clicked(&self, button_id: u32) -> bool {
+        self.widget_registry.is_button_clicked(button_id)
+    }
+    pub fn button_anchor_element_id(&self, button_id: u32) -> Option<u32> {
+        self.widget_registry.button_anchor_element_id(button_id)
+    }
+    pub fn show_button(&mut self, button_id: u32) {
+        self.widget_registry.show_button(button_id, &mut self.element_registry);
+    }
+    pub fn hide_button(&mut self, button_id: u32) {
+        self.widget_registry.hide_button(button_id, &mut self.element_registry);
     }
 
     pub fn mut_element_registry(&mut self) -> &mut ElementRegistry { &mut self.element_registry }
