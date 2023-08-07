@@ -2,7 +2,7 @@ use std::any::TypeId;
 
 use glam::Vec2;
 
-use crate::{asset_manager::{AssetManager, AssetId}, input::{Input, MouseButton}, graphics::{font::Font, ui::{element::{ui_element::UiElement, AnchorElementData}, Text, TextBuilder, shapes::{RectangleBuilder, Rectangle}, Position}}, log};
+use crate::{asset_manager::{AssetManager, AssetId}, input::{Input, MouseButton, InputAction}, graphics::{font::Font, ui::{element::{ui_element::UiElement, AnchorElementData}, Text, TextBuilder, shapes::{RectangleBuilder, Rectangle}, Position}}, log};
 
 use super::{interface, element_list::{ElementList, OrderedElementsItem, self}, anchor_tree::{AnchorTree, AnchorElementIdentifier}};
 
@@ -260,9 +260,8 @@ impl ElementRegistry {
         }
     }
 
-    pub fn is_element_clicked(&self, element_id: u32, input: &Input) -> bool {
-        return input.is_mouse_button_down(MouseButton::Left) 
-            && self.is_element_hovered(element_id, input)
+    pub fn is_element_clicked(&self, element_id: u32, mouse_button: MouseButton, input_action: &InputAction, input: &Input) -> bool {
+        self.is_element_hovered(element_id, input) && input.is_mouse_button_action(mouse_button, input_action)
     }
 
     pub fn get_element_scale(&self, element_id: u32) -> Result<Vec2, String> {
