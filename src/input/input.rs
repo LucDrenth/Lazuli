@@ -5,6 +5,12 @@ pub struct Input {
     current_state: State,
 }
 
+pub enum InputAction {
+    Down,
+    Up,
+    UpOrDown,
+}
+
 impl Input {
     pub fn new() -> Self {
         return Input { 
@@ -51,6 +57,14 @@ impl Input {
         let button_number = button.as_number();
 
         return self.current_state.mouse_buttons[button_number] == MouseButtonState::Down;
+    }
+
+    pub fn is_mouse_button_action(&self, mouse_button: MouseButton, action: &InputAction) -> bool {
+        match action {
+            InputAction::Down => self.is_mouse_button_down(mouse_button),
+            InputAction::Up => self.is_mouse_button_up(mouse_button),
+            InputAction::UpOrDown => self.is_mouse_button_up(mouse_button) || self.is_mouse_button_down(mouse_button),
+        }
     }
 
     pub fn get_mouse_position_x(&self) -> f64 {
