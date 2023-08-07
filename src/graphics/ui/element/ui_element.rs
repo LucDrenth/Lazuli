@@ -17,4 +17,8 @@ pub trait UiElement {
     fn get_screen_position(&self) -> Vec2;
     fn set_position(&mut self, position: Position, element_registry: &ElementRegistry);
     fn recalculate_position(&mut self, window_size: Vec2, anchor_element_data: Option<AnchorElementData>);
+
+    fn hide(&mut self);
+    fn show(&mut self);
+    fn is_shown(&self) -> bool;
 }

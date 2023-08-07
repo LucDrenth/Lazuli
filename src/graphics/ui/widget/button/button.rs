@@ -73,6 +73,15 @@ impl Button {
     pub fn anchor_element_id(&self) -> u32 {
         self.background_element_id
     }
+
+    pub fn show(&self, element_registry: &mut ElementRegistry) {
+        _ = element_registry.show_element(self.background_element_id);
+        _ = element_registry.show_element(self.text_element_id);
+    }
+    pub fn hide(&self, element_registry: &mut ElementRegistry) {
+        _ = element_registry.hide_element(self.background_element_id);
+        _ = element_registry.hide_element(self.text_element_id);
+    }
 }
 
 pub struct ButtonBuilder {

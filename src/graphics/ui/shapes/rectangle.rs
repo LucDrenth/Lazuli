@@ -13,10 +13,15 @@ pub struct Rectangle {
     material_id: AssetId<Material>,
     world_data: WorldElementData,
     color: Color,
+    show: bool,
 }
 
 impl UiElement for Rectangle {
     fn draw(&self, asset_manager: &mut AssetManager) {
+        if !self.show {
+            return
+        }
+
         let shader_id = asset_manager.get_material_by_id(&self.material_id).unwrap().shader_id.duplicate();
         let shader = asset_manager.get_shader_by_id(&shader_id).unwrap();
 
@@ -62,6 +67,11 @@ impl UiElement for Rectangle {
     fn get_size(&self) -> Vec2 { self.world_data.size().clone() }
     fn get_screen_position(&self) -> Vec2 { self.world_data.position().clone() }
     fn set_position(&mut self, position: Position, element_registry: &ElementRegistry) { self.world_data.set_position(position, element_registry) }
+
+    fn hide(&mut self) { self.show = false; }
+    fn show(&mut self) { self.show = true; }
+    fn is_shown(&self) -> bool { self.show }
+    
 }
 
 impl Rectangle {
@@ -109,6 +119,7 @@ impl Rectangle {
             material_id,
             color: builder.color,
             world_data,
+            show: true,
         })
     }
 

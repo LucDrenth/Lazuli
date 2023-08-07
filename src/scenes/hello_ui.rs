@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, ui::{shapes::RectangleBuilder, widget::{Button, ButtonBuilder, SliderBuilder}, Position, AnchorPoint, TextBuilder, Interface}, Color}, event::EventSystem, input::Input, asset_manager::AssetManager, log};
+use crate::{graphics::{scene::Scene, ui::{shapes::RectangleBuilder, widget::{Button, ButtonBuilder, SliderBuilder}, Position, AnchorPoint, TextBuilder, Interface}, Color}, event::EventSystem, input::{Input, Key}, asset_manager::AssetManager, log};
 
 pub struct HelloUi {
     interface: Interface,
@@ -87,6 +87,13 @@ impl Scene for HelloUi {
             self.interface.set_slider_value(1.0, self.width_slider_id, asset_manager);
             self.interface.set_slider_value(1.0, self.height_slider_id, asset_manager);
             self.interface.mut_element_registry().set_element_scale(self.rectangle_id, Vec2::ONE).expect("");
+        }
+
+        if input.is_key_down(Key::ArrowUp) {
+            _ = self.reset_button.show(self.interface.mut_element_registry());
+        }
+        if input.is_key_down(Key::ArrowDown) {
+            _ = self.reset_button.hide(self.interface.mut_element_registry());
         }
     }
 

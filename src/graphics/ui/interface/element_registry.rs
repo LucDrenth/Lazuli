@@ -261,7 +261,9 @@ impl ElementRegistry {
     }
 
     pub fn is_element_clicked(&self, element_id: u32, mouse_button: MouseButton, input_action: &InputAction, input: &Input) -> bool {
-        self.is_element_hovered(element_id, input) && input.is_mouse_button_action(mouse_button, input_action)
+        return self.is_element_shown(element_id).unwrap()
+            && self.is_element_hovered(element_id, input) 
+            && input.is_mouse_button_action(mouse_button, input_action)
     }
 
     pub fn get_element_scale(&self, element_id: u32) -> Result<Vec2, String> {
@@ -378,7 +380,34 @@ impl ElementRegistry {
         }
     }
 
-    // map mouse position so that (0, 0) is the center
+    pub fn show_element(&mut self, element_id: u32) -> Result<(), String> {
+        match self.get_mut_ui_element_by_id(element_id) {
+            Some(element) => {
+                element.show();
+                Ok(())
+            },
+            None => Err(format!("failed to show element because element with id {} was not found", element_id)),
+        }
+    }
+    pub fn hide_element(&mut self, element_id: u32) -> Result<(), String> {
+        match self.get_mut_ui_element_by_id(element_id) {
+            Some(element) => {
+                element.hide();
+                Ok(())
+            },
+            None => Err(format!("failed to hide element because element with id {} was not found", element_id)),
+        }
+    }
+    pub fn is_element_shown(&self, element_id: u32) -> Result<bool, String> {
+        match self.get_ui_element_by_id(element_id) {
+            Some(element) => {
+                Ok(element.is_shown())
+            },
+            None => Err(format!("failed to check if element is shown because element with id {} was not found", element_id)),
+        }
+    }
+
+    // map mouse position to screen coordinates (in pixels) so that (0, 0) is the center
     pub fn map_mouse_position(&self, input: &Input) -> Vec2 {
         Vec2 {
             x: input.get_mouse_position_x() as f32 - self.window_size.x / 2.0,

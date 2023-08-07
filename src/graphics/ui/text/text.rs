@@ -14,10 +14,15 @@ pub struct Text {
     world_data: WorldElementData,
     pub font_id: AssetId<Font>,
     material_id: AssetId<Material>,
+    show: bool,
 }
 
 impl UiElement for Text {
     fn draw(&self, asset_manager: &mut AssetManager) {
+        if !self.show {
+            return
+        }
+
         asset_manager.activate_material(&self.material_id);
 
         let shader = asset_manager.get_material_shader(&self.material_id).unwrap();
@@ -59,6 +64,10 @@ impl UiElement for Text {
     fn get_size(&self) -> Vec2 { self.world_data.size().clone() }
     fn get_screen_position(&self) -> Vec2 { self.world_data.position().clone() }
     fn set_position(&mut self, position: Position, element_registry: &ElementRegistry) { self.world_data.set_position(position, element_registry) }
+
+    fn hide(&mut self) { self.show = false; }
+    fn show(&mut self) { self.show = true; }
+    fn is_shown(&self) -> bool { self.show }
 }
 
 impl Text {
@@ -89,6 +98,7 @@ impl Text {
             world_data,
             font_id: font_id.duplicate(),
             material_id: font_material_id,
+            show: true,
         };
         result.set_text(
             &result.text.clone(), 
