@@ -193,7 +193,7 @@ impl AnchorTree {
         match self.get_by_id(parent_id) {
             Some(parent) => {
                 for child in parent.anchored_elements.iter() {
-                    result.push(AnchorElementIdentifier { type_id: child.identifier.type_id, element_id: child.identifier.element_id });
+                    result.push(child.identifier.clone());
                     result.append(&mut self.get_children(child.identifier.element_id));
                 }
             },
