@@ -438,10 +438,7 @@ impl ElementRegistry {
     }
 
     pub fn is_any_element_dragged(&self) -> bool {
-        match self.dragged_element_id {
-            Some(_) => true,
-            None => false,
-        }
+       self.dragged_element_id.is_some()
     }
 
     pub fn print_anchor_tree(&self) {

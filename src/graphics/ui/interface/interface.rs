@@ -22,8 +22,10 @@ impl Interface {
     }
 
     pub fn update(&mut self, asset_manager: &mut AssetManager, input: &Input) {
-        self.element_registry.update(asset_manager, input);
+        // We update widget_registry before element_registry so that we won't activate any mouse_up
+        // events while we were still dragging an element (which gets reset by element_registry.update)
         self.widget_registry.update(input, &mut self.element_registry, asset_manager);
+        self.element_registry.update(asset_manager, input);
         
         self.window_resize_listener.read().last().map(|e| {
             let window_size = Vec2::new(e.width as f32, e.height as f32);
