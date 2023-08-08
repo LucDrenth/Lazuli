@@ -261,9 +261,9 @@ impl ElementRegistry {
     }
 
     pub fn is_element_clicked(&self, element_id: u32, mouse_button: MouseButton, input_action: &InputAction, input: &Input) -> bool {
-        return self.is_element_shown(element_id).unwrap()
-            && self.is_element_hovered(element_id, input) 
-            && input.is_mouse_button_action(mouse_button, input_action)
+        return input.is_mouse_button_action(mouse_button, input_action)
+            && self.is_element_shown(element_id).unwrap()
+            && self.is_element_hovered(element_id, input)
     }
 
     pub fn get_element_scale(&self, element_id: u32) -> Result<Vec2, String> {
