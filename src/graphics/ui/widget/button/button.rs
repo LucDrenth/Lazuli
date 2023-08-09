@@ -8,6 +8,8 @@ pub struct Button {
     mouse_action_to_activate: InputAction,
     mouse_button_to_activate: MouseButton,
     z_index: f32,
+    width: f32,
+    height: f32,
 }
 
 impl Button {
@@ -27,12 +29,18 @@ impl Button {
             .with_scale(builder.scale)
         , asset_manager, element_registry)?;
         
-        let background_width = text.world_data().width() + builder.padding_x * 2.0;
-        let background_height = text.world_data().height() + builder.padding_y * 2.0;
+        let button_width = match builder.width {
+            Some(width) => width,
+            None => text.world_data().width() + builder.padding_x * 2.0,
+        };
+        let button_height = match builder.height {
+            Some(height) => height,
+            None => text.world_data().height() + builder.padding_y * 2.0,
+        };
 
         let background = ui::shapes::Rectangle::new(RectangleBuilder::new()
-            .with_width(background_width)
-            .with_height(background_height)
+            .with_width(button_width)
+            .with_height(button_height)
             .with_color(builder.background_color)
             .with_z_index(builder.z_index)
             .with_position(builder.position)
@@ -49,6 +57,8 @@ impl Button {
             mouse_action_to_activate: builder.mouse_action_to_activate,
             mouse_button_to_activate: builder.mouse_button_to_activate,
             z_index: builder.z_index,
+            width: button_width,
+            height: button_height,
         })
     }
 
@@ -88,6 +98,10 @@ impl Button {
     pub fn z_index(&self) -> f32 {
         self.z_index
     }
+
+    pub fn width(&self) -> f32 { self.width }
+    pub fn height(&self) -> f32 { self.height }
+    pub fn text_element_id(&self) -> u32 { self.text_element_id }
 }
 
 pub struct ButtonBuilder {
@@ -102,6 +116,8 @@ pub struct ButtonBuilder {
     scale: Vec2,
     mouse_action_to_activate: InputAction,
     mouse_button_to_activate: MouseButton,
+    width: Option<f32>,
+    height: Option<f32>,
 }
 
 impl ButtonBuilder {
@@ -118,6 +134,8 @@ impl ButtonBuilder {
             scale: Vec2::ONE,
             mouse_action_to_activate: InputAction::Down,
             mouse_button_to_activate: MouseButton::Left,
+            width: None,
+            height: None,
         }
     }
 
@@ -185,6 +203,16 @@ impl ButtonBuilder {
 
     pub fn with_mouse_button_to_activate(mut self, mouse_button_to_activate: MouseButton) -> Self {
         self.mouse_button_to_activate = mouse_button_to_activate;
+        self
+    }
+
+    pub fn with_width(mut self, width: f32) -> Self {
+        self.width = Some(width);
+        self
+    }
+
+    pub fn with_height(mut self, height: f32) -> Self {
+        self.height = Some(height);
         self
     }
 }

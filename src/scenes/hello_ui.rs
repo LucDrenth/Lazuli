@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, ui::{shapes::RectangleBuilder, widget::{ButtonBuilder, SliderBuilder}, Position, AnchorPoint, TextBuilder, Interface}, Color}, event::EventSystem, input::{Input, Key}, asset_manager::AssetManager, log};
+use crate::{graphics::{scene::Scene, ui::{shapes::RectangleBuilder, widget::{ButtonBuilder, SliderBuilder, Dropdown, DropdownBuilder, DropdownOption}, Position, AnchorPoint, TextBuilder, Interface}, Color}, event::EventSystem, input::{Input, Key, InputAction}, asset_manager::AssetManager, log};
 
 pub struct HelloUi {
     interface: Interface,
@@ -8,6 +8,7 @@ pub struct HelloUi {
     height_slider_id: u32,
     reset_button_id: u32,
     rectangle_id: u32,
+    dropdown: Dropdown,
 }
 
 impl Scene for HelloUi {
@@ -49,7 +50,19 @@ impl Scene for HelloUi {
 
         let reset_button_id = interface.add_button("Reset".to_string(), ButtonBuilder::new()
             .with_position(Position::ScreenAnchor(AnchorPoint::LeftInside(20.0)))
+            .with_mouse_action_to_activate(InputAction::Up)
         , asset_manager)?;
+
+        let dropdown = Dropdown::new(DropdownBuilder::new()
+            .with_placeholder_text("--- selected a fruit ---".to_string())
+            .with_options(vec![
+                DropdownOption{ label: "Banana".to_string(), value: 1 },
+                DropdownOption{ label: "Strawberry".to_string(), value: 2 },
+                DropdownOption{ label: "Blackberry".to_string(), value: 3 },
+                DropdownOption{ label: "Apple".to_string(), value: 4 },
+            ])
+            .with_position(Position::ScreenAnchor(AnchorPoint::TopLeftInside(10.0, 10.0)))
+        , interface.mut_element_registry(), asset_manager)?;
 
         Ok(Self { 
             interface,
@@ -57,6 +70,7 @@ impl Scene for HelloUi {
             height_slider_id,
             rectangle_id,
             reset_button_id,
+            dropdown,
         })
     }
 
@@ -95,6 +109,8 @@ impl Scene for HelloUi {
         if input.is_key_down(Key::ArrowDown) {
             _ = self.interface.hide_button(self.reset_button_id);
         }
+
+        self.dropdown.update(input, self.interface.mut_element_registry(), asset_manager);
     }
 
     unsafe fn draw(&self, asset_manager: &mut AssetManager) {
