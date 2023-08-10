@@ -28,7 +28,7 @@ impl Scene for HelloUi {
             .with_initial_value(1.0)
         , asset_manager)?;
 
-        let anchor = interface.slider_anchor_element_id(width_slider_id).unwrap();
+        let anchor = interface.get_widget_anchor_element_id(width_slider_id).unwrap();
         interface.mut_element_registry().create_text("Rectangle width".to_string(), None, TextBuilder::new()
             .with_position(Position::ElementAnchor(AnchorPoint::RightOutside(10.0), anchor))
             .with_z_index(400.0)
@@ -41,7 +41,7 @@ impl Scene for HelloUi {
             .with_initial_value(1.0)
         , asset_manager)?;
 
-        let anchor = interface.slider_anchor_element_id(height_slider_id).unwrap();
+        let anchor = interface.get_widget_anchor_element_id(height_slider_id).unwrap();
         interface.mut_element_registry().create_text("Rectangle height".to_string(), None, TextBuilder::new()
             .with_position(Position::ElementAnchor(AnchorPoint::RightOutside(10.0), anchor))
             .with_z_index(500.0)
@@ -104,10 +104,10 @@ impl Scene for HelloUi {
         }
 
         if input.is_key_down(Key::ArrowUp) {
-            _ = self.interface.show_button(self.reset_button_id);
+            _ = self.interface.show_widget(self.reset_button_id);
         }
         if input.is_key_down(Key::ArrowDown) {
-            _ = self.interface.hide_button(self.reset_button_id);
+            _ = self.interface.hide_widget(self.reset_button_id);
         }
 
         match self.dropdown.update(input, self.interface.mut_element_registry(), asset_manager) {

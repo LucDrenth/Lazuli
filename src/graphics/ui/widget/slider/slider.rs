@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{ElementRegistry, interface::{is_valid_z_index, self}, Text, TextBuilder, Position, shapes::{Rectangle, RectangleBuilder}, element::AnchorPoint}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, log, input::{Input, MouseButton}};
+use crate::{graphics::{ui::{ElementRegistry, interface::{is_valid_z_index, self}, Text, TextBuilder, Position, shapes::{Rectangle, RectangleBuilder}, element::AnchorPoint, widget::UiWidget}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, log, input::{Input, MouseButton}};
 
 pub struct Slider {
     text_element_id: u32,
@@ -20,6 +20,28 @@ pub struct SliderUpdateResult {
     pub change_amount: f32,
     pub new_value: f32,
     pub did_start_drag: bool,
+}
+
+impl UiWidget for Slider {
+    /// Background is the main element. It defines the position and size of the slider
+    fn anchor_element_id(&self) -> u32 {
+        self.background_element_id
+    }
+
+    fn show(&self, element_registry: &mut ElementRegistry) {
+        _ = element_registry.show_element(self.background_element_id);
+        _ = element_registry.show_element(self.text_element_id);
+        _ = element_registry.show_element(self.progress_element_id);
+    }
+    fn hide(&self, element_registry: &mut ElementRegistry) {
+        _ = element_registry.hide_element(self.background_element_id);
+        _ = element_registry.hide_element(self.text_element_id);
+        _ = element_registry.hide_element(self.progress_element_id);
+    }
+
+    fn z_index(&self) -> f32 {
+        self.z_index
+    }
 }
 
 impl Slider {
@@ -162,11 +184,6 @@ impl Slider {
         element_registry.get_element_size(self.background_element_id).unwrap()
     }
 
-    /// Background is the main element. It defines the position and size of the slider
-    pub fn anchor_element_id(&self) -> u32 {
-        self.background_element_id
-    }
-
     pub fn set_scale(&mut self, scale: Vec2, element_registry: &mut ElementRegistry) -> Result<(), String> {
         self.scale = scale;
 
@@ -175,21 +192,6 @@ impl Slider {
         self.update_progress_element(element_registry);
 
         Ok(())
-    }
-
-    pub fn z_index(&self) -> f32 {
-        self.z_index
-    }
-
-    pub fn show(&self, element_registry: &mut ElementRegistry) {
-        _ = element_registry.show_element(self.background_element_id);
-        _ = element_registry.show_element(self.text_element_id);
-        _ = element_registry.show_element(self.progress_element_id);
-    }
-    pub fn hide(&self, element_registry: &mut ElementRegistry) {
-        _ = element_registry.hide_element(self.background_element_id);
-        _ = element_registry.hide_element(self.text_element_id);
-        _ = element_registry.hide_element(self.progress_element_id);
     }
 }
 

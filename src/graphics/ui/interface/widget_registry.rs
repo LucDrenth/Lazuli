@@ -1,4 +1,4 @@
-use crate::{graphics::ui::widget::{Slider, SliderBuilder, SliderUpdateResult, Button, ButtonBuilder}, asset_manager::AssetManager, input::Input, log};
+use crate::{graphics::ui::widget::{Slider, SliderBuilder, SliderUpdateResult, Button, ButtonBuilder, UiWidget}, asset_manager::AssetManager, input::Input, log};
 
 use super::ElementRegistry;
 
@@ -111,13 +111,11 @@ impl WidgetRegistry {
         return false;
     }
 
-    pub fn slider_anchor_element_id(&self, slider_id: u32) -> Option<u32> {
-        match self.get_slider(slider_id) {
-            Some(slider) => {
-                Some(slider.anchor_element_id())
-            },
+    pub fn get_anchor_element_id(&self, widget_id: u32) -> Option<u32> {
+        match self.get_widget_by_id(widget_id) {
+            Some(widget) => Some(widget.anchor_element_id()),
             None => {
-                log::engine_warn(format!("Returning None for slider_anchor_element_id because slider with id {} was not found", slider_id));
+                log::engine_warn(format!("Returning None for get_widget_by_id because widget with id {} was not found", widget_id));
                 None
             },
         }
@@ -130,63 +128,53 @@ impl WidgetRegistry {
         }
     }
 
-    pub fn button_anchor_element_id(&self, button_id: u32) -> Option<u32> {
-        match self.get_button(button_id) {
-            Some(button) => {
-                Some(button.anchor_element_id())
-            },
-            None => {
-                log::engine_warn(format!("Returning None for button_anchor_element_id because slider with id {} was not found", button_id));
-                None
-            },
-        }
+    pub fn show_widget(&self, widget_id: u32, element_registry: &mut ElementRegistry) {
+        self.get_widget_by_id(widget_id).unwrap().show(element_registry);
+    }
+    pub fn hide_widget(&self, widget_id: u32, element_registry: &mut ElementRegistry) {
+        self.get_widget_by_id(widget_id).unwrap().hide(element_registry);
     }
 
-    pub fn show_slider(&self, slider_id: u32, element_registry: &mut ElementRegistry) {
-        self.get_slider(slider_id).unwrap().show(element_registry)
+    fn get_widget_by_id(&self, widget_id: u32) -> Option<Box<&dyn UiWidget>> {
+        for widget_entry in self.sliders.iter() {
+            if widget_entry.id == widget_id { return Some(Box::new(&widget_entry.slider)) }
+        }
+
+        for widget_entry in self.buttons.iter() {
+            if widget_entry.id == widget_id { return Some(Box::new(&widget_entry.button)) }
+        }
+
+        None
     }
-    pub fn hide_slider(&self, slider_id: u32, element_registry: &mut ElementRegistry) {
-        self.get_slider(slider_id).unwrap().hide(element_registry)
-    }
-    pub fn show_button(&self, button_id: u32, element_registry: &mut ElementRegistry) {
-        self.get_button(button_id).unwrap().show(element_registry)
-    }
-    pub fn hide_button(&self, button_id: u32, element_registry: &mut ElementRegistry) {
-        self.get_button(button_id).unwrap().hide(element_registry)
-    }
+
+
+    // =================================================== \\
+    // ======= Functions to get individual widgets ======= \\
 
     fn get_slider(&self, slider_id: u32) -> Option<&Slider> {
         for entry in self.sliders.iter() {
-            if entry.id == slider_id {
-                return Some(&entry.slider);
-            }
+            if entry.id == slider_id { return Some(&entry.slider) }
         }
 
         None
     }
     fn get_mut_slider(&mut self, slider_id: u32) -> Option<&mut Slider> {
         for entry in self.sliders.iter_mut() {
-            if entry.id == slider_id {
-                return Some(&mut entry.slider);
-            }
+            if entry.id == slider_id { return Some(&mut entry.slider) }
         }
 
         None
     }
     fn get_button(&self, button_id: u32) -> Option<&Button> {
         for entry in self.buttons.iter() {
-            if entry.id == button_id {
-                return Some(&entry.button);
-            }
+            if entry.id == button_id { return Some(&entry.button) }
         }
 
         None
     }
     fn get_mut_button(&mut self, button_id: u32) -> Option<&mut Button> {
         for entry in self.buttons.iter_mut() {
-            if entry.id == button_id {
-                return Some(&mut entry.button);
-            }
+            if entry.id == button_id { return Some(&mut entry.button) }
         }
 
         None

@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{Text, TextBuilder, shapes::RectangleBuilder, ElementRegistry, self, interface::{is_valid_z_index, self}, Position, element::{ui_element::UiElement, AnchorPoint}}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, input::{Input, InputAction, MouseButton}, log};
+use crate::{graphics::{ui::{Text, TextBuilder, shapes::RectangleBuilder, ElementRegistry, self, interface::{is_valid_z_index, self}, Position, element::{ui_element::UiElement, AnchorPoint}, widget::UiWidget}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, input::{Input, InputAction, MouseButton}, log};
 
 pub struct Button {
     text_element_id: u32,
@@ -10,6 +10,26 @@ pub struct Button {
     z_index: f32,
     width: f32,
     height: f32,
+}
+
+impl UiWidget for Button {
+    /// Background is the main element. It defines the position and size of the slider
+    fn anchor_element_id(&self) -> u32 {
+        self.background_element_id
+    }
+
+    fn show(&self, element_registry: &mut ElementRegistry) {
+        _ = element_registry.show_element(self.background_element_id);
+        _ = element_registry.show_element(self.text_element_id);
+    }
+    fn hide(&self, element_registry: &mut ElementRegistry) {
+        _ = element_registry.hide_element(self.background_element_id);
+        _ = element_registry.hide_element(self.text_element_id);
+    }
+
+    fn z_index(&self) -> f32 {
+        self.z_index
+    }
 }
 
 impl Button {
@@ -81,24 +101,6 @@ impl Button {
         element_registry.set_element_scale(self.background_element_id, scale)?;
         element_registry.set_element_scale(self.text_element_id, scale)?;
         Ok(())
-    }
-
-    /// Background is the main element. It defines the position and size of the slider
-    pub fn anchor_element_id(&self) -> u32 {
-        self.background_element_id
-    }
-
-    pub fn show(&self, element_registry: &mut ElementRegistry) {
-        _ = element_registry.show_element(self.background_element_id);
-        _ = element_registry.show_element(self.text_element_id);
-    }
-    pub fn hide(&self, element_registry: &mut ElementRegistry) {
-        _ = element_registry.hide_element(self.background_element_id);
-        _ = element_registry.hide_element(self.text_element_id);
-    }
-
-    pub fn z_index(&self) -> f32 {
-        self.z_index
     }
 
     pub fn width(&self) -> f32 { self.width }

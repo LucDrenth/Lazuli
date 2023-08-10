@@ -1,4 +1,4 @@
-use crate::{asset_manager::AssetManager, graphics::ui::{ElementRegistry, widget::{Button, ButtonBuilder}, interface::is_valid_z_index, Position, AnchorPoint}, log, input::{Input, InputAction}};
+use crate::{asset_manager::AssetManager, graphics::ui::{ElementRegistry, widget::{Button, ButtonBuilder, UiWidget}, interface::is_valid_z_index, Position, AnchorPoint}, log, input::{Input, InputAction}};
 
 struct DropdownOptionButton {
     button: Button,
