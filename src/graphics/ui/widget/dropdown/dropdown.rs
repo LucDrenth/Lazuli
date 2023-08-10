@@ -1,8 +1,8 @@
-use crate::{asset_manager::AssetManager, graphics::ui::{ElementRegistry, widget::{Button, ButtonBuilder}, interface::is_valid_z_index, Position, AnchorPoint}, log, input::Input};
+use crate::{asset_manager::AssetManager, graphics::ui::{ElementRegistry, widget::{Button, ButtonBuilder}, interface::is_valid_z_index, Position, AnchorPoint}, log, input::{Input, InputAction}};
 
 struct DropdownOptionButton {
     button: Button,
-    value: usize,
+    value: u32,
     label: String,
 }
 
@@ -11,7 +11,7 @@ pub struct Dropdown {
     button: Button,
     options: Vec<DropdownOptionButton>,
     is_open: bool,
-    selected: Option<usize>,
+    selected: Option<u32>,
 }
 
 impl Dropdown {
@@ -21,7 +21,7 @@ impl Dropdown {
         let label: String = if builder.placeholder_text.is_some() {
             builder.placeholder_text.unwrap()
         } else if builder.initially_selected.is_some() {
-            builder.options[builder.initially_selected.unwrap()].label.clone()
+            builder.options[builder.initially_selected.unwrap() as usize].label.clone()
         } else {
             "".to_string()
         };
@@ -41,6 +41,7 @@ impl Dropdown {
                 .with_position(Position::ElementAnchor(AnchorPoint::BottomOutside(5.0), anchor_element_id))
                 .with_width(button.width())
                 .with_height(button.height())
+                .with_mouse_action_to_activate(InputAction::UpOrDown)
             , element_registry, asset_manager)?;
 
             anchor_element_id = option_button.anchor_element_id();
@@ -60,17 +61,25 @@ impl Dropdown {
         })
     }
 
-    pub fn update(&mut self, input: &Input, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) {
+    /// Returns the newly selected value, or None if nothing has changed
+    pub fn update(&mut self, input: &Input, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Option<u32> {
         if self.is_open {
             for option in self.options.iter() {
                 if option.button.is_clicked(input, element_registry) {
-                    // TODO check error
-                    _ = element_registry.set_text(self.button.text_element_id(), &option.label, asset_manager);
+                    let value = option.value;
+
+                    match element_registry.set_text(self.button.text_element_id(), &option.label, asset_manager) {
+                        Ok(_) => (),
+                        Err(err) => {
+                            log::engine_err(format!("failed to set selected dropdown value {}: {}", value, err));
+                            return None;
+                        },
+                    }
                     
                     self.is_open = false;
                     self.handle_state(element_registry);
 
-                    return;
+                    return Some(value);
                 }
             }
         }
@@ -79,6 +88,8 @@ impl Dropdown {
             self.is_open = !self.is_open;
             self.handle_state(element_registry);
         }
+
+        None
     }
 
     pub fn handle_state(&mut self, element_registry: &mut ElementRegistry) {
@@ -96,13 +107,13 @@ impl Dropdown {
 
 pub struct DropdownOption {
     pub label: String,
-    pub value: usize,
+    pub value: u32,
 }
 
 pub struct DropdownBuilder {
     placeholder_text: Option<String>,
     options: Vec<DropdownOption>,
-    initially_selected: Option<usize>, // index of the options list
+    initially_selected: Option<u32>, // index of the options list
     z_index: f32,
     position: Position,
 }
@@ -124,14 +135,14 @@ impl DropdownBuilder {
         self
     }
 
-    pub fn with_initially_selected(mut self, initially_selected: usize) -> Self {
+    pub fn with_initially_selected(mut self, initially_selected: u32) -> Self {
         self.initially_selected = Some(initially_selected);
         self.placeholder_text = None;
         self
     }
 
     pub fn validate(&self) -> Result<(), String> {
-        if self.initially_selected.is_some() && self.options.len() <= self.initially_selected.unwrap() {
+        if self.initially_selected.is_some() && self.options.len() <= self.initially_selected.unwrap() as usize {
             return Err(format!(
                 "Initially selected index ({}) is higher than the number of options ({})"
                 , self.initially_selected.unwrap(), self.options.len()
