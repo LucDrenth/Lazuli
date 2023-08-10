@@ -42,6 +42,7 @@ impl Dropdown {
                 .with_height(button.height())
                 .with_mouse_action_to_activate(InputAction::UpOrDown)
                 .with_hidden(true)
+                .with_z_index(builder.z_index)
             , element_registry, asset_manager)?;
 
             anchor_element_id = option_button.anchor_element_id();
