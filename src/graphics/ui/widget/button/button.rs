@@ -27,6 +27,7 @@ impl Button {
             .with_z_index(builder.z_index + 0.01)
             .with_font_size(builder.font_size)
             .with_scale(builder.scale)
+            .with_hidden(builder.hidden)
         , asset_manager, element_registry)?;
         
         let button_width = match builder.width {
@@ -45,6 +46,7 @@ impl Button {
             .with_z_index(builder.z_index)
             .with_position(builder.position)
             .with_scale(builder.scale)
+            .with_hidden(builder.hidden)
         , asset_manager, element_registry)?;
         let background_element_id = element_registry.add_rectangle(background);
 
@@ -118,6 +120,7 @@ pub struct ButtonBuilder {
     mouse_button_to_activate: MouseButton,
     width: Option<f32>,
     height: Option<f32>,
+    hidden: bool,
 }
 
 impl ButtonBuilder {
@@ -136,6 +139,7 @@ impl ButtonBuilder {
             mouse_button_to_activate: MouseButton::Left,
             width: None,
             height: None,
+            hidden: false,
         }
     }
 
@@ -213,6 +217,11 @@ impl ButtonBuilder {
 
     pub fn with_height(mut self, height: f32) -> Self {
         self.height = Some(height);
+        self
+    }
+
+    pub fn with_hidden(mut self, hidden: bool) -> Self {
+        self.hidden = hidden;
         self
     }
 }

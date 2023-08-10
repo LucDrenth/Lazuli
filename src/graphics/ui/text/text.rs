@@ -98,7 +98,7 @@ impl Text {
             world_data,
             font_id: font_id.duplicate(),
             material_id: font_material_id,
-            show: true,
+            show: !text_builder.hidden,
         };
         result.set_text(
             &result.text.clone(), 
@@ -205,6 +205,7 @@ pub struct TextBuilder {
     position: Position,
     z_index: f32,
     scale: Vec2,
+    hidden: bool,
 }
 
 impl TextBuilder {
@@ -216,6 +217,7 @@ impl TextBuilder {
             position: Position::ScreenAnchor(AnchorPoint::Center),
             z_index: 10.0,
             scale: Vec2::ONE,
+            hidden: false,
         }
     }
 
@@ -251,6 +253,11 @@ impl TextBuilder {
 
     pub fn with_scale(mut self, scale: Vec2) -> Self {
         self.scale = scale;
+        self
+    }
+
+    pub fn with_hidden(mut self, hidden: bool) -> Self {
+        self.hidden = hidden;
         self
     }
 }

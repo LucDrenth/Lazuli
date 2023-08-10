@@ -37,17 +37,14 @@ impl Dropdown {
         let mut anchor_element_id = button.anchor_element_id();
         for option in builder.options {
             let option_button = Button::new(option.label.clone(), ButtonBuilder::new()
-                // TODO styling
                 .with_position(Position::ElementAnchor(AnchorPoint::BottomOutside(5.0), anchor_element_id))
                 .with_width(button.width())
                 .with_height(button.height())
                 .with_mouse_action_to_activate(InputAction::UpOrDown)
+                .with_hidden(true)
             , element_registry, asset_manager)?;
 
             anchor_element_id = option_button.anchor_element_id();
-
-            // TODO add with_initially_hidden function to ButtonBuilder
-            option_button.hide(element_registry);
 
             options.push(DropdownOptionButton{ button: option_button, value: option.value, label: option.label });
         }

@@ -110,7 +110,10 @@ impl Scene for HelloUi {
             _ = self.interface.hide_button(self.reset_button_id);
         }
 
-        self.dropdown.update(input, self.interface.mut_element_registry(), asset_manager);
+        match self.dropdown.update(input, self.interface.mut_element_registry(), asset_manager) {
+            Some(new_value) => log::info(format!("new dropdown value: {}", new_value)),
+            None => (),
+        }
     }
 
     unsafe fn draw(&self, asset_manager: &mut AssetManager) {

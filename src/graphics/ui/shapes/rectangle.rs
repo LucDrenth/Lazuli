@@ -119,7 +119,7 @@ impl Rectangle {
             material_id,
             color: builder.color,
             world_data,
-            show: true,
+            show: !builder.hidden,
         })
     }
 
@@ -138,6 +138,7 @@ pub struct RectangleBuilder {
     height: f32,
     z_index: f32,
     scale: Vec2,
+    hidden: bool,
 }
 
 impl RectangleBuilder {
@@ -150,6 +151,7 @@ impl RectangleBuilder {
             height: 40.0,
             z_index: 10.0,
             scale: Vec2::ONE,
+            hidden: false,
         }
     }
 
@@ -190,6 +192,11 @@ impl RectangleBuilder {
 
     pub fn with_scale(mut self, scale: Vec2) -> Self {
         self.scale = scale;
+        self
+    }
+
+    pub fn with_hidden(mut self, hidden: bool) -> Self {
+        self.hidden = hidden;
         self
     }
 }
