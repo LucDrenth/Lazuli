@@ -8,7 +8,7 @@ pub struct HelloUi {
     height_slider_id: u32,
     reset_button_id: u32,
     rectangle_id: u32,
-    dropdown: Dropdown,
+    dropdown: Dropdown<String>,
 }
 
 impl Scene for HelloUi {
@@ -56,12 +56,12 @@ impl Scene for HelloUi {
         let dropdown = Dropdown::new(DropdownBuilder::new()
             .with_placeholder_text("--- selected a color ---".to_string())
             .with_options(vec![
-                DropdownOption{ label: "Red".to_string(), value: 1 },
-                DropdownOption{ label: "Green".to_string(), value: 2 },
-                DropdownOption{ label: "Blue".to_string(), value: 3 },
-                DropdownOption{ label: "Yellow".to_string(), value: 4 },
-                DropdownOption{ label: "Pink".to_string(), value: 5 },
-                DropdownOption{ label: "Cyan".to_string(), value: 6 },
+                DropdownOption{ label: "Red".to_string(), value: "#ff0000".to_string() },
+                DropdownOption{ label: "Green".to_string(), value: "#00ff00".to_string() },
+                DropdownOption{ label: "Blue".to_string(), value: "#0000ff".to_string() },
+                DropdownOption{ label: "Yellow".to_string(), value: "#ffff00".to_string() },
+                DropdownOption{ label: "Pink".to_string(), value: "#ff00ff".to_string() },
+                DropdownOption{ label: "Cyan".to_string(), value: "#00ffff".to_string() },
             ])
             .with_position(Position::ScreenAnchor(AnchorPoint::TopLeftInside(10.0, 10.0)))
         , interface.mut_element_registry(), asset_manager)?;
@@ -114,15 +114,7 @@ impl Scene for HelloUi {
 
         match self.dropdown.update(input, self.interface.mut_element_registry(), asset_manager) {
             Some(new_value) => {
-                match new_value {
-                    1 => { _ = self.interface.mut_element_registry().set_element_color(self.rectangle_id, Color::Rgb(230, 0, 0)) }
-                    2 => { _ = self.interface.mut_element_registry().set_element_color(self.rectangle_id, Color::Rgb(0, 230, 0)) }
-                    3 => { _ = self.interface.mut_element_registry().set_element_color(self.rectangle_id, Color::Rgb(0, 0, 230)) }
-                    4 => { _ = self.interface.mut_element_registry().set_element_color(self.rectangle_id, Color::Rgb(230, 230, 0)) }
-                    5 => { _ = self.interface.mut_element_registry().set_element_color(self.rectangle_id, Color::Rgb(230, 0, 230)) }
-                    6 => { _ = self.interface.mut_element_registry().set_element_color(self.rectangle_id, Color::Rgb(0, 230, 230)) }
-                    _ => {},
-                }
+                _ = self.interface.mut_element_registry().set_element_color(self.rectangle_id, Color::Hex(new_value));
             },
             None => (),
         }

@@ -1,29 +1,38 @@
+use std::fmt::Debug;
+
 use crate::{asset_manager::AssetManager, graphics::ui::{ElementRegistry, widget::{Button, ButtonBuilder, UiWidget}, interface::is_valid_z_index, Position, AnchorPoint}, log, input::{Input, InputAction}};
 
-struct DropdownOptionButton {
+struct DropdownOptionButton<T: Debug + Clone> {
     button: Button,
-    value: u32,
+    value: T,
     label: String,
 }
 
-pub struct Dropdown {
+pub struct Dropdown<T: Debug + Clone> {
     z_index: f32,
     button: Button,
-    options: Vec<DropdownOptionButton>,
+    options: Vec<DropdownOptionButton<T>>,
     is_open: bool,
-    selected: Option<u32>,
+    selected: Option<T>,
 }
 
-impl Dropdown {
-    pub fn new(builder: DropdownBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<Self, String> {
+impl<T: Debug + Clone> Dropdown<T> {
+    pub fn new(builder: DropdownBuilder<T>, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<Self, String> {
         builder.validate()?;
 
-        let label: String = if builder.placeholder_text.is_some() {
-            builder.placeholder_text.unwrap()
-        } else if builder.initially_selected.is_some() {
-            builder.options[builder.initially_selected.unwrap() as usize].label.clone()
+        let selected_value: Option<T>;
+        let label;
+
+        if builder.placeholder_text.is_some() {
+            label = builder.placeholder_text.unwrap();
+            selected_value = None;
+        } else if builder.initially_selected_index.is_some() {
+            let selected_option = &builder.options[builder.initially_selected_index.unwrap() as usize];
+            label = selected_option.label.clone();
+            selected_value = Some(selected_option.value.clone());
         } else {
-            "".to_string()
+            label = "".to_string();
+            selected_value = None;
         };
 
         let button = Button::new(label, ButtonBuilder::new()
@@ -55,21 +64,21 @@ impl Dropdown {
             button,
             options,
             is_open: false,
-            selected: builder.initially_selected,
+            selected: selected_value,
         })
     }
 
     /// Returns the newly selected value, or None if nothing has changed
-    pub fn update(&mut self, input: &Input, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Option<u32> {
+    pub fn update(&mut self, input: &Input, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Option<T> {
         if self.is_open {
             for option in self.options.iter() {
                 if option.button.is_clicked(input, element_registry) {
-                    let value = option.value;
+                    let value = option.value.clone();
 
                     match element_registry.set_text(self.button.text_element_id(), &option.label, asset_manager) {
                         Ok(_) => (),
                         Err(err) => {
-                            log::engine_err(format!("failed to set selected dropdown value {}: {}", value, err));
+                            log::engine_err(format!("failed to set selected dropdown value {:?}: {}", value, err));
                             return None;
                         },
                     }
@@ -103,25 +112,25 @@ impl Dropdown {
     }
 }
 
-pub struct DropdownOption {
+pub struct DropdownOption<T: Debug + Clone> {
     pub label: String,
-    pub value: u32,
+    pub value: T,
 }
 
-pub struct DropdownBuilder {
+pub struct DropdownBuilder<T: Debug + Clone> {
     placeholder_text: Option<String>,
-    options: Vec<DropdownOption>,
-    initially_selected: Option<u32>, // index of the options list
+    options: Vec<DropdownOption<T>>,
+    initially_selected_index: Option<u32>, // index of the options list
     z_index: f32,
     position: Position,
 }
 
-impl DropdownBuilder {
+impl<T: Debug + Clone> DropdownBuilder<T> {
     pub fn new() -> Self {
         Self {
             placeholder_text: None,
             options: vec![],
-            initially_selected: Some(0),
+            initially_selected_index: Some(0),
             z_index: 10.0,
             position: Position::ScreenAnchor(AnchorPoint::Center),
         }
@@ -129,21 +138,21 @@ impl DropdownBuilder {
 
     pub fn with_placeholder_text(mut self, placeholder_text: String) -> Self {
         self.placeholder_text = Some(placeholder_text);
-        self.initially_selected = None;
+        self.initially_selected_index = None;
         self
     }
 
-    pub fn with_initially_selected(mut self, initially_selected: u32) -> Self {
-        self.initially_selected = Some(initially_selected);
+    pub fn with_initially_selected_index(mut self, initially_selected_index: u32) -> Self {
+        self.initially_selected_index = Some(initially_selected_index);
         self.placeholder_text = None;
         self
     }
 
     pub fn validate(&self) -> Result<(), String> {
-        if self.initially_selected.is_some() && self.options.len() <= self.initially_selected.unwrap() as usize {
+        if self.initially_selected_index.is_some() && self.options.len() <= self.initially_selected_index.unwrap() as usize {
             return Err(format!(
                 "Initially selected index ({}) is higher than the number of options ({})"
-                , self.initially_selected.unwrap(), self.options.len()
+                , self.initially_selected_index.unwrap(), self.options.len()
             ));
         }
 
@@ -166,7 +175,7 @@ impl DropdownBuilder {
         self
     }
 
-    pub fn with_options(mut self, options: Vec<DropdownOption>) -> Self {
+    pub fn with_options(mut self, options: Vec<DropdownOption<T>>) -> Self {
         self.options = options;
         self
     }
