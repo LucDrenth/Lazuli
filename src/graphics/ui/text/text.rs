@@ -68,6 +68,10 @@ impl UiElement for Text {
     fn hide(&mut self) { self.show = false; }
     fn show(&mut self) { self.show = true; }
     fn is_shown(&self) -> bool { self.show }
+
+    fn set_color(&mut self, color: Color) {
+        self.color = color;
+    }
 }
 
 impl Text {

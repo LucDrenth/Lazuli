@@ -2,7 +2,7 @@ use std::any::TypeId;
 
 use glam::Vec2;
 
-use crate::{asset_manager::{AssetManager, AssetId}, input::{Input, MouseButton, InputAction}, graphics::{font::Font, ui::{element::{ui_element::UiElement, AnchorElementData}, Text, TextBuilder, shapes::{RectangleBuilder, Rectangle}, Position}}, log};
+use crate::{asset_manager::{AssetManager, AssetId}, input::{Input, MouseButton, InputAction}, graphics::{font::Font, ui::{element::{ui_element::UiElement, AnchorElementData}, Text, TextBuilder, shapes::{RectangleBuilder, Rectangle}, Position}, Color}, log};
 
 use super::{interface, element_list::{ElementList, OrderedElementsItem, self}, anchor_tree::{AnchorTree, AnchorElementIdentifier}};
 
@@ -270,6 +270,16 @@ impl ElementRegistry {
         match self.get_ui_element_by_id(element_id) {
             Some(element) => Ok(element.get_scale()),
             None => Err(format!("failed to get scale because element with id {} was not found", element_id)),
+        }
+    }
+
+    pub fn set_element_color(&mut self, element_id: u32, color: Color) -> Result<(), String> {
+        match self.get_mut_ui_element_by_id(element_id) {
+            Some(element) => {
+                element.set_color(color);
+                Ok(())
+            },
+            None => Err(format!("failed to set element color because element with id {} was not found", element_id)),
         }
     }
 
