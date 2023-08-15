@@ -8,7 +8,7 @@ pub struct HelloUi {
     height_slider_id: u32,
     reset_button_id: u32,
     rectangle_id: u32,
-    dropdown: Dropdown<String>,
+    dropdown: Dropdown<Color>,
 }
 
 impl Scene for HelloUi {
@@ -56,12 +56,12 @@ impl Scene for HelloUi {
         let dropdown = Dropdown::new(DropdownBuilder::new()
             .with_placeholder_text("--- selected a color ---".to_string())
             .with_options(vec![
-                DropdownOption{ label: "Red".to_string(), value: "#ff0000".to_string() },
-                DropdownOption{ label: "Green".to_string(), value: "#00ff00".to_string() },
-                DropdownOption{ label: "Blue".to_string(), value: "#0000ff".to_string() },
-                DropdownOption{ label: "Yellow".to_string(), value: "#ffff00".to_string() },
-                DropdownOption{ label: "Pink".to_string(), value: "#ff00ff".to_string() },
-                DropdownOption{ label: "Cyan".to_string(), value: "#00ffff".to_string() },
+                DropdownOption{ label: "Red".to_string(), value:  Color::Hex("#ff0000".to_string()) },
+                DropdownOption{ label: "Green".to_string(), value: Color::Hex("#00ff00".to_string()) },
+                DropdownOption{ label: "Blue".to_string(), value: Color::Hex("#0000ff".to_string()) },
+                DropdownOption{ label: "Yellow".to_string(), value: Color::Hex("#ffff00".to_string()) },
+                DropdownOption{ label: "Pink".to_string(), value: Color::Hex("#ff00ff".to_string()) },
+                DropdownOption{ label: "Cyan".to_string(), value: Color::Hex("#00ffff".to_string()) },
             ])
             .with_position(Position::ScreenAnchor(AnchorPoint::TopLeftInside(10.0, 10.0)))
         , interface.mut_element_registry(), asset_manager)?;
@@ -114,7 +114,8 @@ impl Scene for HelloUi {
 
         match self.dropdown.update(input, self.interface.mut_element_registry(), asset_manager) {
             Some(new_value) => {
-                _ = self.interface.mut_element_registry().set_element_color(self.rectangle_id, Color::Hex(new_value));
+                _ = self.interface.mut_element_registry().set_element_color(self.rectangle_id, new_value.clone());
+                _ = self.interface.set_button_text_color(new_value, self.reset_button_id);
             },
             None => (),
         }

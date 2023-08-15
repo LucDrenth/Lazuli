@@ -1,5 +1,6 @@
 use crate::log;
 
+#[derive(Debug, Clone)]
 pub enum Color {
     Rgb(u8, u8, u8),
     Rgba(u8, u8, u8, f32),

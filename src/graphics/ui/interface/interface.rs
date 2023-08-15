@@ -55,6 +55,12 @@ impl Interface {
     pub fn is_button_clicked(&self, button_id: u32) -> bool {
         self.widget_registry.is_button_clicked(button_id)
     }
+    pub fn set_button_background_color(&mut self, color: Color, button_id: u32) -> Result<(), String> {
+        self.widget_registry.set_button_background_color(color, button_id, &mut self.element_registry)
+    }
+    pub fn set_button_text_color(&mut self, color: Color, button_id: u32) -> Result<(), String> {
+        self.widget_registry.set_button_text_color(color, button_id, &mut self.element_registry)
+    }
 
     // slider specific functions
     pub fn add_slider(&mut self, builder: SliderBuilder, asset_manager: &mut AssetManager) -> Result<u32, String> {

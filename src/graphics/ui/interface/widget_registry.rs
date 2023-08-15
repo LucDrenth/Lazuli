@@ -1,4 +1,4 @@
-use crate::{graphics::ui::widget::{Slider, SliderBuilder, SliderUpdateResult, Button, ButtonBuilder, UiWidget}, asset_manager::AssetManager, input::Input, log};
+use crate::{graphics::{ui::widget::{Slider, SliderBuilder, SliderUpdateResult, Button, ButtonBuilder, UiWidget}, Color}, asset_manager::AssetManager, input::Input, log};
 
 use super::ElementRegistry;
 
@@ -121,13 +121,6 @@ impl WidgetRegistry {
         }
     }
 
-    pub fn set_slider_value(&mut self, value: f32, slider_id: u32, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) {
-        match self.get_mut_slider(slider_id) {
-            Some(slider) => slider.set_value(value, element_registry, asset_manager),
-            None => log::engine_warn(format!("Failed to set slider value because slider with id {} was not found", slider_id)),
-        }
-    }
-
     pub fn show_widget(&self, widget_id: u32, element_registry: &mut ElementRegistry) {
         self.get_widget_by_id(widget_id).unwrap().show(element_registry);
     }
@@ -178,5 +171,29 @@ impl WidgetRegistry {
         }
 
         None
+    }
+
+    // =================================================== \\
+    // ============ Widget specific functions ============ \\
+
+    pub fn set_slider_value(&mut self, value: f32, slider_id: u32, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) {
+        match self.get_mut_slider(slider_id) {
+            Some(slider) => slider.set_value(value, element_registry, asset_manager),
+            None => log::engine_warn(format!("Failed to set slider value because slider with id {} was not found", slider_id)),
+        }
+    }
+
+    pub fn set_button_background_color(&self, color: Color, button_id: u32, element_registry: &mut ElementRegistry) -> Result<(), String> {
+        match self.get_button(button_id) {
+            Some(button) => button.set_background_color(color, element_registry),
+            None => Err( format!("Failed to set button background color because button with id {} was not found", button_id) ),
+        }
+    }
+
+    pub fn set_button_text_color(&self, color: Color, button_id: u32, element_registry: &mut ElementRegistry) -> Result<(), String> {
+        match self.get_button(button_id) {
+            Some(button) => button.set_text_color(color, element_registry),
+            None => Err( format!("Failed to set button text color because button with id {} was not found", button_id) ),
+        }
     }
 }
