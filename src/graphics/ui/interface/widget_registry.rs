@@ -1,41 +1,19 @@
 use crate::{graphics::{ui::widget::{Slider, SliderBuilder, SliderUpdateResult, Button, ButtonBuilder, UiWidget, Dropdown, DropdownBuilder}, Color}, asset_manager::AssetManager, input::Input, log};
 
-use super::ElementRegistry;
-
-// TODO abstractiate to WidgetEntry
-struct ButtonEntry {
-    button: Button,
-    id: u32,
-    is_clicked: bool,
-}
-struct SliderEntry {
-    slider: Slider,
-    id: u32,
-    update_result: Option<SliderUpdateResult>,
-}
-
-// TODO support more types than Dropdown<u32>
-struct DropdownEntry {
-    dropdown: Dropdown<u32>,
-    id: u32,
-    update_result: Option<u32>,
-}
-
+use super::{ElementRegistry, widget_list::WidgetList};
 
 pub struct WidgetRegistry {
-    buttons: Vec<ButtonEntry>,
-    sliders: Vec<SliderEntry>,
-    dropdowns: Vec<DropdownEntry>,
-    current_id: u32,
+    buttons: WidgetList<Button, bool>,
+    sliders: WidgetList<Slider, Option<SliderUpdateResult>>,
+    dropdowns: WidgetList<Dropdown<u32>, Option<u32>>, // TODO support more types than Dropdown<u32>
 }
 
 impl WidgetRegistry {
     pub fn new() -> Self {
         Self {
-            buttons: vec![],
-            sliders: vec![],
-            dropdowns: vec![],
-            current_id: 0,
+            buttons: WidgetList::new(),
+            sliders: WidgetList::new(),
+            dropdowns: WidgetList::new(),
         }
     }
 
@@ -43,84 +21,43 @@ impl WidgetRegistry {
         // TODO update based on z-index of both buttons and sliders together
 
         // update sliders
-        for entry in self.sliders.iter_mut() {
-            entry.update_result = entry.slider.update(input, element_registry, asset_manager);
+        for entry in self.sliders.entries.iter_mut() {
+            entry.update_result = entry.widget.update(input, element_registry, asset_manager);
         }
 
         // update buttons
         let mut is_any_button_clicked = false;
-        for entry in self.buttons.iter_mut() {
+        for entry in self.buttons.entries.iter_mut() {
             if is_any_button_clicked {
-                entry.is_clicked = false;
+                entry.update_result = false;
             } else {
-                entry.is_clicked = entry.button.is_clicked(input, element_registry);
-                is_any_button_clicked = entry.is_clicked;
+                entry.update_result = entry.widget.is_clicked(input, element_registry);
+                is_any_button_clicked = entry.update_result;
             }
         }
 
         // update dropdowns
-        for entry in self.dropdowns.iter_mut() {
-            entry.update_result = entry.dropdown.update(input, element_registry, asset_manager);
+        for entry in self.dropdowns.entries.iter_mut() {
+            entry.update_result = entry.widget.update(input, element_registry, asset_manager);
         }
     }
 
     pub fn add_slider(&mut self, builder: SliderBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<u32, String> {
         let slider = Slider::new(builder, element_registry, asset_manager)?;
-        
-        self.current_id += 1;
-        self.sliders.push(SliderEntry {
-            slider,
-            id: self.current_id,
-            update_result: None,
-        });
-        self.sort_sliders_by_z_index();
-
-        Ok(self.current_id)
+        Ok(self.sliders.push(slider, None))
     }
-
     pub fn add_button(&mut self, label: String, builder: ButtonBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<u32, String> {
         let button = Button::new(label, builder, element_registry, asset_manager)?;
-        
-        self.current_id += 1;
-        self.buttons.push(ButtonEntry {
-            button,
-            id: self.current_id,
-            is_clicked: false,
-        });
-        self.sort_buttons_by_z_index();
 
-        Ok(self.current_id)
+        Ok(self.buttons.push(button, false))
     }
-
     pub fn add_dropdown(&mut self, builder: DropdownBuilder<u32>, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<u32, String> {
         let dropdown = Dropdown::new(builder, element_registry, asset_manager)?;
-
-        self.current_id += 1;
-        self.dropdowns.push(DropdownEntry {
-            dropdown,
-            id: self.current_id,
-            update_result: None,
-        });
-        self.sort_dropdowns_by_z_index();
-
-        Ok(self.current_id)
-    }
-
-    // Sort elements so that the elements with the lowest z-index are at the start of the list
-    fn sort_sliders_by_z_index(&mut self) {
-        self.sliders.sort_by(|a, b| b.slider.z_index().total_cmp(&a.slider.z_index()));
-    }
-    // Sort elements so that the elements with the lowest z-index are at the start of the list
-    fn sort_buttons_by_z_index(&mut self) {
-        self.buttons.sort_by(|a, b| b.button.z_index().total_cmp(&a.button.z_index()));
-    }
-    // Sort elements so that the elements with the lowest z-index are at the start of the list
-    fn sort_dropdowns_by_z_index(&mut self) {
-        self.dropdowns.sort_by(|a, b| b.dropdown.z_index().total_cmp(&a.dropdown.z_index()));
+        Ok(self.dropdowns.push(dropdown, None))
     }
 
     pub fn slider_update_result(&self, slider_id: u32) -> Option<SliderUpdateResult> {
-        for entry in self.sliders.iter() {
+        for entry in self.sliders.entries.iter() {
             if entry.id == slider_id {
                 match entry.update_result {
                     Some(slider_update_result) => return Some(slider_update_result.clone()),
@@ -135,9 +72,9 @@ impl WidgetRegistry {
     }
 
     pub fn is_button_clicked(&self, button_id: u32) -> bool {
-        for entry in self.buttons.iter() {
+        for entry in self.buttons.entries.iter() {
             if entry.id == button_id {
-                return entry.is_clicked
+                return entry.update_result
             }
         }
 
@@ -146,7 +83,7 @@ impl WidgetRegistry {
     }
 
     pub fn dropdown_update_result(&self, dropdown_id: u32) -> Option<u32> {
-        for entry in self.dropdowns.iter() {
+        for entry in self.dropdowns.entries.iter() {
             if entry.id == dropdown_id {
                 return entry.update_result.clone();
             }
@@ -175,16 +112,16 @@ impl WidgetRegistry {
     }
 
     fn get_widget_by_id(&self, widget_id: u32) -> Option<Box<&dyn UiWidget>> {
-        for widget_entry in self.sliders.iter() {
-            if widget_entry.id == widget_id { return Some(Box::new(&widget_entry.slider)) }
+        for widget_entry in self.sliders.entries.iter() {
+            if widget_entry.id == widget_id { return Some(Box::new(&widget_entry.widget)) }
         }
 
-        for widget_entry in self.buttons.iter() {
-            if widget_entry.id == widget_id { return Some(Box::new(&widget_entry.button)) }
+        for widget_entry in self.buttons.entries.iter() {
+            if widget_entry.id == widget_id { return Some(Box::new(&widget_entry.widget)) }
         }
 
-        for widget_entry in self.dropdowns.iter() {
-            if widget_entry.id == widget_id { return Some(Box::new(&widget_entry.dropdown)) }
+        for widget_entry in self.dropdowns.entries.iter() {
+            if widget_entry.id == widget_id { return Some(Box::new(&widget_entry.widget)) }
         }
 
         None
@@ -195,46 +132,24 @@ impl WidgetRegistry {
     // ======= Functions to get individual widgets ======= \\
 
     fn get_slider(&self, slider_id: u32) -> Option<&Slider> {
-        for entry in self.sliders.iter() {
-            if entry.id == slider_id { return Some(&entry.slider) }
-        }
-
-        None
+        self.sliders.get_widget(slider_id)
     }
     fn get_mut_slider(&mut self, slider_id: u32) -> Option<&mut Slider> {
-        for entry in self.sliders.iter_mut() {
-            if entry.id == slider_id { return Some(&mut entry.slider) }
-        }
+        self.sliders.get_mut_widget(slider_id)
 
-        None
     }
     fn get_button(&self, button_id: u32) -> Option<&Button> {
-        for entry in self.buttons.iter() {
-            if entry.id == button_id { return Some(&entry.button) }
-        }
-
-        None
+        self.buttons.get_widget(button_id)
     }
     fn get_mut_button(&mut self, button_id: u32) -> Option<&mut Button> {
-        for entry in self.buttons.iter_mut() {
-            if entry.id == button_id { return Some(&mut entry.button) }
-        }
-
-        None
+        self.buttons.get_mut_widget(button_id)
     }
     fn get_dropdown(&self, dropdown_id: u32) -> Option<&Dropdown<u32>> {
-        for entry in self.dropdowns.iter() {
-            if entry.id == dropdown_id { return Some(&entry.dropdown) }
-        }
+        self.dropdowns.get_widget(dropdown_id)
 
-        None
     }
     fn get_mut_dropdown(&mut self, dropdown_id: u32) -> Option<&mut Dropdown<u32>> {
-        for entry in self.dropdowns.iter_mut() {
-            if entry.id == dropdown_id { return Some(&mut entry.dropdown) }
-        }
-
-        None
+        self.dropdowns.get_mut_widget(dropdown_id)
     }
 
     // =================================================== \\

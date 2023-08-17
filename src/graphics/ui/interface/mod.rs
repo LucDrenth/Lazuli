@@ -7,5 +7,6 @@ pub use widget_registry::WidgetRegistry;
 mod interface;
 pub use interface::*;
 
+mod widget_list;
 mod element_list;
 mod anchor_tree;
