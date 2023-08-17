@@ -37,6 +37,8 @@ impl Interface {
         self.element_registry.draw(asset_manager);
     }
 
+    pub fn mut_element_registry(&mut self) -> &mut ElementRegistry { &mut self.element_registry }
+
     // UiWidget functions
     pub fn get_widget_anchor_element_id(&self, slider_id: u32) -> Option<u32> {
         self.widget_registry.get_anchor_element_id(slider_id)
@@ -80,8 +82,6 @@ impl Interface {
     pub fn dropdown_update_result(&self, dropdown_id: u32) -> Option<u32> {
         self.widget_registry.dropdown_update_result(dropdown_id)
     }
-
-    pub fn mut_element_registry(&mut self) -> &mut ElementRegistry { &mut self.element_registry }
 }
 
 // TODO make these configurable
