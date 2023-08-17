@@ -37,15 +37,16 @@ impl Texture {
     }
 
     pub fn load_from_path(&self, path: impl Into<String>) -> Result<(), String> {
-        self.bind();
+        let path_string = path.into();
 
-        match image::open(path.into()) {
+        match image::open(path_string.clone()) {
             Ok(img) => {
+                self.bind();
                 Self::upload(&img.into_rgba8());
                 Ok(())
             }
             Err(err) => {
-                Err(format!("Failed to load texture image from path {:?}: {}", path.into(), err))
+                Err(format!("Failed to load texture image from path {:?}: {}", path_string, err))
             }
         }
     }
