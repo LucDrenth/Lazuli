@@ -15,7 +15,7 @@ pub struct Slider {
     z_index: f32,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct SliderUpdateResult {
     pub change_amount: f32,
     pub new_value: f32,

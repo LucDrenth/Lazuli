@@ -11,9 +11,9 @@ pub struct WidgetRegistry {
 impl WidgetRegistry {
     pub fn new() -> Self {
         Self {
-            buttons: WidgetList::new(),
-            sliders: WidgetList::new(),
-            dropdowns: WidgetList::new(),
+            buttons: WidgetList::new(false),
+            sliders: WidgetList::new(None),
+            dropdowns: WidgetList::new(None),
         }
     }
 
@@ -42,6 +42,10 @@ impl WidgetRegistry {
         }
     }
 
+
+    // =============================================================================== \\
+    // =========== Functions for adding widgets and getting update result ============ \\
+
     pub fn add_slider(&mut self, builder: SliderBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<u32, String> {
         let slider = Slider::new(builder, element_registry, asset_manager)?;
         Ok(self.sliders.push(slider, None))
@@ -57,42 +61,18 @@ impl WidgetRegistry {
     }
 
     pub fn slider_update_result(&self, slider_id: u32) -> Option<SliderUpdateResult> {
-        for entry in self.sliders.entries.iter() {
-            if entry.id == slider_id {
-                match entry.update_result {
-                    Some(slider_update_result) => return Some(slider_update_result.clone()),
-                    None => return None,
-                }
-            }
-        }
-
-        log::engine_warn(format!("WidgetRegistry.slider_update_result returned None because slider with id {} was not found", slider_id));
-
-        None
+        self.sliders.get_update_result(slider_id)
     }
-
     pub fn is_button_clicked(&self, button_id: u32) -> bool {
-        for entry in self.buttons.entries.iter() {
-            if entry.id == button_id {
-                return entry.update_result
-            }
-        }
-
-        log::engine_warn(format!("WidgetRegistry.is_button_clicked returned false because button with id {} was not found", button_id));
-        return false;
+        self.buttons.get_update_result(button_id)
     }
-
     pub fn dropdown_update_result(&self, dropdown_id: u32) -> Option<u32> {
-        for entry in self.dropdowns.entries.iter() {
-            if entry.id == dropdown_id {
-                return entry.update_result.clone();
-            }
-        }
-
-        log::engine_warn(format!("WidgetRegistry.dropdown_update_result returned None because dropdown with id {} was not found", dropdown_id));
-
-        None
+        self.dropdowns.get_update_result(dropdown_id)
     }
+
+
+    // =================================================== \\
+    // =========== General UiWidget functions ============ \\
 
     pub fn get_anchor_element_id(&self, widget_id: u32) -> Option<u32> {
         match self.get_widget_by_id(widget_id) {
