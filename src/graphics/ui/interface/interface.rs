@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_manager::{AssetManager, AssetId}, input::Input, graphics::{ui::widget::{SliderBuilder, SliderUpdateResult, ButtonBuilder}, font::{Font, PlainBitmapBuilder}, Color}};
+use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_manager::{AssetManager, AssetId}, input::Input, graphics::{ui::widget::{SliderBuilder, SliderUpdateResult, ButtonBuilder, DropdownBuilder}, font::{Font, PlainBitmapBuilder}, Color}};
 
 use super::{ElementRegistry, widget_registry::WidgetRegistry};
 
@@ -71,6 +71,14 @@ impl Interface {
     }
     pub fn set_slider_value(&mut self, value: f32, slider_id: u32, asset_manager: &mut AssetManager) {
         self.widget_registry.set_slider_value(value, slider_id, &mut self.element_registry, asset_manager);
+    }
+
+    // dropdown specific functions
+    pub fn add_dropdown(&mut self, builder: DropdownBuilder<u32>, asset_manager: &mut AssetManager) -> Result<u32, String> {
+        self.widget_registry.add_dropdown(builder, &mut self.element_registry, asset_manager)
+    }
+    pub fn dropdown_update_result(&self, dropdown_id: u32) -> Option<u32> {
+        self.widget_registry.dropdown_update_result(dropdown_id)
     }
 
     pub fn mut_element_registry(&mut self) -> &mut ElementRegistry { &mut self.element_registry }

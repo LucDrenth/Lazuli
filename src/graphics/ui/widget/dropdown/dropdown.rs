@@ -16,6 +16,33 @@ pub struct Dropdown<T: Debug + Clone> {
     selected: Option<T>,
 }
 
+// TODO implement for all types instead of only for u32
+impl UiWidget for Dropdown<u32> {
+    fn show(&self, element_registry: &mut ElementRegistry) {
+        self.button.show(element_registry);
+
+        for option in self.options.iter() {
+            option.button.show(element_registry);
+        }
+    }
+
+    fn hide(&self, element_registry: &mut ElementRegistry) {
+        self.button.hide(element_registry);
+        
+        for option in self.options.iter() {
+            option.button.hide(element_registry);
+        }
+    }
+
+    fn anchor_element_id(&self) -> u32 {
+        self.button.anchor_element_id()
+    }
+
+    fn z_index(&self) -> f32 {
+        self.z_index
+    }
+}
+
 impl<T: Debug + Clone> Dropdown<T> {
     pub fn new(builder: DropdownBuilder<T>, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<Self, String> {
         builder.validate()?;
