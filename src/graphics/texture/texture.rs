@@ -1,5 +1,3 @@
-use std::path::Path;
-
 use gl::types::{GLuint, GLenum};
 
 use crate::{error::opengl, log};
@@ -38,16 +36,16 @@ impl Texture {
         opengl::gl_check_errors();
     }
 
-    pub fn load_from_path(&self, path: &Path) -> Result<(), String> {
+    pub fn load_from_path(&self, path: impl Into<String>) -> Result<(), String> {
         self.bind();
 
-        match image::open(path) {
+        match image::open(path.into()) {
             Ok(img) => {
                 Self::upload(&img.into_rgba8());
                 Ok(())
             }
             Err(err) => {
-                Err(format!("Failed to load texture image from path {:?}: {}", path, err))
+                Err(format!("Failed to load texture image from path {:?}: {}", path.into(), err))
             }
         }
     }

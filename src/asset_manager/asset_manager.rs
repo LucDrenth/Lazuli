@@ -1,4 +1,4 @@
-use std::{collections::hash_map::DefaultHasher, path::Path, hash::{Hash, Hasher}};
+use std::{collections::hash_map::DefaultHasher, hash::{Hash, Hasher}};
 
 use crate::graphics::{texture::{Texture, TextureImage}, font::{Font, BitmapBuilder}, shader::{ShaderBuilder, ShaderProgram}, material::Material};
 
@@ -21,8 +21,10 @@ impl AssetManager {
         }
     }
 
-    pub fn load_texture(&mut self, path: String) -> Result<AssetId<Texture>, String> {
-        let some_path = Some(path.clone());
+    pub fn load_texture(&mut self, path: impl Into<String>) -> Result<AssetId<Texture>, String> {
+        let path_string = path.into();
+
+        let some_path = Some(path_string.clone());
 
         match self.textures.get_by_builder_hash(&some_path) {
             Some(existing) => {
@@ -32,7 +34,7 @@ impl AssetManager {
         }
 
         let texture = Texture::new();
-        match texture.load_from_path(Path::new(&path)) {
+        match texture.load_from_path(path_string) {
             Ok(_) => (),
             Err(err) => {
                 return Err(err);
