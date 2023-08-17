@@ -53,19 +53,6 @@ impl Scene for HelloUi {
             .with_mouse_action_to_activate(InputAction::Up)
         , asset_manager)?;
 
-        // let dropdown = Dropdown::new(DropdownBuilder::new()
-        //     .with_placeholder_text("--- selected a color ---".to_string())
-        //     .with_options(vec![
-        //         DropdownOption{ label: "Red".to_string(), value:  Color::Hex("#ff0000".to_string()) },
-        //         DropdownOption{ label: "Green".to_string(), value: Color::Hex("#00ff00".to_string()) },
-        //         DropdownOption{ label: "Blue".to_string(), value: Color::Hex("#0000ff".to_string()) },
-        //         DropdownOption{ label: "Yellow".to_string(), value: Color::Hex("#ffff00".to_string()) },
-        //         DropdownOption{ label: "Pink".to_string(), value: Color::Hex("#ff00ff".to_string()) },
-        //         DropdownOption{ label: "Cyan".to_string(), value: Color::Hex("#00ffff".to_string()) },
-        //     ])
-        //     .with_position(Position::ScreenAnchor(AnchorPoint::TopLeftInside(10.0, 10.0)))
-        // , interface.mut_element_registry(), asset_manager)?;
-
         let dropdown_id = interface.add_dropdown(DropdownBuilder::new()
             .with_placeholder_text("--- selected a color ---".to_string())
             .with_options(vec![
