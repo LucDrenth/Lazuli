@@ -17,7 +17,7 @@ pub struct Dropdown<T: Debug + Clone> {
 }
 
 // TODO implement for all types instead of only for u32
-impl UiWidget for Dropdown<u32> {
+impl <T: Debug + Clone> UiWidget for Dropdown<T> {
     fn show(&self, element_registry: &mut ElementRegistry) {
         self.button.show(element_registry);
 
