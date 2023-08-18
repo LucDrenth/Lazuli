@@ -1,8 +1,6 @@
-use crate::{graphics::{ui::{ElementRegistry, Position, AnchorPoint, shapes::RectangleBuilder, interface::WidgetRegistry, Interface}, Color}, asset_manager::AssetManager, log};
+use crate::{graphics::{ui::{ElementRegistry, Position, AnchorPoint, shapes::RectangleBuilder, interface::WidgetRegistry, Interface, padding::Padding}, Color}, asset_manager::AssetManager};
 
 use super::Layout;
-
-/// TODO separate margins instead of using gap_size as margins
 
 pub struct VerticalList {
     widget_ids: Vec<u32>,
@@ -11,6 +9,7 @@ pub struct VerticalList {
     position: Position,
     max_height: f32,
     current_scroll: f32,
+    padding: Padding,
 }
 
 impl Layout for VerticalList {}
@@ -57,16 +56,20 @@ pub struct VerticalListBuilder {
     background_color: Color,
     max_height: f32,
     position: Position,
+    padding: Padding,
 }
 
 impl VerticalListBuilder {
     pub fn new() -> Self {
+        let default_gap_size = 10.0;
+
         Self {
             widget_ids: vec![],
-            gap_size: 10.0,
+            gap_size: default_gap_size,
             background_color: Color::rgba_black(),
             max_height: 300.0,
             position: Position::ScreenAnchor(AnchorPoint::Center),
+            padding: Padding::Universal(default_gap_size),
         }
     }
 
@@ -88,6 +91,7 @@ impl VerticalListBuilder {
             position: self.position, 
             max_height: self.max_height,
             current_scroll: 0.0,
+            padding: self.padding,
         };
 
         if list.widget_ids.is_empty() {
@@ -97,13 +101,12 @@ impl VerticalListBuilder {
         // position widgets
         interface.set_widget_position(
             list.widget_ids[0], 
-            Position::ElementAnchor(AnchorPoint::TopInside(self.gap_size), list.background_element_id), 
+            Position::ElementAnchor(AnchorPoint::TopInside(list.padding.top()), list.background_element_id), 
         );
 
         for i in 1..list.widget_ids.len() {
             let anchor_element = interface.get_widget_anchor_element_id(list.widget_ids[i - 1]).unwrap();
             
-            log::engine_info(format!("list widget {} getting anchor widget: {}", list.widget_ids[i], list.widget_ids[i - 1]));
             interface.set_widget_position(
                 list.widget_ids[i], 
                 Position::ElementAnchor(AnchorPoint::BottomOutside(self.gap_size), anchor_element), 
@@ -114,19 +117,19 @@ impl VerticalListBuilder {
     }
 
     fn calculate_background_height(&self, interface: &Interface) -> f32 {
-        let mut background_height = self.gap_size;
+        let mut background_height = self.padding.top();
 
         for widget_id in self.widget_ids.iter() {
             background_height += interface.get_widget_size(*widget_id).unwrap().y + self.gap_size;
         }
 
-        background_height
+        background_height - self.gap_size + self.padding.bottom()
     }
 
     /// Returns the width of widest widget + two times the gap size as padding, or only the gap size if there are no elements
     fn calculate_background_width(&self, interface: &Interface) -> f32 {
         if self.widget_ids.is_empty() {
-            return self.gap_size;
+            return self.padding.horizontal();
         }
 
         let mut widest: f32 = 0.0;
@@ -135,7 +138,7 @@ impl VerticalListBuilder {
             widest = widest.max(interface.get_widget_size(*widget_id).unwrap().x)
         }
 
-        widest + self.gap_size * 2.0
+        widest + self.padding.horizontal()
     }
 
 
@@ -165,6 +168,11 @@ impl VerticalListBuilder {
 
     pub fn with_position(mut self, position: Position) -> Self {
         self.position = position;
+        self
+    }
+
+    pub fn with_padding(mut self, padding: Padding) -> Self {
+        self.padding = padding;
         self
     }
 }

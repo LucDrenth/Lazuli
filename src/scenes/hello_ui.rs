@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, ui::{shapes::RectangleBuilder, widget::{ButtonBuilder, SliderBuilder, DropdownBuilder, DropdownOption}, Position, AnchorPoint, TextBuilder, Interface, VerticalListBuilder}, Color}, event::EventSystem, input::{Input, Key, InputAction}, asset_manager::AssetManager, log};
+use crate::{graphics::{scene::Scene, ui::{shapes::RectangleBuilder, widget::{ButtonBuilder, SliderBuilder, DropdownBuilder, DropdownOption}, Position, AnchorPoint, TextBuilder, Interface, VerticalListBuilder, Padding}, Color}, event::EventSystem, input::{Input, Key}, asset_manager::AssetManager, log};
 
 pub struct HelloUi {
     interface: Interface,
@@ -62,8 +62,9 @@ impl Scene for HelloUi {
             .with_position(Position::ScreenAnchor(AnchorPoint::TopLeftInside(10.0, 10.0)))
         , asset_manager)?;
 
-        let layout = VerticalListBuilder::new()
+        let _layout = VerticalListBuilder::new()
             .with_position(Position::ScreenAnchor(AnchorPoint::LeftInside(10.0)))
+            .with_padding(Padding::Universal(5.0))
             .add_widget(dropdown_id)
             .add_widget(reset_button_id)
             .add_widget(width_slider_id)
