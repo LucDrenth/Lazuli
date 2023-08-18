@@ -6,8 +6,8 @@ use crate::{asset_manager::{AssetManager, AssetId}, input::{Input, MouseButton, 
 
 use super::{interface, element_list::{ElementList, OrderedElementsItem, self}, anchor_tree::{AnchorTree, AnchorElementIdentifier}};
 
-const MIN_Z_INDEX: f32 = 1.0;
-const MAX_Z_INDEX: f32 = 10_000.0;
+pub const MIN_Z_INDEX: f32 = 1.0;
+pub const MAX_Z_INDEX: f32 = 10_000.0;
 
 pub struct ElementRegistry {
     text_elements: ElementList<Text>,
@@ -283,6 +283,20 @@ impl ElementRegistry {
         }
     }
 
+    pub fn set_element_position(&mut self, element_id: u32, position: Position) -> Result<(), String> {
+        let window_size = self.window_size.clone();
+        let anchor_element_data: Option<AnchorElementData> = Some(self.get_anchor_data(element_id)?);
+        
+        match self.get_mut_ui_element_by_id(element_id) {
+            Some(element) => {
+                element.set_position(position, window_size, anchor_element_data);
+                self.update_anchor_tree(element_id);
+                Ok(())
+            },
+            None => Err(format!("failed to set element position because element with id {} was not found", element_id)),
+        }
+    }
+
     pub fn set_element_scale(&mut self, element_id: u32, scale: Vec2) -> Result<(), String> {
         let window_size = self.size().clone();
 
@@ -325,7 +339,7 @@ impl ElementRegistry {
     }
 
     /// Get anchor element data of the anchor element of the given element
-    fn get_anchor_element_data(&self, element_id: u32) -> Result<Option<AnchorElementData>, String> {
+    pub fn get_anchor_element_data(&self, element_id: u32) -> Result<Option<AnchorElementData>, String> {
         match self.get_anchor_element_id(element_id)? {
             Some(anchor_element_id) => {
                 Ok(Some(self.get_anchor_data(anchor_element_id).unwrap()))

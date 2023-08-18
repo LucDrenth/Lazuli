@@ -30,6 +30,15 @@ impl UiWidget for Button {
     fn z_index(&self) -> f32 {
         self.z_index
     }
+
+    fn size(&self, element_registry: &ElementRegistry) -> Result<Vec2, String> {
+        Ok(element_registry.get_element_size(self.anchor_element_id()).unwrap())
+    }
+
+    fn set_position(&self, position: Position, element_registry: &mut ElementRegistry) {
+        _ = element_registry.set_element_position(self.background_element_id, position);
+        _ = element_registry.set_element_position(self.text_element_id, Position::ElementAnchor(AnchorPoint::Center, self.background_element_id));
+    }
 }
 
 impl Button {
@@ -70,7 +79,9 @@ impl Button {
         , asset_manager, element_registry)?;
         let background_element_id = element_registry.add_rectangle(background);
 
-        text.set_position(Position::ElementAnchor(AnchorPoint::Center, background_element_id), element_registry);
+        let window_size = element_registry.size().clone();
+        let anchor_element_data = element_registry.get_anchor_data(background_element_id)?; // TODO is this correct?
+        text.set_position(Position::ElementAnchor(AnchorPoint::Center, background_element_id), window_size, Some(anchor_element_data));
         let text_element_id = element_registry.add_text(text);
 
         Ok(Self {

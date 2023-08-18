@@ -47,6 +47,16 @@ impl Color {
             tuple.3,
         );
     }
+
+    pub fn rgba_white() -> Self { Self::Rgba(255, 255, 255, 1.0) }
+    pub fn rgb_white() -> Self { Self::Rgb(255, 255, 255) }
+    pub fn hex_white() -> Self { Self::Hex("#FFFFFF".to_string()) }
+    pub fn rgba_black() -> Self { Self::Rgba(0, 0, 0, 1.0) }
+    pub fn rgb_black() -> Self { Self::Rgb(0, 0, 0) }
+    pub fn hex_black() -> Self { Self::Hex("#000000".to_string()) }
+    pub fn rgba_grey() -> Self { Self::Rgba(122, 122, 122, 1.0) }
+    pub fn rgb_grey() -> Self { Self::Rgb(122, 122, 122) }
+    pub fn hex_grey() -> Self { Self::Hex("#888888".to_string()) }
 }
 
 pub fn hex_to_rgb(hex: &String) -> (u8, u8, u8) {

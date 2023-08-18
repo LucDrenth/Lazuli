@@ -1,6 +1,8 @@
 use std::fmt::Debug;
 
-use crate::{asset_manager::AssetManager, graphics::ui::{ElementRegistry, widget::{Button, ButtonBuilder, UiWidget}, interface::is_valid_z_index, Position, AnchorPoint}, log, input::{Input, InputAction}};
+use glam::Vec2;
+
+use crate::{asset_manager::AssetManager, graphics::ui::{ElementRegistry, widget::{Button, ButtonBuilder, UiWidget}, interface::{is_valid_z_index, MAX_Z_INDEX}, Position, AnchorPoint}, log, input::{Input, InputAction}};
 
 struct DropdownOptionButton<T: Debug + Clone> {
     button: Button,
@@ -41,6 +43,14 @@ impl <T: Debug + Clone> UiWidget for Dropdown<T> {
     fn z_index(&self) -> f32 {
         self.z_index
     }
+
+    fn size(&self, element_registry: &ElementRegistry) -> Result<Vec2, String> {
+        Ok(element_registry.get_element_size(self.anchor_element_id()).unwrap())
+    }
+
+    fn set_position(&self, position: Position, element_registry: &mut ElementRegistry) {
+        self.button.set_position(position, element_registry);
+    }
 }
 
 impl<T: Debug + Clone> Dropdown<T> {
@@ -78,7 +88,7 @@ impl<T: Debug + Clone> Dropdown<T> {
                 .with_height(button.height())
                 .with_mouse_action_to_activate(InputAction::UpOrDown)
                 .with_hidden(true)
-                .with_z_index(builder.z_index)
+                .with_z_index((1000.0 + builder.z_index).min(MAX_Z_INDEX - 1.0))
             , element_registry, asset_manager)?;
 
             anchor_element_id = option_button.anchor_element_id();

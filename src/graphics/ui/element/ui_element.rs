@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{asset_manager::{AssetManager, AssetId}, graphics::{material::Material, ui::ElementRegistry, Color}};
+use crate::{asset_manager::{AssetManager, AssetId}, graphics::{material::Material, Color}};
 
 use super::{world_element_data::WorldElementData, AnchorElementData, Position};
 
@@ -15,7 +15,7 @@ pub trait UiElement {
     fn set_scale(&mut self, new_scale: Vec2, window_size: Vec2, anchor_element_data: Option<AnchorElementData>);
     fn get_size(&self) -> Vec2;
     fn get_screen_position(&self) -> Vec2;
-    fn set_position(&mut self, position: Position, element_registry: &ElementRegistry);
+    fn set_position(&mut self, position: Position, window_size: Vec2, anchor_element_data: Option<AnchorElementData>);
     fn recalculate_position(&mut self, window_size: Vec2, anchor_element_data: Option<AnchorElementData>);
     fn set_color(&mut self, color: Color);
 

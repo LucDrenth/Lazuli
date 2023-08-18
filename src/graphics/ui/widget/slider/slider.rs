@@ -42,6 +42,16 @@ impl UiWidget for Slider {
     fn z_index(&self) -> f32 {
         self.z_index
     }
+
+    fn size(&self, element_registry: &ElementRegistry) -> Result<Vec2, String> {
+        Ok(element_registry.get_element_size(self.anchor_element_id()).unwrap())
+    }
+
+    fn set_position(&self, position: Position, element_registry: &mut ElementRegistry) {
+        _ = element_registry.set_element_position(self.background_element_id, position);
+        _ = element_registry.set_element_position(self.text_element_id, Position::ElementAnchor(AnchorPoint::Center, self.background_element_id));
+        _ = element_registry.set_element_position(self.progress_element_id, Position::ElementAnchor(AnchorPoint::LeftInside(0.0), self.background_element_id));
+    }
 }
 
 impl Slider {

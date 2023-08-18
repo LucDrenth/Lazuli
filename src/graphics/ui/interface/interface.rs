@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_manager::{AssetManager, AssetId}, input::Input, graphics::{ui::widget::{SliderBuilder, SliderUpdateResult, ButtonBuilder, DropdownBuilder}, font::{Font, PlainBitmapBuilder}, Color}};
+use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_manager::{AssetManager, AssetId}, input::Input, graphics::{ui::{widget::{SliderBuilder, SliderUpdateResult, ButtonBuilder, DropdownBuilder}, Position}, font::{Font, PlainBitmapBuilder}, Color}};
 
 use super::{ElementRegistry, widget_registry::WidgetRegistry};
 
@@ -37,17 +37,26 @@ impl Interface {
         self.element_registry.draw(asset_manager);
     }
 
+    pub fn element_registry(&self) -> &ElementRegistry { &self.element_registry }
     pub fn mut_element_registry(&mut self) -> &mut ElementRegistry { &mut self.element_registry }
+    pub fn widget_registry(&self) ->  &WidgetRegistry { &self.widget_registry }
+    pub fn mut_widget_registry(&mut self) -> &mut WidgetRegistry { &mut self.widget_registry }
 
     // UiWidget functions
-    pub fn get_widget_anchor_element_id(&self, slider_id: u32) -> Option<u32> {
-        self.widget_registry.get_anchor_element_id(slider_id)
+    pub fn get_widget_anchor_element_id(&self, widget_id: u32) -> Option<u32> {
+        self.widget_registry.get_anchor_element_id(widget_id)
     }
     pub fn show_widget(&mut self, widget_id: u32) {
         self.widget_registry.show_widget(widget_id, &mut self.element_registry);
     }
     pub fn hide_widget(&mut self, widget_id: u32) {
         self.widget_registry.hide_widget(widget_id, &mut self.element_registry);
+    }
+    pub fn get_widget_size(&self, widget_id: u32) -> Result<Vec2, String> {
+        self.widget_registry.get_widget_size(widget_id, &self.element_registry)
+    }
+    pub fn set_widget_position(&mut self, widget_id: u32, position: Position) {
+        self.widget_registry.set_widget_position(widget_id, position, &mut self.element_registry);
     }
 
     // button specific functions

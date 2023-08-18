@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, ui::{shapes::RectangleBuilder, widget::{ButtonBuilder, SliderBuilder, DropdownBuilder, DropdownOption}, Position, AnchorPoint, TextBuilder, Interface}, Color}, event::EventSystem, input::{Input, Key, InputAction}, asset_manager::AssetManager, log};
+use crate::{graphics::{scene::Scene, ui::{shapes::RectangleBuilder, widget::{ButtonBuilder, SliderBuilder, DropdownBuilder, DropdownOption}, Position, AnchorPoint, TextBuilder, Interface, VerticalListBuilder}, Color}, event::EventSystem, input::{Input, Key, InputAction}, asset_manager::AssetManager, log};
 
 pub struct HelloUi {
     interface: Interface,
@@ -24,12 +24,11 @@ impl Scene for HelloUi {
         
         let width_slider_id = interface.add_slider(SliderBuilder::new()
             .with_z_index(400.0)
-            .with_position(Position::ScreenAnchor(AnchorPoint::BottomLeftInside(10.0, 120.00)))
             .with_initial_value(1.0)
         , asset_manager)?;
 
         let anchor = interface.get_widget_anchor_element_id(width_slider_id).unwrap();
-        interface.mut_element_registry().create_text("Rectangle width".to_string(), None, TextBuilder::new()
+        let _width_slider_label_id = interface.mut_element_registry().create_text("Rectangle width".to_string(), None, TextBuilder::new()
             .with_position(Position::ElementAnchor(AnchorPoint::RightOutside(10.0), anchor))
             .with_z_index(400.0)
         , asset_manager)?;
@@ -37,20 +36,17 @@ impl Scene for HelloUi {
 
         let height_slider_id = interface.add_slider(SliderBuilder::new()
             .with_z_index(500.0)
-            .with_position(Position::ScreenAnchor(AnchorPoint::BottomLeftInside(10.0, 150.00)))
             .with_initial_value(1.0)
         , asset_manager)?;
 
         let anchor = interface.get_widget_anchor_element_id(height_slider_id).unwrap();
-        interface.mut_element_registry().create_text("Rectangle height".to_string(), None, TextBuilder::new()
+        let _height_slider_label_id = interface.mut_element_registry().create_text("Rectangle height".to_string(), None, TextBuilder::new()
             .with_position(Position::ElementAnchor(AnchorPoint::RightOutside(10.0), anchor))
             .with_z_index(500.0)
         , asset_manager)?;
 
 
         let reset_button_id = interface.add_button("Reset".to_string(), ButtonBuilder::new()
-            .with_position(Position::ScreenAnchor(AnchorPoint::LeftInside(20.0)))
-            .with_mouse_action_to_activate(InputAction::Up)
         , asset_manager)?;
 
         let dropdown_id = interface.add_dropdown(DropdownBuilder::new()
@@ -65,6 +61,14 @@ impl Scene for HelloUi {
             ])
             .with_position(Position::ScreenAnchor(AnchorPoint::TopLeftInside(10.0, 10.0)))
         , asset_manager)?;
+
+        let layout = VerticalListBuilder::new()
+            .with_position(Position::ScreenAnchor(AnchorPoint::LeftInside(10.0)))
+            .add_widget(dropdown_id)
+            .add_widget(reset_button_id)
+            .add_widget(width_slider_id)
+            .add_widget(height_slider_id)
+            .build(&mut interface, asset_manager);
 
         Ok(Self { 
             interface,

@@ -1,4 +1,6 @@
-use crate::{graphics::{ui::widget::{Slider, SliderBuilder, SliderUpdateResult, Button, ButtonBuilder, UiWidget, Dropdown, DropdownBuilder}, Color}, asset_manager::AssetManager, input::Input, log};
+use glam::Vec2;
+
+use crate::{graphics::{ui::{widget::{Slider, SliderBuilder, SliderUpdateResult, Button, ButtonBuilder, UiWidget, Dropdown, DropdownBuilder}, Position}, Color}, asset_manager::AssetManager, input::Input, log};
 
 use super::{ElementRegistry, widget_list::WidgetList};
 
@@ -91,6 +93,10 @@ impl WidgetRegistry {
         self.get_widget_by_id(widget_id).unwrap().hide(element_registry);
     }
 
+    pub fn set_widget_position(&self, widget_id: u32, position: Position, element_registry: &mut ElementRegistry) {
+        self.get_widget_by_id(widget_id).unwrap().set_position(position, element_registry);
+    }
+
     fn get_widget_by_id(&self, widget_id: u32) -> Option<Box<&dyn UiWidget>> {
         for widget_entry in self.sliders.entries.iter() {
             if widget_entry.id == widget_id { return Some(Box::new(&widget_entry.widget)) }
@@ -105,6 +111,13 @@ impl WidgetRegistry {
         }
 
         None
+    }
+
+    pub fn get_widget_size(&self, widget_id: u32, element_registry: &ElementRegistry) -> Result<Vec2, String> {
+        match self.get_widget_by_id(widget_id) {
+            Some(widget) => widget.size(element_registry),
+            None => Err(format!("widget with id {} not found", widget_id)),
+        }
     }
 
 

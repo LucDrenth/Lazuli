@@ -38,7 +38,7 @@ impl Position {
 
     /// Translate from to the direction of the anchor point. 
     /// If anchor point is only on the x axis, amount_y will be ignored and vice versa.
-    pub fn add_offset(&self, amount_x: f32, amount_y: f32) -> Position{
+    pub fn add_offset(&self, amount_x: f32, amount_y: f32) -> Position {
         match self {
             Position::Fixed(x, y) => Position::Fixed(*x + amount_x, *y + amount_y),
             Position::ScreenAnchor(anchor_point) => Position::ScreenAnchor(anchor_point.add_offset(amount_x, amount_y)),

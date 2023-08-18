@@ -63,7 +63,9 @@ impl UiElement for Text {
     }
     fn get_size(&self) -> Vec2 { self.world_data.size().clone() }
     fn get_screen_position(&self) -> Vec2 { self.world_data.position().clone() }
-    fn set_position(&mut self, position: Position, element_registry: &ElementRegistry) { self.world_data.set_position(position, element_registry) }
+    fn set_position(&mut self, position: Position, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) { 
+        self.world_data.set_position(position, window_size, anchor_element_data) 
+    }
 
     fn hide(&mut self) { self.show = false; }
     fn show(&mut self) { self.show = true; }

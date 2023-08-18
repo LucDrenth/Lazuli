@@ -62,11 +62,10 @@ impl WorldElementData {
         // If we implement screen anchor points we might want to use this function
     }
 
-    pub fn set_position(&mut self, position: Position, element_registry: &ElementRegistry) {
+    pub fn set_position(&mut self, position: Position, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) {
         self.position_type = position;
 
-        let anchor_element_data = self.position_type.get_anchor_element_data(element_registry);
-        self.calculate_position(element_registry.size().clone(), anchor_element_data);
+        self.calculate_position(window_size, anchor_element_data);
     }
 
     pub fn position(&self) -> &Vec2 { &self.position }
