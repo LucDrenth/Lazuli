@@ -133,6 +133,30 @@ impl Rectangle {
             .with_vertex_shader_path("./assets/shaders/ui/rectangle.vert".to_string())
             .with_fragment_shader_path("./assets/shaders/ui/rectangle.frag".to_string())
     }
+
+    pub fn set_width(&mut self, width: f32, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) {
+        let height = self.world_data.height();
+        self.set_size(Vec2::new(width, height), window_size, anchor_element_data);
+    }
+
+    pub fn set_height(&mut self, height: f32, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) {
+        let width = self.world_data.width();
+        self.set_size(Vec2::new(width, height), window_size, anchor_element_data);
+    }
+
+    pub fn set_size(&mut self, size: Vec2, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) {
+        let vertices: [Vertex; 4] = [
+            Vertex([-size.x / 2.0, -size.y / 2.0]), // bottom left
+            Vertex([size.x / 2.0, -size.y / 2.0]), // bottom right
+            Vertex([size.x / 2.0, size.y / 2.0]), // top right
+            Vertex([-size.x / 2.0, size.y / 2.0])  // top left
+        ];
+
+        self.vao.bind();
+        self._vbo.update_data(&vertices);
+
+        self.world_data.set_size(size, window_size, anchor_element_data);
+    }
 }
 
 pub struct RectangleBuilder {

@@ -26,7 +26,7 @@ impl AnchoredElement {
         }
     }
 
-    /// Returns none if no element was found
+    /// Returns `None` if no element was found
     pub fn get(&self, type_id: TypeId, element_id: u32) -> Option<&Self> {
         if self.identifier.type_id == type_id && self.identifier.element_id == element_id {
             return Some(self);
@@ -41,7 +41,7 @@ impl AnchoredElement {
         None
     }
 
-    /// Returns none if no element was found
+    /// Returns `None` if no element was found
     pub fn get_mut(&mut self, type_id: TypeId, element_id: u32) -> Option<&mut Self> {
         if self.identifier.type_id == type_id && self.identifier.element_id == element_id {
             return Some(self);
@@ -56,7 +56,7 @@ impl AnchoredElement {
         None
     }
 
-    /// Returns none if no element was found
+    /// Returns `None` if no element was found
     pub fn get_by_id(&self, element_id: u32) -> Option<&Self> {
         if self.identifier.element_id == element_id {
             return Some(self);
@@ -71,7 +71,7 @@ impl AnchoredElement {
         None
     }
 
-    /// Returns none if no element was found
+    /// Returns `None` if no element was found
     pub fn get_mut_by_id(&mut self, element_id: u32) -> Option<&mut Self> {
         if self.identifier.element_id == element_id {
             return Some(self);
@@ -84,6 +84,24 @@ impl AnchoredElement {
         }
 
         None
+    }
+
+    /// Recursively tries to find the element with the given element_id and remove it.
+    /// 
+    /// Returns wether the element was removed from the children:
+    /// * `true` if the element was found, and thus removed
+    /// * `false` if the element was not found, thus is not a child
+    pub fn remove_child_by_id(&mut self, element_id: u32) -> bool {
+        for i in 0..self.anchored_elements.len() {
+            if self.anchored_elements[i].identifier.element_id == element_id {
+                self.anchored_elements.remove(i);
+                return true;
+            } else if self.anchored_elements[i].remove_child_by_id(element_id) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     pub fn push(&mut self, type_id: TypeId, element_id: u32) {
@@ -149,11 +167,25 @@ impl AnchorTree {
             }
         }
 
+        for entry in self.fixed_trees.iter() {
+            match entry.get(type_id, element_id) {
+                Some(element) => return Some(&element),
+                None => (),
+            }
+        }
+
         None
     }
 
     pub fn get_mut(&mut self, type_id: TypeId, element_id: u32) -> Option<&mut AnchoredElement> {
         for entry in self.screen_tree.iter_mut() {
+            match entry.get_mut(type_id, element_id) {
+                Some(element) => return Some(element),
+                None => (),
+            }
+        }
+
+        for entry in self.fixed_trees.iter_mut() {
             match entry.get_mut(type_id, element_id) {
                 Some(element) => return Some(element),
                 None => (),
@@ -171,11 +203,25 @@ impl AnchorTree {
             }
         }
 
+        for entry in self.fixed_trees.iter() {
+            match entry.get_by_id(element_id) {
+                Some(element) => return Some(&element),
+                None => (),
+            }
+        }
+
         None
     }
 
     pub fn get_mut_by_id(&mut self, element_id: u32) -> Option<&mut AnchoredElement> {
         for entry in self.screen_tree.iter_mut() {
+            match entry.get_mut_by_id(element_id) {
+                Some(element) => return Some(element),
+                None => (),
+            }
+        }
+
+        for entry in self.fixed_trees.iter_mut() {
             match entry.get_mut_by_id(element_id) {
                 Some(element) => return Some(element),
                 None => (),
@@ -201,5 +247,38 @@ impl AnchorTree {
         }
 
         result
+    }
+
+    /// Returns wether the element was unregistered from the anchor tree:
+    /// `true` if the element was found, and thus removed from the anchor tree
+    /// `false` if the element was not found, thus does not exist in the anchor tree
+    pub fn remove_element_by_id(&mut self, element_id: u32) -> bool {
+        for i in 0..self.screen_tree.len() {
+            if self.screen_tree[i].identifier.element_id == element_id {
+                // first we check if it's a root element that needs to be removed
+                self.screen_tree.remove(i);
+                return true;
+            } else {
+                // then we check if it's a child of a root element
+                if self.screen_tree[i].remove_child_by_id(element_id) {
+                    return true;
+                }
+            }
+        }
+
+        for i in 0..self.fixed_trees.len() {
+            if self.fixed_trees[i].identifier.element_id == element_id {
+                // first we check if it's a root element that needs to be removed
+                self.fixed_trees.remove(i);
+                return true;
+            } else {
+                // then we check if it's a child of a root element
+                if self.screen_tree[i].remove_child_by_id(element_id) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

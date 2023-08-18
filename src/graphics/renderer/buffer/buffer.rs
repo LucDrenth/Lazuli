@@ -48,15 +48,35 @@ impl Buffer {
 
         unsafe {
             let (_, data_bytes, _) = data.align_to::<u8>();
+
             gl::BufferData(
                 self.target,
                 data_bytes.len() as GLsizeiptr,
                 data_bytes.as_ptr() as *const _,
                 usage,
             );
+
+            opengl::gl_check_errors();
         }
 
         self.data_size = data.len() as i32;
+    }
+
+    pub fn update_data<D>(&mut self, data: &[D]) {
+        self.bind();
+
+        unsafe {
+            let (_, data_bytes, _) = data.align_to::<u8>();
+
+            gl::BufferSubData(
+                self.target, 
+                0, 
+                data_bytes.len() as GLsizeiptr, 
+                data_bytes.as_ptr() as *const _,
+            );
+
+            opengl::gl_check_errors();
+        }
     }
 }
 

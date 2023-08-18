@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, ui::{shapes::RectangleBuilder, widget::{ButtonBuilder, SliderBuilder, DropdownBuilder, DropdownOption}, Position, AnchorPoint, TextBuilder, Interface, VerticalListBuilder, Padding}, Color}, event::EventSystem, input::{Input, Key}, asset_manager::AssetManager, log};
+use crate::{graphics::{scene::Scene, ui::{shapes::RectangleBuilder, widget::{ButtonBuilder, SliderBuilder, DropdownBuilder, DropdownOption}, Position, AnchorPoint, TextBuilder, Interface, VerticalListBuilder, Padding, VerticalList}, Color}, event::EventSystem, input::{Input, Key}, asset_manager::AssetManager, log};
 
 pub struct HelloUi {
     interface: Interface,
@@ -9,6 +9,7 @@ pub struct HelloUi {
     reset_button_id: u32,
     rectangle_id: u32,
     dropdown_id: u32,
+    layout: VerticalList,
 }
 
 impl Scene for HelloUi {
@@ -37,6 +38,7 @@ impl Scene for HelloUi {
         let height_slider_id = interface.add_slider(SliderBuilder::new()
             .with_z_index(500.0)
             .with_initial_value(1.0)
+            .with_position(Position::ScreenAnchor(AnchorPoint::BottomLeftInside(10.0, 10.0)))
         , asset_manager)?;
 
         let anchor = interface.get_widget_anchor_element_id(height_slider_id).unwrap();
@@ -62,14 +64,13 @@ impl Scene for HelloUi {
             .with_position(Position::ScreenAnchor(AnchorPoint::TopLeftInside(10.0, 10.0)))
         , asset_manager)?;
 
-        let _layout = VerticalListBuilder::new()
-            .with_position(Position::ScreenAnchor(AnchorPoint::LeftInside(10.0)))
+        let layout = VerticalListBuilder::new()
+            .with_position(Position::ScreenAnchor(AnchorPoint::RightInside(10.0)))
             .with_padding(Padding::Universal(5.0))
             .add_widget(dropdown_id)
             .add_widget(reset_button_id)
             .add_widget(width_slider_id)
-            .add_widget(height_slider_id)
-            .build(&mut interface, asset_manager);
+            .build(&mut interface, asset_manager)?;
 
         Ok(Self { 
             interface,
@@ -78,6 +79,7 @@ impl Scene for HelloUi {
             rectangle_id,
             reset_button_id,
             dropdown_id,
+            layout,
         })
     }
 
@@ -136,6 +138,10 @@ impl Scene for HelloUi {
                 _ = self.interface.set_button_text_color(color, self.reset_button_id);
             },
             None => (),
+        }
+
+        if input.is_key_down(Key::Space) {
+            self.layout.add_widget(self.height_slider_id, &mut self.interface);
         }
     }
 

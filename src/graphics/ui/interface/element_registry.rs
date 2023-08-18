@@ -283,18 +283,34 @@ impl ElementRegistry {
         }
     }
 
+    /// TODO copy over children that get removed with remove_element_by_id.
     pub fn set_element_position(&mut self, element_id: u32, position: Position) -> Result<(), String> {
+        // Update anchor tree entry by removing it and adding it back in again. Not that we do not check if 
+        // remove_element_by_id failed, because it could fail if it was a child of an earlier removed element.
+        // This can happen when reposition a widget, for example.
+        self.anchor_tree.remove_element_by_id(element_id);
+        self.register_in_anchor_tree(self.get_type_id(element_id).unwrap(), element_id, &position);
+
         let window_size = self.window_size.clone();
         let anchor_element_data: Option<AnchorElementData> = Some(self.get_anchor_data(element_id)?);
         
         match self.get_mut_ui_element_by_id(element_id) {
             Some(element) => {
                 element.set_position(position, window_size, anchor_element_data);
-                self.update_anchor_tree(element_id);
-                Ok(())
+                Ok(self.update_anchor_tree(element_id))
             },
             None => Err(format!("failed to set element position because element with id {} was not found", element_id)),
         }
+    }
+
+    fn get_type_id(&self, element_id: u32) -> Option<TypeId> {
+        for ordered_element in self.ordered_elements.iter() {
+            if ordered_element.item_id == element_id {
+                return Some(ordered_element.element_type);
+            }
+        }
+
+        None
     }
 
     pub fn set_element_scale(&mut self, element_id: u32, scale: Vec2) -> Result<(), String> {
@@ -397,18 +413,53 @@ impl ElementRegistry {
         match self.text_elements.get_mut_by_id(text_element_id) {
             Some(text_element) => {
                 text_element.set_text(text, window_size, anchor_data, asset_manager)?;
-                self.update_anchor_tree(text_element_id);
-                Ok(())
+                Ok(self.update_anchor_tree(text_element_id))
             },
             None => Err(format!("failed to set text because element with id {} was not found", text_element_id)),
+        }
+    }
+
+    pub fn set_rectangle_width(&mut self, rectangle_id: u32, new_width: f32) -> Result<(), String> {
+        let window_size: Vec2 = self.window_size.clone();
+        let anchor_data = self.get_anchor_element_data(rectangle_id)?;
+
+        match self.rectangle_elements.get_mut_by_id(rectangle_id) {
+            Some(rectangle) => {
+                rectangle.set_width(new_width, window_size, anchor_data);
+                Ok(self.update_anchor_tree(rectangle_id))
+            },
+            None => Err(format!("failed to set rectangle width because rectanglei with id {} was not found", rectangle_id)),
+        }
+    }
+    pub fn set_rectangle_height(&mut self, rectangle_id: u32, new_height: f32) -> Result<(), String> {
+        let window_size: Vec2 = self.window_size.clone();
+        let anchor_data = self.get_anchor_element_data(rectangle_id)?;
+
+        match self.rectangle_elements.get_mut_by_id(rectangle_id) {
+            Some(rectangle) => {
+                rectangle.set_height(new_height, window_size, anchor_data);
+                Ok(self.update_anchor_tree(rectangle_id))
+            },
+            None => Err(format!("failed to set rectangle height because rectanglei with id {} was not found", rectangle_id)),
+        }
+    }
+    pub fn set_rectangle_size(&mut self, rectangle_id: u32, new_size: Vec2) -> Result<(), String> {
+        let window_size: Vec2 = self.window_size.clone();
+        let anchor_data = self.get_anchor_element_data(rectangle_id)?;
+
+        match self.rectangle_elements.get_mut_by_id(rectangle_id) {
+            Some(rectangle) => {
+                rectangle.set_size(new_size, window_size, anchor_data);
+                Ok(self.update_anchor_tree(rectangle_id))
+            },
+            None => Err(format!("failed to set rectangle size because rectanglei with id {} was not found", rectangle_id)),
         }
     }
 
     pub fn show_element(&mut self, element_id: u32) -> Result<(), String> {
         match self.get_mut_ui_element_by_id(element_id) {
             Some(element) => {
-                element.show();
-                Ok(())
+                Ok(element.show())
             },
             None => Err(format!("failed to show element because element with id {} was not found", element_id)),
         }
@@ -416,8 +467,7 @@ impl ElementRegistry {
     pub fn hide_element(&mut self, element_id: u32) -> Result<(), String> {
         match self.get_mut_ui_element_by_id(element_id) {
             Some(element) => {
-                element.hide();
-                Ok(())
+                Ok(element.hide())
             },
             None => Err(format!("failed to hide element because element with id {} was not found", element_id)),
         }
