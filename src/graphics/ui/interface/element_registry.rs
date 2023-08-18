@@ -283,13 +283,17 @@ impl ElementRegistry {
         }
     }
 
-    /// TODO copy over children that get removed with remove_element_by_id.
-    pub fn set_element_position(&mut self, element_id: u32, position: Position) -> Result<(), String> {
-        // Update anchor tree entry by removing it and adding it back in again. Not that we do not check if 
-        // remove_element_by_id failed, because it could fail if it was a child of an earlier removed element.
-        // This can happen when reposition a widget, for example.
-        self.anchor_tree.remove_element_by_id(element_id);
+    fn reposition_anchor_tree_element(&mut self, element_id: u32, position: Position) {
+        let removed_element = self.anchor_tree.remove_element_by_id(element_id);
         self.register_in_anchor_tree(self.get_type_id(element_id).unwrap(), element_id, &position);
+
+        if let Some(mut anchored_element) = removed_element {
+            _ = self.anchor_tree.add_children(element_id, anchored_element.take_children());
+        }
+    }
+
+    pub fn set_element_position(&mut self, element_id: u32, position: Position) -> Result<(), String> {
+        self.reposition_anchor_tree_element(element_id, position);
 
         let window_size = self.window_size.clone();
         let anchor_element_data: Option<AnchorElementData> = Some(self.get_anchor_data(element_id)?);

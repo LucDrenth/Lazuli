@@ -65,7 +65,7 @@ impl Scene for HelloUi {
         , asset_manager)?;
 
         let layout = VerticalListBuilder::new()
-            .with_position(Position::ScreenAnchor(AnchorPoint::RightInside(10.0)))
+            .with_position(Position::ScreenAnchor(AnchorPoint::LeftInside(10.0)))
             .with_padding(Padding::Universal(5.0))
             .add_widget(dropdown_id)
             .add_widget(reset_button_id)

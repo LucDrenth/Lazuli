@@ -9,7 +9,7 @@ pub struct AnchorElementIdentifier {
 /// An element that is anchored to a previous element in the tree, and has 0 or more elements anchored to it
 pub struct AnchoredElement {
     identifier: AnchorElementIdentifier,
-    anchored_elements: Vec<AnchoredElement>,
+    anchored_elements: Vec<AnchoredElement>, // children
 }
 
 impl AnchoredElement {
@@ -89,19 +89,21 @@ impl AnchoredElement {
     /// Recursively tries to find the element with the given element_id and remove it.
     /// 
     /// Returns wether the element was removed from the children:
-    /// * `true` if the element was found, and thus removed
-    /// * `false` if the element was not found, thus is not a child
-    pub fn remove_child_by_id(&mut self, element_id: u32) -> bool {
+    /// * `Some` if the element was found, and thus removed
+    /// * `None` if the element was not found, thus is not a child
+    pub fn remove_child_by_id(&mut self, element_id: u32) -> Option<AnchoredElement> {
         for i in 0..self.anchored_elements.len() {
             if self.anchored_elements[i].identifier.element_id == element_id {
-                self.anchored_elements.remove(i);
-                return true;
-            } else if self.anchored_elements[i].remove_child_by_id(element_id) {
-                return true;
+                return Some(self.anchored_elements.remove(i));
+            } else {
+                let mut remove_result = self.anchored_elements[i].remove_child_by_id(element_id);
+                if remove_result.is_some() {
+                    return remove_result.take();
+                }
             }
         }
 
-        return false;
+        return None;
     }
 
     pub fn push(&mut self, type_id: TypeId, element_id: u32) {
@@ -109,6 +111,7 @@ impl AnchoredElement {
     }
 
     pub fn anchored_elements(&self) -> &Vec<AnchoredElement> { &self.anchored_elements }
+    pub fn take_children(&mut self) -> Vec<AnchoredElement> { self.anchored_elements.drain(..).collect() }
     pub fn identifier(&self) -> &AnchorElementIdentifier { &self.identifier }
 }
 
@@ -126,6 +129,13 @@ impl AnchorTree {
             screen_tree: vec![],
             fixed_trees: vec![],
         }
+    }
+
+    pub fn trees(&self) -> Vec<&Vec<AnchoredElement>> {
+        return vec![&self.screen_tree, &self.fixed_trees];
+    }
+    pub fn mut_trees(&mut self) -> Vec<&mut Vec<AnchoredElement>> {
+        return vec![&mut self.screen_tree, &mut self.fixed_trees];
     }
 
     /// Print itself to the standard output, for debugging purpouses
@@ -160,14 +170,17 @@ impl AnchorTree {
     }
 
     pub fn get(&self, type_id: TypeId, element_id: u32) -> Option<&AnchoredElement> {
-        for entry in self.screen_tree.iter() {
-            match entry.get(type_id, element_id) {
-                Some(element) => return Some(&element),
-                None => (),
+        for tree in self.trees().iter() {
+            if let Some(element) = Self::get_from_tree(type_id, element_id, &tree) {
+                return Some(element);
             }
         }
 
-        for entry in self.fixed_trees.iter() {
+        None
+    }
+
+    fn get_from_tree(type_id: TypeId, element_id: u32, tree: &Vec<AnchoredElement>) -> Option<&AnchoredElement> {
+        for entry in tree.iter() {
             match entry.get(type_id, element_id) {
                 Some(element) => return Some(&element),
                 None => (),
@@ -178,14 +191,17 @@ impl AnchorTree {
     }
 
     pub fn get_mut(&mut self, type_id: TypeId, element_id: u32) -> Option<&mut AnchoredElement> {
-        for entry in self.screen_tree.iter_mut() {
-            match entry.get_mut(type_id, element_id) {
-                Some(element) => return Some(element),
-                None => (),
+        for tree in self.mut_trees() {
+            if let Some(element) = Self::get_mut_from_tree(type_id, element_id, tree) {
+                return Some(element);
             }
         }
 
-        for entry in self.fixed_trees.iter_mut() {
+        None
+    }
+
+    fn get_mut_from_tree(type_id: TypeId, element_id: u32, tree: &mut Vec<AnchoredElement>) -> Option<&mut AnchoredElement> {
+        for entry in tree {
             match entry.get_mut(type_id, element_id) {
                 Some(element) => return Some(element),
                 None => (),
@@ -196,14 +212,17 @@ impl AnchorTree {
     }
 
     pub fn get_by_id(&self, element_id: u32) -> Option<&AnchoredElement> {
-        for entry in self.screen_tree.iter() {
-            match entry.get_by_id(element_id) {
-                Some(element) => return Some(&element),
-                None => (),
+        for tree in self.trees() {
+            if let Some(element) = Self::get_by_id_from_tree(element_id, tree) {
+                return Some(element);
             }
         }
 
-        for entry in self.fixed_trees.iter() {
+        None
+    }
+
+    fn get_by_id_from_tree(element_id: u32, tree: &Vec<AnchoredElement>) -> Option<&AnchoredElement> {
+        for entry in tree.iter() {
             match entry.get_by_id(element_id) {
                 Some(element) => return Some(&element),
                 None => (),
@@ -214,14 +233,17 @@ impl AnchorTree {
     }
 
     pub fn get_mut_by_id(&mut self, element_id: u32) -> Option<&mut AnchoredElement> {
-        for entry in self.screen_tree.iter_mut() {
-            match entry.get_mut_by_id(element_id) {
-                Some(element) => return Some(element),
-                None => (),
+        for tree in self.mut_trees() {
+            if let Some(element) = Self::get_mut_by_id_from_tree(element_id, tree) {
+                return Some(element);
             }
         }
 
-        for entry in self.fixed_trees.iter_mut() {
+        None
+    }
+
+    fn get_mut_by_id_from_tree(element_id: u32, tree: &mut Vec<AnchoredElement>) -> Option<&mut AnchoredElement> {
+        for entry in tree.iter_mut() {
             match entry.get_mut_by_id(element_id) {
                 Some(element) => return Some(element),
                 None => (),
@@ -250,35 +272,41 @@ impl AnchorTree {
     }
 
     /// Returns wether the element was unregistered from the anchor tree:
-    /// `true` if the element was found, and thus removed from the anchor tree
-    /// `false` if the element was not found, thus does not exist in the anchor tree
-    pub fn remove_element_by_id(&mut self, element_id: u32) -> bool {
-        for i in 0..self.screen_tree.len() {
-            if self.screen_tree[i].identifier.element_id == element_id {
+    /// `Some` - The removed element, if the element was found
+    /// `None` if the element was not found, thus does not exist in the anchor tree
+    pub fn remove_element_by_id(&mut self, element_id: u32) -> Option<AnchoredElement> {
+        for tree in self.mut_trees() {
+            if let Some(removed_element) = Self::remove_tree_element_by_id(element_id, tree) {
+                return Some(removed_element);
+            } 
+        }
+
+        None
+    }
+
+    fn remove_tree_element_by_id(element_id: u32, tree: &mut Vec<AnchoredElement>) -> Option<AnchoredElement> {
+        for i in 0..tree.len() {
+            if tree[i].identifier.element_id == element_id {
                 // first we check if it's a root element that needs to be removed
-                self.screen_tree.remove(i);
-                return true;
+                return Some(tree.remove(i));
             } else {
                 // then we check if it's a child of a root element
-                if self.screen_tree[i].remove_child_by_id(element_id) {
-                    return true;
+                let mut removed_child = tree[i].remove_child_by_id(element_id);
+                if removed_child.is_some() {
+                    return removed_child.take();
                 }
             }
         }
 
-        for i in 0..self.fixed_trees.len() {
-            if self.fixed_trees[i].identifier.element_id == element_id {
-                // first we check if it's a root element that needs to be removed
-                self.fixed_trees.remove(i);
-                return true;
-            } else {
-                // then we check if it's a child of a root element
-                if self.screen_tree[i].remove_child_by_id(element_id) {
-                    return true;
-                }
-            }
-        }
+        None
+    }
 
-        return false;
+    /// Add children to the given parent.
+    /// Returns an error of the parent (with id = `parent_id`) was not found
+    pub fn add_children(&mut self, parent_id: u32, mut children: Vec<AnchoredElement>) -> Result<(), String> {
+        match self.get_mut_by_id(parent_id) {
+            Some(parent) => Ok(parent.anchored_elements.append(&mut children)),
+            None => Err(format!("parent with id {} was not found", parent_id)),
+        }
     }
 }
