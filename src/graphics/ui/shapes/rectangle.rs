@@ -77,6 +77,10 @@ impl UiElement for Rectangle {
     fn set_color(&mut self, color: Color) {
         self.color = color;
     }
+
+    fn set_z_index(&mut self, z_index: f32) {
+        self.world_data.set_z_index(z_index);
+    }
 }
 
 impl Rectangle {

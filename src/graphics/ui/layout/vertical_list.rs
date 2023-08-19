@@ -1,6 +1,6 @@
-use crate::{graphics::{ui::{Position, AnchorPoint, shapes::RectangleBuilder, Interface, padding::Padding}, Color}, asset_manager::AssetManager, log};
+use crate::{graphics::{ui::{Position, AnchorPoint, shapes::RectangleBuilder, Interface, padding::Padding, draw_bounds::DrawBounds}, Color}, asset_manager::AssetManager, log};
 
-use super::Layout;
+use super::{Layout, layout::LAYOUT_ELEMENT_EXTRA_Z_INDEX};
 
 pub struct VerticalList {
     widget_ids: Vec<u32>, // List of unique ids. We do not use a HashSet because the order matters.
@@ -10,6 +10,8 @@ pub struct VerticalList {
     max_height: f32,
     current_scroll: f32,
     padding: Padding,
+    draw_bounds: DrawBounds,
+    z_index: f32,
 }
 
 impl Layout for VerticalList {}
@@ -37,7 +39,7 @@ impl VerticalList {
         self.widget_ids.push(widget_id);
 
         // resize background element
-        let new_background_height = calculate_background_height(&self.widget_ids, self.gap_size, &self.padding, interface);
+        let new_background_height = calculate_background_height(&self.widget_ids, self.gap_size, &self.padding, interface).min(self.max_height);
         _ = interface.mut_element_registry().set_rectangle_height(
             self.background_element_id, 
             new_background_height
@@ -45,6 +47,7 @@ impl VerticalList {
 
         // set position of newly added widget
         interface.set_widget_position(widget_id, Position::ElementAnchor(anchor_point, anchor_id));
+        interface.set_widget_z_index(widget_id, self.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX);
     }
 
     pub fn update() {
@@ -59,6 +62,7 @@ pub struct VerticalListBuilder {
     max_height: f32,
     position: Position,
     padding: Padding,
+    z_index: f32,
 }
 
 impl VerticalListBuilder {
@@ -72,19 +76,27 @@ impl VerticalListBuilder {
             max_height: 300.0,
             position: Position::ScreenAnchor(AnchorPoint::Center),
             padding: Padding::Universal(default_gap_size),
+            z_index: 100.0,
         }
     }
 
     pub fn build(self, interface: &mut Interface, asset_manager: &mut AssetManager) -> Result<VerticalList, String> {
         let background_width = calculate_background_width(&self.widget_ids, &self.padding, interface);
-        let background_height = calculate_background_height(&self.widget_ids, self.gap_size, &self.padding, interface);
+        let background_height = calculate_background_height(&self.widget_ids, self.gap_size, &self.padding, interface).min(self.max_height);
 
         let background_element_id = interface.mut_element_registry().create_rectangle(RectangleBuilder::new()
             .with_color(self.background_color)
             .with_position(self.position)
             .with_width(background_width)
             .with_height(background_height)
+            .with_z_index(self.z_index)
         , asset_manager)?;
+
+        let layout_position = interface.element_registry().get_ui_element_by_id(background_element_id).unwrap().world_data().position();
+        let draw_bound_top = layout_position.y - background_height / 2.0;
+        let draw_bound_bottom = layout_position.y + background_height / 2.0;
+        let draw_bound_left = layout_position.x - background_width / 2.0;
+        let draw_bound_right = layout_position.x + background_width / 2.0;
 
         let list = VerticalList { 
             widget_ids: self.widget_ids, 
@@ -94,6 +106,8 @@ impl VerticalListBuilder {
             max_height: self.max_height,
             current_scroll: 0.0,
             padding: self.padding,
+            draw_bounds: DrawBounds::some(draw_bound_top, draw_bound_right, draw_bound_bottom, draw_bound_left),
+            z_index: self.z_index,
         };
 
         if list.widget_ids.is_empty() {
@@ -113,6 +127,10 @@ impl VerticalListBuilder {
                 list.widget_ids[i], 
                 Position::ElementAnchor(AnchorPoint::BottomOutside(self.gap_size), anchor_element), 
             );
+        }
+
+        for widget_id in list.widget_ids.iter() {
+            interface.set_widget_z_index(*widget_id, list.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX);
         }
 
         Ok(list)
@@ -163,6 +181,16 @@ impl VerticalListBuilder {
 
     pub fn with_padding(mut self, padding: Padding) -> Self {
         self.padding = padding;
+        self
+    }
+
+    pub fn with_max_height(mut self, max_height: f32) -> Self {
+        self.max_height = max_height;
+        self
+    }
+
+    pub fn with_z_index(mut self, z_index: f32) -> Self {
+        self.z_index = z_index;
         self
     }
 }

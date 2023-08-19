@@ -18,6 +18,7 @@ pub trait UiElement {
     fn set_position(&mut self, position: Position, window_size: Vec2, anchor_element_data: Option<AnchorElementData>);
     fn recalculate_position(&mut self, window_size: Vec2, anchor_element_data: Option<AnchorElementData>);
     fn set_color(&mut self, color: Color);
+    fn set_z_index(&mut self, z_index: f32);
 
     fn hide(&mut self);
     fn show(&mut self);

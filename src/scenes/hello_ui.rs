@@ -64,12 +64,24 @@ impl Scene for HelloUi {
             .with_position(Position::ScreenAnchor(AnchorPoint::TopLeftInside(10.0, 10.0)))
         , asset_manager)?;
 
+        let layout_button_1 = interface.add_button("Button 1".to_string(), ButtonBuilder::new(), asset_manager)?;
+        let layout_button_2 = interface.add_button("Button 2".to_string(), ButtonBuilder::new(), asset_manager)?;
+        let layout_button_3 = interface.add_button("Button 3".to_string(), ButtonBuilder::new(), asset_manager)?;
+        let layout_button_4 = interface.add_button("Button 4".to_string(), ButtonBuilder::new(), asset_manager)?;
+        let layout_button_5 = interface.add_button("Button 5".to_string(), ButtonBuilder::new(), asset_manager)?;
+
         let layout = VerticalListBuilder::new()
             .with_position(Position::ScreenAnchor(AnchorPoint::LeftInside(10.0)))
             .with_padding(Padding::Universal(5.0))
+            .with_max_height(200.0)
             .add_widget(dropdown_id)
             .add_widget(reset_button_id)
             .add_widget(width_slider_id)
+            .add_widget(layout_button_1)
+            .add_widget(layout_button_2)
+            .add_widget(layout_button_3)
+            .add_widget(layout_button_4)
+            .add_widget(layout_button_5)
             .build(&mut interface, asset_manager)?;
 
         Ok(Self { 

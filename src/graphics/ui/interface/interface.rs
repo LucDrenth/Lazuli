@@ -58,6 +58,9 @@ impl Interface {
     pub fn set_widget_position(&mut self, widget_id: u32, position: Position) {
         self.widget_registry.set_widget_position(widget_id, position, &mut self.element_registry);
     }
+    pub fn set_widget_z_index(&mut self, widget_id: u32, z_index: f32) {
+        self.widget_registry.set_widget_z_index(widget_id, z_index, &mut self.element_registry);
+    }
 
     // button specific functions
     pub fn add_button(&mut self, label: String, builder: ButtonBuilder, asset_manager: &mut AssetManager) -> Result<u32, String> {

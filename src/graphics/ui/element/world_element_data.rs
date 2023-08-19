@@ -74,4 +74,5 @@ impl WorldElementData {
     pub fn width(&self) -> f32 { self.size.x }
     pub fn height(&self) -> f32 { self.size.y }
     pub fn z_index(&self) -> f32 { self.z_index }
+    pub fn set_z_index(&mut self, z_index: f32) { self.z_index = z_index }
 }

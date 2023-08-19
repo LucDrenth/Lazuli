@@ -39,6 +39,12 @@ impl UiWidget for Button {
         _ = element_registry.set_element_position(self.background_element_id, position);
         _ = element_registry.set_element_position(self.text_element_id, Position::ElementAnchor(AnchorPoint::Center, self.background_element_id));
     }
+
+    fn set_z_index(&mut self, z_index: f32, element_registry: &mut ElementRegistry) {
+        self.z_index = z_index;
+        _ = element_registry.set_element_z_index(self.background_element_id, z_index);
+        _ = element_registry.set_element_z_index(self.text_element_id, z_index + 0.01);
+    }
 }
 
 impl Button {

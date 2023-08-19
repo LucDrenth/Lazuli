@@ -121,7 +121,7 @@ impl ElementRegistry {
 
     /// If the itemType and index are known, it's better to use get_ui_element_by_index. This is because
     /// this function looks up the itemType and index and then uses get_ui_element_by_index
-    fn get_ui_element_by_id(&self, id: u32) -> Option<Box<&dyn UiElement>> {
+    pub fn get_ui_element_by_id(&self, id: u32) -> Option<Box<&dyn UiElement>> {
         for ordered_element in self.ordered_elements.iter() {
             if ordered_element.item_id == id {
                 return self.get_ui_element_by_index(ordered_element.element_type, ordered_element.index);
@@ -277,6 +277,17 @@ impl ElementRegistry {
         match self.get_mut_ui_element_by_id(element_id) {
             Some(element) => {
                 element.set_color(color);
+                Ok(())
+            },
+            None => Err(format!("failed to set element color because element with id {} was not found", element_id)),
+        }
+    }
+
+    pub fn set_element_z_index(&mut self, element_id: u32, z_index: f32) -> Result<(), String> {
+        match self.get_mut_ui_element_by_id(element_id) {
+            Some(element) => {
+                element.set_z_index(z_index);
+                self.update_ordered_elements();
                 Ok(())
             },
             None => Err(format!("failed to set element color because element with id {} was not found", element_id)),

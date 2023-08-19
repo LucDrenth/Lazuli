@@ -43,6 +43,13 @@ impl UiWidget for Slider {
         self.z_index
     }
 
+    fn set_z_index(&mut self, z_index: f32, element_registry: &mut ElementRegistry) {
+        self.z_index = z_index;
+        _ = element_registry.set_element_z_index(self.background_element_id, z_index);
+        _ = element_registry.set_element_z_index(self.text_element_id, z_index + 0.02);
+        _ = element_registry.set_element_z_index(self.progress_element_id, z_index + 0.01);
+    }
+
     fn size(&self, element_registry: &ElementRegistry) -> Result<Vec2, String> {
         Ok(element_registry.get_element_size(self.anchor_element_id()).unwrap())
     }

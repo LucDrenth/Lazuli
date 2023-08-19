@@ -51,6 +51,15 @@ impl <T: Debug + Clone> UiWidget for Dropdown<T> {
     fn set_position(&self, position: Position, element_registry: &mut ElementRegistry) {
         self.button.set_position(position, element_registry);
     }
+
+    fn set_z_index(&mut self, z_index: f32, element_registry: &mut ElementRegistry) {
+        self.z_index = z_index;
+        self.button.set_z_index(z_index, element_registry);
+
+        for option in self.options.iter_mut() {
+            option.button.set_z_index(Self::option_button_z_index(z_index), element_registry);
+        }
+    }
 }
 
 impl<T: Debug + Clone> Dropdown<T> {
@@ -88,7 +97,7 @@ impl<T: Debug + Clone> Dropdown<T> {
                 .with_height(button.height())
                 .with_mouse_action_to_activate(InputAction::UpOrDown)
                 .with_hidden(true)
-                .with_z_index((1000.0 + builder.z_index).min(MAX_Z_INDEX - 1.0))
+                .with_z_index(Self::option_button_z_index(builder.z_index))
             , element_registry, asset_manager)?;
 
             anchor_element_id = option_button.anchor_element_id();
@@ -103,6 +112,10 @@ impl<T: Debug + Clone> Dropdown<T> {
             is_open: false,
             selected: selected_value,
         })
+    }
+
+    fn option_button_z_index(base_z_index: f32) -> f32 {
+        (1000.0 + base_z_index).min(MAX_Z_INDEX - 1.0)
     }
 
     /// Returns the newly selected value, or None if nothing has changed

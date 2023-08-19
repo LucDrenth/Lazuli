@@ -96,6 +96,9 @@ impl WidgetRegistry {
     pub fn set_widget_position(&self, widget_id: u32, position: Position, element_registry: &mut ElementRegistry) {
         self.get_widget_by_id(widget_id).unwrap().set_position(position, element_registry);
     }
+    pub fn set_widget_z_index(&mut self, widget_id: u32, z_index: f32, element_registry: &mut ElementRegistry) {
+        self.get_mut_widget_by_id(widget_id).unwrap().set_z_index(z_index, element_registry);
+    }
 
     fn get_widget_by_id(&self, widget_id: u32) -> Option<Box<&dyn UiWidget>> {
         for widget_entry in self.sliders.entries.iter() {
@@ -108,6 +111,22 @@ impl WidgetRegistry {
 
         for widget_entry in self.dropdowns.entries.iter() {
             if widget_entry.id == widget_id { return Some(Box::new(&widget_entry.widget)) }
+        }
+
+        None
+    }
+
+    fn get_mut_widget_by_id(&mut self, widget_id: u32) -> Option<Box<&mut dyn UiWidget>> {
+        for widget_entry in self.sliders.entries.iter_mut() {
+            if widget_entry.id == widget_id { return Some(Box::new(&mut widget_entry.widget)) }
+        }
+
+        for widget_entry in self.buttons.entries.iter_mut() {
+            if widget_entry.id == widget_id { return Some(Box::new(&mut widget_entry.widget)) }
+        }
+
+        for widget_entry in self.dropdowns.entries.iter_mut() {
+            if widget_entry.id == widget_id { return Some(Box::new(&mut widget_entry.widget)) }
         }
 
         None
