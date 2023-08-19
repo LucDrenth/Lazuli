@@ -1,12 +1,12 @@
 use glam::Vec2;
 
-use crate::{asset_manager::{AssetManager, AssetId}, graphics::{material::Material, Color}};
+use crate::{asset_manager::{AssetManager, AssetId}, graphics::{material::Material, Color, ui::draw_bounds::DrawBounds}};
 
 use super::{world_element_data::WorldElementData, AnchorElementData, Position};
 
 pub trait UiElement {
     fn material_id(&self) -> &AssetId<Material>;
-    fn draw(&self, asset_manager: &mut AssetManager);
+    fn draw(&self, asset_manager: &mut AssetManager, window_size: &Vec2, pixel_density: f32);
     fn type_name(&self) -> &str;
     fn handle_window_resize(&mut self, new_window_size: &Vec2);
 
@@ -19,6 +19,7 @@ pub trait UiElement {
     fn recalculate_position(&mut self, window_size: Vec2, anchor_element_data: Option<AnchorElementData>);
     fn set_color(&mut self, color: Color);
     fn set_z_index(&mut self, z_index: f32);
+    fn set_draw_bounds(&mut self, draw_bounds: DrawBounds);
 
     fn hide(&mut self);
     fn show(&mut self);

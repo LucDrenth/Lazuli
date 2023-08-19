@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, Position, ElementRegistry}, material::Material, Color}, set_attribute, error::opengl, asset_manager::{AssetManager, AssetId}, log};
+use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, Position, ElementRegistry, draw_bounds::DrawBounds}, material::Material, Color}, set_attribute, error::opengl, asset_manager::{AssetManager, AssetId}, log};
 use crate::graphics::shapes::RECTANGLE_INDICES;
 
 type VertexPosition = [f32; 2];
@@ -14,10 +14,11 @@ pub struct Rectangle {
     world_data: WorldElementData,
     color: Color,
     show: bool,
+    draw_bounds: DrawBounds,
 }
 
 impl UiElement for Rectangle {
-    fn draw(&self, asset_manager: &mut AssetManager) {
+    fn draw(&self, asset_manager: &mut AssetManager, window_size: &Vec2, pixel_density: f32) {
         if !self.show {
             return
         }
@@ -32,6 +33,7 @@ impl UiElement for Rectangle {
         shader.set_uniform("scale", (self.world_data.scale.x, self.world_data.scale.y));
         shader.set_uniform("zIndex", map_z_index_for_shader(self.world_data.z_index()));
         shader.set_uniform("worldPosition", self.world_data.shader_position());
+        shader.set_uniform("drawBounds", self.draw_bounds.for_shader(window_size, pixel_density));
 
         unsafe {
             gl::DrawElements(gl::TRIANGLES, self.ebo.data_size as i32, gl::UNSIGNED_INT, core::ptr::null());
@@ -81,6 +83,10 @@ impl UiElement for Rectangle {
     fn set_z_index(&mut self, z_index: f32) {
         self.world_data.set_z_index(z_index);
     }
+
+    fn set_draw_bounds(&mut self, draw_bounds: DrawBounds) {
+        self.draw_bounds = draw_bounds;
+    }
 }
 
 impl Rectangle {
@@ -129,6 +135,7 @@ impl Rectangle {
             color: builder.color,
             world_data,
             show: !builder.hidden,
+            draw_bounds: DrawBounds::none(),
         })
     }
 

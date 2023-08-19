@@ -7,6 +7,9 @@ pub trait Window {
 
     /// in logical units (physical size / DPI)
     fn get_size(&self) -> Vec2;
+
+    // dpi
+    fn get_pixel_density(&self) -> f64;
     
     // TODO
     // fn lock_cursor(&self);

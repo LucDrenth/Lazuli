@@ -8,7 +8,7 @@ pub struct HelloTexture {
 }
 
 impl Scene for HelloTexture {
-    fn new(_event_system: &mut EventSystem, _window_size: Vec2, asset_manager: &mut AssetManager) -> Result<Self, String> {
+    fn new(_event_system: &mut EventSystem, _window_size: Vec2, _pixel_density: f32, asset_manager: &mut AssetManager) -> Result<Self, String> {
         let shader_id = asset_manager.load_shader(ShaderBuilder::new()
             .with_vertex_shader_path(PATH_TEXTURED_VERT.to_string())
             .with_fragment_shader_path(PATH_TEXTURED_FRAG.to_string())

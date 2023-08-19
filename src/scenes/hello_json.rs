@@ -7,7 +7,7 @@ use crate::{graphics::scene::Scene, event::EventSystem, input::Input, asset_mana
 
 pub struct HelloJson {}
 impl Scene for HelloJson {
-    fn new(_event_system: &mut EventSystem, _window_size: Vec2, _: &mut AssetManager) -> Result<Self, String>
+    fn new(_event_system: &mut EventSystem, _window_size: Vec2, _pixel_density: f32, _: &mut AssetManager) -> Result<Self, String>
     {
         let data = MyStruct {
             id: 15,

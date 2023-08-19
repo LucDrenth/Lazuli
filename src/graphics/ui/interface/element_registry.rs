@@ -2,7 +2,7 @@ use std::any::TypeId;
 
 use glam::Vec2;
 
-use crate::{asset_manager::{AssetManager, AssetId}, input::{Input, MouseButton, InputAction}, graphics::{font::Font, ui::{element::{ui_element::UiElement, AnchorElementData}, Text, TextBuilder, shapes::{RectangleBuilder, Rectangle}, Position}, Color}, log};
+use crate::{asset_manager::{AssetManager, AssetId}, input::{Input, MouseButton, InputAction}, graphics::{font::Font, ui::{element::{ui_element::UiElement, AnchorElementData}, Text, TextBuilder, shapes::{RectangleBuilder, Rectangle}, Position, draw_bounds::DrawBounds}, Color}, log};
 
 use super::{interface, element_list::{ElementList, OrderedElementsItem, self}, anchor_tree::{AnchorTree, AnchorElementIdentifier}};
 
@@ -18,19 +18,23 @@ pub struct ElementRegistry {
     ordered_elements: Vec<OrderedElementsItem>,
 
     window_size: Vec2,
+    pixel_density: f32,
+
     dragged_element_id: Option<u32>, // element that is currently being dragged. Will be set to None on left mouse button up
 
     anchor_tree: AnchorTree,
 }
 
 impl ElementRegistry {
-    pub fn new(window_size: Vec2) -> Self {
+    pub fn new(window_size: Vec2, pixel_density: f32) -> Self {
         Self {
             text_elements: ElementList::<Text>::new(),
             rectangle_elements: ElementList::<Rectangle>::new(),
             ordered_elements: vec![],
 
             window_size,
+            pixel_density,
+
             dragged_element_id: None,
 
             anchor_tree: AnchorTree::new(),
@@ -47,7 +51,7 @@ impl ElementRegistry {
         for ordered_item in self.ordered_elements.iter() {
             match self.get_ui_element_by_index(ordered_item.element_type, ordered_item.index) {
                 Some(element) => {
-                    element.draw(asset_manager);
+                    element.draw(asset_manager, &self.window_size, self.pixel_density);
                 },
                 None => {
                     log::engine_warn(format!("Failed to draw ElementRegistry item because we could not get it from ordered item {:?}", ordered_item));
@@ -289,6 +293,15 @@ impl ElementRegistry {
                 element.set_z_index(z_index);
                 self.update_ordered_elements();
                 Ok(())
+            },
+            None => Err(format!("failed to set element color because element with id {} was not found", element_id)),
+        }
+    }
+
+    pub fn set_element_draw_bounds(&mut self, element_id: u32, draw_bounds: DrawBounds) -> Result<(), String> {
+        match self.get_mut_ui_element_by_id(element_id) {
+            Some(element) => {
+                Ok(element.set_draw_bounds(draw_bounds))
             },
             None => Err(format!("failed to set element color because element with id {} was not found", element_id)),
         }

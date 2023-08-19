@@ -9,7 +9,7 @@ pub struct HelloEventSystem {
 }
 
 impl Scene for HelloEventSystem {
-    fn new(event_system: &mut EventSystem, _window_size: Vec2, _: &mut AssetManager) -> Result<Self, String> {
+    fn new(event_system: &mut EventSystem, _window_size: Vec2, _pixel_density: f32, _: &mut AssetManager) -> Result<Self, String> {
         let listener1 = event_system.register::<WindowResizeEvent>();
         let listener2 = event_system.register::<WindowResizeEvent>();
         

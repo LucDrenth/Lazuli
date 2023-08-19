@@ -34,7 +34,13 @@ impl App {
     }
 
     fn run<T: Scene + 'static>(mut self) {
-        let scene = T::new(&mut self.event_system, self.window.get_size(), &mut self.asset_manager).expect("App failed to create initial scene");
+        let scene = T::new(
+            &mut self.event_system, 
+            self.window.get_size(), 
+            self.window.get_pixel_density() as f32, 
+            &mut self.asset_manager
+        ).expect("App failed to create initial scene");
+        
         let renderer = Renderer::new(Box::new(scene)).expect("App failed to create renderer");
         self.window.run(renderer, self.event_system, self.input, self.asset_manager);
     }

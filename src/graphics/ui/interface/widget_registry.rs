@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{widget::{Slider, SliderBuilder, SliderUpdateResult, Button, ButtonBuilder, UiWidget, Dropdown, DropdownBuilder}, Position}, Color}, asset_manager::AssetManager, input::Input, log};
+use crate::{graphics::{ui::{widget::{Slider, SliderBuilder, SliderUpdateResult, Button, ButtonBuilder, UiWidget, Dropdown, DropdownBuilder}, Position, draw_bounds::DrawBounds}, Color}, asset_manager::AssetManager, input::Input, log};
 
 use super::{ElementRegistry, widget_list::WidgetList};
 
@@ -98,6 +98,9 @@ impl WidgetRegistry {
     }
     pub fn set_widget_z_index(&mut self, widget_id: u32, z_index: f32, element_registry: &mut ElementRegistry) {
         self.get_mut_widget_by_id(widget_id).unwrap().set_z_index(z_index, element_registry);
+    }
+    pub fn set_widget_draw_bounds(&mut self, widget_id: u32, draw_bounds: DrawBounds, element_registry: &mut ElementRegistry) {
+        self.get_mut_widget_by_id(widget_id).unwrap().set_draw_bounds(draw_bounds, element_registry);
     }
 
     fn get_widget_by_id(&self, widget_id: u32) -> Option<Box<&dyn UiWidget>> {

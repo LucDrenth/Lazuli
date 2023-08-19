@@ -7,9 +7,9 @@ pub struct HelloText {
 }
 
 impl Scene for HelloText {
-    fn new(event_system: &mut EventSystem, window_size: Vec2, asset_manager: &mut AssetManager) -> Result<Self, String> 
+    fn new(event_system: &mut EventSystem, window_size: Vec2, pixel_density: f32, asset_manager: &mut AssetManager) -> Result<Self, String> 
     {
-        let mut interface = Interface::new(event_system, window_size);
+        let mut interface = Interface::new(event_system, window_size, pixel_density);
 
 
         let plain_font_id = asset_manager.load_font(PlainBitmapBuilder::new()

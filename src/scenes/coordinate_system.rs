@@ -17,7 +17,7 @@ pub struct CoordinateSystem {
 }
 
 impl Scene for CoordinateSystem {
-    fn new(event_system: &mut EventSystem, window_size: Vec2, asset_manager: &mut AssetManager) -> Result<Self, String> {
+    fn new(event_system: &mut EventSystem, window_size: Vec2, _pixel_density: f32, asset_manager: &mut AssetManager) -> Result<Self, String> {
         event_system.send(event::LockCursor{});
         event_system.send(event::HideCursor{});
 

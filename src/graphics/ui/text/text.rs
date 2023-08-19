@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{font::Font, Transform, ui::{interface::{is_valid_z_index, map_z_index_for_shader, self}, Position, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, ElementRegistry}, material::Material, Color}, asset_manager::{AssetManager, AssetId}, log};
+use crate::{graphics::{font::Font, Transform, ui::{interface::{is_valid_z_index, map_z_index_for_shader, self}, Position, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, ElementRegistry, draw_bounds::DrawBounds}, material::Material, Color}, asset_manager::{AssetManager, AssetId}, log};
 
 use super::glyph::Glyph;
 
@@ -15,10 +15,11 @@ pub struct Text {
     pub font_id: AssetId<Font>,
     material_id: AssetId<Material>,
     show: bool,
+    draw_bounds: DrawBounds,
 }
 
 impl UiElement for Text {
-    fn draw(&self, asset_manager: &mut AssetManager) {
+    fn draw(&self, asset_manager: &mut AssetManager, window_size: &Vec2, pixel_density: f32) {
         if !self.show {
             return
         }
@@ -31,6 +32,7 @@ impl UiElement for Text {
         shader.set_uniform("scale", (self.world_data.scale.x, self.world_data.scale.y));
         shader.set_uniform("zIndex", map_z_index_for_shader(self.world_data.z_index()));
         shader.set_uniform("worldPosition", self.world_data.shader_position());
+        shader.set_uniform("drawBounds", self.draw_bounds.for_shader(window_size, pixel_density));
 
         for glyph in &self.glyphs {
             glyph.draw();
@@ -78,6 +80,10 @@ impl UiElement for Text {
     fn set_z_index(&mut self, z_index: f32) {
         self.world_data.set_z_index(z_index);
     }
+
+    fn set_draw_bounds(&mut self, draw_bounds: DrawBounds) {
+        self.draw_bounds = draw_bounds;
+    }
 }
 
 impl Text {
@@ -109,6 +115,7 @@ impl Text {
             font_id: font_id.duplicate(),
             material_id: font_material_id,
             show: !text_builder.hidden,
+            draw_bounds: DrawBounds::none(),
         };
         result.set_text(
             &result.text.clone(), 

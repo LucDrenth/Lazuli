@@ -127,13 +127,17 @@ impl Window for GlutinWindow {
             y: logical_size.height,
         }
     }
+
+    fn get_pixel_density(&self) -> f64 {
+        self.render_context.window().scale_factor()
+    }
 }
 
 impl GlutinWindow {
     pub fn new(name: String, event_system: &mut EventSystem) -> Self {
         let window = WindowBuilder::new()
             .with_title(name)
-            .with_inner_size(glutin::dpi::PhysicalSize::new(1600, 1200));
+            .with_inner_size(glutin::dpi::LogicalSize::new(800, 600));
 
         let event_loop = EventLoop::new();
 

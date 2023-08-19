@@ -16,6 +16,8 @@ pub struct Dropdown<T: Debug + Clone> {
     options: Vec<DropdownOptionButton<T>>,
     is_open: bool,
     selected: Option<T>,
+    /// if false, option buttons do not use draw bounds
+    option_buttons_respect_draw_bounds: bool,
 }
 
 // TODO implement for all types instead of only for u32
@@ -58,6 +60,16 @@ impl <T: Debug + Clone> UiWidget for Dropdown<T> {
 
         for option in self.options.iter_mut() {
             option.button.set_z_index(Self::option_button_z_index(z_index), element_registry);
+        }
+    }
+
+    fn set_draw_bounds(&self, draw_bounds: crate::graphics::ui::draw_bounds::DrawBounds, element_registry: &mut ElementRegistry) {
+        _ = self.button.set_draw_bounds(draw_bounds, element_registry);
+
+        if self.option_buttons_respect_draw_bounds {
+            for option in self.options.iter() {
+                option.button.set_draw_bounds(draw_bounds, element_registry);
+            }
         }
     }
 }
@@ -111,6 +123,7 @@ impl<T: Debug + Clone> Dropdown<T> {
             options,
             is_open: false,
             selected: selected_value,
+            option_buttons_respect_draw_bounds: builder.option_buttons_respect_draw_bounds,
         })
     }
 
@@ -173,6 +186,7 @@ pub struct DropdownBuilder<T: Debug + Clone> {
     initially_selected_index: Option<u32>, // index of the options list
     z_index: f32,
     position: Position,
+    option_buttons_respect_draw_bounds: bool,
 }
 
 impl<T: Debug + Clone> DropdownBuilder<T> {
@@ -183,6 +197,7 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
             initially_selected_index: Some(0),
             z_index: 10.0,
             position: Position::ScreenAnchor(AnchorPoint::Center),
+            option_buttons_respect_draw_bounds: false,
         }
     }
 
@@ -227,6 +242,11 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
 
     pub fn with_options(mut self, options: Vec<DropdownOption<T>>) -> Self {
         self.options = options;
+        self
+    }
+
+    pub fn with_option_buttons_respect_draw_bounds(mut self, option_buttons_respect_draw_bounds: bool) -> Self {
+        self.option_buttons_respect_draw_bounds = option_buttons_respect_draw_bounds;
         self
     }
 }

@@ -45,6 +45,11 @@ impl UiWidget for Button {
         _ = element_registry.set_element_z_index(self.background_element_id, z_index);
         _ = element_registry.set_element_z_index(self.text_element_id, z_index + 0.01);
     }
+
+    fn set_draw_bounds(&self, draw_bounds: ui::draw_bounds::DrawBounds, element_registry: &mut ElementRegistry) {
+        _ = element_registry.set_element_draw_bounds(self.background_element_id, draw_bounds);
+        _ = element_registry.set_element_draw_bounds(self.text_element_id, draw_bounds);
+    }
 }
 
 impl Button {

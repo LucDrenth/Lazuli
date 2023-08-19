@@ -13,9 +13,9 @@ pub struct HelloUi {
 }
 
 impl Scene for HelloUi {
-    fn new(event_system: &mut EventSystem, window_size: Vec2, asset_manager: &mut AssetManager) -> Result<Self, String> 
+    fn new(event_system: &mut EventSystem, window_size: Vec2, pixel_density: f32, asset_manager: &mut AssetManager) -> Result<Self, String> 
     {
-        let mut interface = Interface::new(event_system, window_size);
+        let mut interface = Interface::new(event_system, window_size, pixel_density);
 
         let rectangle_id = interface.mut_element_registry().create_rectangle(RectangleBuilder::new(), asset_manager)?;
         let _ = interface.mut_element_registry().create_rectangle(RectangleBuilder::new()

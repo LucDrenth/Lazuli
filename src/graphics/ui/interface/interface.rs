@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_manager::{AssetManager, AssetId}, input::Input, graphics::{ui::{widget::{SliderBuilder, SliderUpdateResult, ButtonBuilder, DropdownBuilder}, Position}, font::{Font, PlainBitmapBuilder}, Color}};
+use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_manager::{AssetManager, AssetId}, input::Input, graphics::{ui::{widget::{SliderBuilder, SliderUpdateResult, ButtonBuilder, DropdownBuilder}, Position, draw_bounds::DrawBounds}, font::{Font, PlainBitmapBuilder}, Color}};
 
 use super::{ElementRegistry, widget_registry::WidgetRegistry};
 
@@ -12,9 +12,9 @@ pub struct Interface {
 }
 
 impl Interface {
-    pub fn new(event_system: &mut EventSystem, window_size: Vec2) -> Self {
+    pub fn new(event_system: &mut EventSystem, window_size: Vec2, pixel_density: f32) -> Self {
         Self {
-            element_registry: ElementRegistry::new(window_size),
+            element_registry: ElementRegistry::new(window_size, pixel_density),
             widget_registry: WidgetRegistry::new(),
             window_resize_listener: event_system.register::<WindowResizeEvent>(),
             size: window_size,
@@ -60,6 +60,9 @@ impl Interface {
     }
     pub fn set_widget_z_index(&mut self, widget_id: u32, z_index: f32) {
         self.widget_registry.set_widget_z_index(widget_id, z_index, &mut self.element_registry);
+    }
+    pub fn set_widget_draw_bounds(&mut self, widget_id: u32, draw_bounds: DrawBounds) {
+        self.widget_registry.set_widget_draw_bounds(widget_id, draw_bounds, &mut self.element_registry);
     }
 
     // button specific functions

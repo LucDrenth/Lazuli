@@ -59,6 +59,12 @@ impl UiWidget for Slider {
         _ = element_registry.set_element_position(self.text_element_id, Position::ElementAnchor(AnchorPoint::Center, self.background_element_id));
         _ = element_registry.set_element_position(self.progress_element_id, Position::ElementAnchor(AnchorPoint::LeftInside(0.0), self.background_element_id));
     }
+
+    fn set_draw_bounds(&self, draw_bounds: crate::graphics::ui::draw_bounds::DrawBounds, element_registry: &mut ElementRegistry) {
+        _ = element_registry.set_element_draw_bounds(self.background_element_id, draw_bounds);
+        _ = element_registry.set_element_draw_bounds(self.text_element_id, draw_bounds);
+        _ = element_registry.set_element_draw_bounds(self.progress_element_id, draw_bounds);
+    }
 }
 
 impl Slider {

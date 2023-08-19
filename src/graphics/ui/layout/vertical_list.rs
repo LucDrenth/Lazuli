@@ -48,6 +48,7 @@ impl VerticalList {
         // set position of newly added widget
         interface.set_widget_position(widget_id, Position::ElementAnchor(anchor_point, anchor_id));
         interface.set_widget_z_index(widget_id, self.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX);
+        interface.set_widget_draw_bounds(widget_id, self.draw_bounds.clone());
     }
 
     pub fn update() {
@@ -93,8 +94,8 @@ impl VerticalListBuilder {
         , asset_manager)?;
 
         let layout_position = interface.element_registry().get_ui_element_by_id(background_element_id).unwrap().world_data().position();
-        let draw_bound_top = layout_position.y - background_height / 2.0;
-        let draw_bound_bottom = layout_position.y + background_height / 2.0;
+        let draw_bound_top = layout_position.y + background_height / 2.0;
+        let draw_bound_bottom = layout_position.y - background_height / 2.0;
         let draw_bound_left = layout_position.x - background_width / 2.0;
         let draw_bound_right = layout_position.x + background_width / 2.0;
 
@@ -131,6 +132,7 @@ impl VerticalListBuilder {
 
         for widget_id in list.widget_ids.iter() {
             interface.set_widget_z_index(*widget_id, list.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX);
+            interface.set_widget_draw_bounds(*widget_id, list.draw_bounds.clone());
         }
 
         Ok(list)

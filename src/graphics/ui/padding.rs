@@ -1,4 +1,6 @@
 pub enum Padding {
+    None,
+
     /// `param1` padding for each of the 4 sides
     Universal(f32),
 
@@ -19,6 +21,7 @@ pub enum Padding {
 impl Padding {
     pub fn top(&self) -> f32 {
         match self {
+            Padding::None => 0.0,
             Padding::Universal(padding) => *padding,
             Padding::VerticalHorizontal(padding_vertical, _) => *padding_vertical,
             Padding::Individual(padding_top, _, _, _) => *padding_top,
@@ -29,6 +32,7 @@ impl Padding {
 
     pub fn bottom(&self) -> f32 {
         match self {
+            Padding::None => 0.0,
             Padding::Universal(padding) => *padding,
             Padding::VerticalHorizontal(padding_vertical, _) => *padding_vertical,
             Padding::Individual(_, _, padding_bottom, _) => *padding_bottom,
@@ -39,6 +43,7 @@ impl Padding {
 
     pub fn left(&self) -> f32 {
         match self {
+            Padding::None => 0.0,
             Padding::Universal(padding) => *padding,
             Padding::VerticalHorizontal(_, padding_horizontal) => *padding_horizontal,
             Padding::Individual(_, _, _, padding_left) => *padding_left,
@@ -49,6 +54,7 @@ impl Padding {
 
     pub fn right(&self) -> f32 {
         match self {
+            Padding::None => 0.0,
             Padding::Universal(padding) => *padding,
             Padding::VerticalHorizontal(_, padding_horizontal) => *padding_horizontal,
             Padding::Individual(_, padding_right, _, _) => *padding_right,
