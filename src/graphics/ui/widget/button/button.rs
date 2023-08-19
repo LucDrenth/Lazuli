@@ -50,6 +50,10 @@ impl UiWidget for Button {
         _ = element_registry.set_element_draw_bounds(self.background_element_id, draw_bounds);
         _ = element_registry.set_element_draw_bounds(self.text_element_id, draw_bounds);
     }
+
+    fn get_screen_position(&self, element_registry: &ElementRegistry) -> Result<Vec2, String> {
+        element_registry.get_element_screen_position(self.anchor_element_id())
+    }
 }
 
 impl Button {

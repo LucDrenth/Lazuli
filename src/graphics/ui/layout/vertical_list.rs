@@ -1,4 +1,4 @@
-use crate::{graphics::{ui::{Position, AnchorPoint, shapes::RectangleBuilder, Interface, padding::Padding, draw_bounds::DrawBounds}, Color}, asset_manager::AssetManager, log};
+use crate::{graphics::{ui::{Position, AnchorPoint, shapes::RectangleBuilder, Interface, padding::Padding, draw_bounds::DrawBounds}, Color}, asset_manager::AssetManager, log, input::Input};
 
 use super::{Layout, layout::LAYOUT_ELEMENT_EXTRA_Z_INDEX};
 
@@ -9,15 +9,14 @@ pub struct VerticalList {
     position: Position,
     max_height: f32,
     current_scroll: f32,
+    max_scroll: f32,
     padding: Padding,
     draw_bounds: DrawBounds,
     z_index: f32,
 }
 
-impl Layout for VerticalList {}
-
-impl VerticalList {
-    pub fn add_widget(&mut self, widget_id: u32, interface: &mut Interface) {
+impl Layout for VerticalList {
+    fn add_widget(&mut self, widget_id: u32, interface: &mut Interface) {
         // calculate position of newly added widget
         let anchor_id;
         let anchor_point;
@@ -49,15 +48,20 @@ impl VerticalList {
         interface.set_widget_position(widget_id, Position::ElementAnchor(anchor_point, anchor_id));
         interface.set_widget_z_index(widget_id, self.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX);
         interface.set_widget_draw_bounds(widget_id, self.draw_bounds.clone());
+
+        // update max scroll
+        self.max_scroll = calculate_max_scroll(&self.widget_ids, &self.padding, self.background_element_id, new_background_height, interface);
     }
 
-    pub fn update() {
-        // TODO update scroll
+    fn update(&mut self, interface: &mut Interface, input: &Input) {
+        self.current_scroll = (self.current_scroll - input.get_scroll_y() as f32 * interface.scroll_speed()).clamp(0.0, self.max_scroll);
+        
+        // TODO update elements
     }
 }
 
 pub struct VerticalListBuilder {
-    widget_ids: Vec<u32>, // TODO unique list of ids so we do not have any duplicates
+    widget_ids: Vec<u32>,
     gap_size: f32, // the amount of space between elements
     background_color: Color,
     max_height: f32,
@@ -99,13 +103,14 @@ impl VerticalListBuilder {
         let draw_bound_left = layout_position.x - background_width / 2.0;
         let draw_bound_right = layout_position.x + background_width / 2.0;
 
-        let list = VerticalList { 
+        let mut list = VerticalList { 
             widget_ids: self.widget_ids, 
             background_element_id, 
             gap_size: self.gap_size, 
             position: self.position, 
             max_height: self.max_height,
             current_scroll: 0.0,
+            max_scroll: 0.0, // Will be set after the widget position have been set
             padding: self.padding,
             draw_bounds: DrawBounds::some(draw_bound_top, draw_bound_right, draw_bound_bottom, draw_bound_left),
             z_index: self.z_index,
@@ -134,6 +139,9 @@ impl VerticalListBuilder {
             interface.set_widget_z_index(*widget_id, list.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX);
             interface.set_widget_draw_bounds(*widget_id, list.draw_bounds.clone());
         }
+
+        // We can only set this after the widget positions has been set
+        list.max_scroll = calculate_max_scroll(&list.widget_ids, &list.padding, background_element_id, background_height, interface);
 
         Ok(list)
     }
@@ -220,4 +228,18 @@ fn calculate_background_width(widget_ids: &Vec<u32>, padding: &Padding, interfac
     }
 
     widest + padding.horizontal()
+}
+
+fn calculate_max_scroll(widget_ids: &Vec<u32>, padding: &Padding, background_element_id: u32, layout_height: f32, interface: &Interface) -> f32 {
+    match widget_ids.last() {
+        Some(last_widget_id) => {
+            let bottom_of_last_element = interface.get_widget_screen_position(*last_widget_id).unwrap().y + interface.get_widget_size(*last_widget_id).unwrap().y / 2.0;
+            
+            let layout_position_y = interface.element_registry().get_element_screen_position(background_element_id).unwrap().y;
+            let bottom_of_layout = layout_position_y - layout_height / 2.0;
+
+            ((bottom_of_last_element - bottom_of_layout).abs() + padding.bottom()).max(0.0)
+        },
+        None => return 0.0,
+    }
 }

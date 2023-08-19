@@ -9,6 +9,7 @@ pub struct Interface {
     window_resize_listener: EventReader<WindowResizeEvent>,
     widget_registry: WidgetRegistry,
     size: Vec2,
+    scroll_speed: f32,
 }
 
 impl Interface {
@@ -18,6 +19,7 @@ impl Interface {
             widget_registry: WidgetRegistry::new(),
             window_resize_listener: event_system.register::<WindowResizeEvent>(),
             size: window_size,
+            scroll_speed: 0.1,
         }
     }
 
@@ -54,6 +56,9 @@ impl Interface {
     }
     pub fn get_widget_size(&self, widget_id: u32) -> Result<Vec2, String> {
         self.widget_registry.get_widget_size(widget_id, &self.element_registry)
+    }
+    pub fn get_widget_screen_position(&self, widget_id: u32) -> Result<Vec2, String> {
+        self.widget_registry.get_widget_screen_position(widget_id, &self.element_registry)
     }
     pub fn set_widget_position(&mut self, widget_id: u32, position: Position) {
         self.widget_registry.set_widget_position(widget_id, position, &mut self.element_registry);
@@ -96,6 +101,10 @@ impl Interface {
     }
     pub fn dropdown_update_result(&self, dropdown_id: u32) -> Option<u32> {
         self.widget_registry.dropdown_update_result(dropdown_id)
+    }
+
+    pub fn scroll_speed(&self) -> f32 {
+        self.scroll_speed
     }
 }
 

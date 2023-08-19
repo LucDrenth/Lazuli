@@ -15,6 +15,7 @@ pub use interface::ElementRegistry;
 pub use interface::Interface;
 
 mod layout;
+pub use layout::Layout;
 pub use layout::VerticalList;
 pub use layout::VerticalListBuilder;
 

@@ -93,6 +93,9 @@ impl WidgetRegistry {
         self.get_widget_by_id(widget_id).unwrap().hide(element_registry);
     }
 
+    pub fn get_widget_screen_position(&self, widget_id: u32, element_registry: &ElementRegistry) -> Result<Vec2, String> {
+        self.get_widget_by_id(widget_id).unwrap().get_screen_position(element_registry)
+    }
     pub fn set_widget_position(&self, widget_id: u32, position: Position, element_registry: &mut ElementRegistry) {
         self.get_widget_by_id(widget_id).unwrap().set_position(position, element_registry);
     }

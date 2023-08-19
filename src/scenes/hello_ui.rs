@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, ui::{shapes::RectangleBuilder, widget::{ButtonBuilder, SliderBuilder, DropdownBuilder, DropdownOption}, Position, AnchorPoint, TextBuilder, Interface, VerticalListBuilder, Padding, VerticalList}, Color}, event::EventSystem, input::{Input, Key}, asset_manager::AssetManager, log};
+use crate::{graphics::{scene::Scene, ui::{shapes::RectangleBuilder, widget::{ButtonBuilder, SliderBuilder, DropdownBuilder, DropdownOption}, Position, AnchorPoint, TextBuilder, Interface, VerticalListBuilder, Padding, VerticalList, Layout}, Color}, event::EventSystem, input::{Input, Key}, asset_manager::AssetManager, log};
 
 pub struct HelloUi {
     interface: Interface,
@@ -97,6 +97,7 @@ impl Scene for HelloUi {
 
     fn update(&mut self, _: &mut EventSystem, input: &Input, asset_manager: &mut AssetManager) {
         self.interface.update(asset_manager, input);
+        self.layout.update(&mut self.interface, input);
 
         self.interface.slider_update_result(self.width_slider_id).map(|result|{
             let y = self.interface.mut_element_registry().get_element_scale(self.rectangle_id).unwrap().y;
