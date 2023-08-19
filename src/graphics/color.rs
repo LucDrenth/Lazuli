@@ -8,6 +8,10 @@ pub enum Color {
 }
 
 impl Color {
+    pub fn hex(hex: impl Into<String>) -> Self {
+        return Self::Hex(hex.into())
+    }
+
     /// Ignores any alpha value
     pub fn to_rgb_tuple(&self) -> (u8, u8, u8) {
         match self {

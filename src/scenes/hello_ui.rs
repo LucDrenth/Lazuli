@@ -134,15 +134,15 @@ impl Scene for HelloUi {
         match self.interface.dropdown_update_result(self.dropdown_id) {
             Some(new_value) => {
                 let color = match new_value {
-                    1 => Color::Hex("#ff0000".to_string()),
-                    2 => Color::Hex("#00ff00".to_string()),
-                    3 => Color::Hex("#0000ff".to_string()),
-                    4 => Color::Hex("#ffff00".to_string()),
-                    5 => Color::Hex("#ff00ff".to_string()),
-                    6 => Color::Hex("#00ffff".to_string()),
+                    1 => Color::hex("#ff0000"),
+                    2 => Color::hex("#00ff00"),
+                    3 => Color::hex("#0000ff"),
+                    4 => Color::hex("#ffff00"),
+                    5 => Color::hex("#ff00ff"),
+                    6 => Color::hex("#00ffff"),
                     _ => {
                         log::warn(format!("unhandled dropdown value: {}", new_value));
-                        Color::Hex("#ffffff".to_string())
+                        Color::hex("#ffffff")
                     },
                 };
 
