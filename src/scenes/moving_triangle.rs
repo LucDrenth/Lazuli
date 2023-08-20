@@ -1,9 +1,9 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, Triangle, shader::{PATH_MOVING_TRIANGLE_VERT, PATH_MOVING_TRIANGLE_FRAG, ShaderBuilder}, Shape, material::Material}, event::EventSystem, input::Input, asset_manager::{AssetManager, AssetId}};
+use crate::{graphics::{scene::Scene, Triangle, shader::{PATH_MOVING_TRIANGLE_VERT, PATH_MOVING_TRIANGLE_FRAG, ShaderBuilder}, Shape, material::Material}, event::EventSystem, input::Input, asset_manager::AssetManager, ResourceId};
 
 pub struct MovingTriangle {
-    material_id: AssetId<Material>,
+    material_id: ResourceId<Material>,
     triangle: Triangle,
     triangle_offset_x: f32,
     triangle_movement_velocity: f32,

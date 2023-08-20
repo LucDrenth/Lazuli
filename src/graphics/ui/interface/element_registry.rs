@@ -2,7 +2,7 @@ use std::any::TypeId;
 
 use glam::Vec2;
 
-use crate::{asset_manager::{AssetManager, AssetId}, input::{Input, MouseButton, InputAction}, graphics::{font::Font, ui::{element::{ui_element::UiElement, AnchorElementData, world_element_data::WorldElementData}, Text, TextBuilder, shapes::{RectangleBuilder, Rectangle}, Position, draw_bounds::DrawBounds}, Color}, log};
+use crate::{asset_manager::AssetManager, input::{Input, MouseButton, InputAction}, graphics::{font::Font, ui::{element::{ui_element::UiElement, AnchorElementData, world_element_data::WorldElementData}, Text, TextBuilder, shapes::{RectangleBuilder, Rectangle}, Position, draw_bounds::DrawBounds}, Color}, log, ResourceId};
 
 use super::{interface, element_list::{ElementList, OrderedElementsItem, self}, anchor_tree::{AnchorTree, AnchorElementIdentifier}};
 
@@ -144,7 +144,7 @@ impl ElementRegistry {
         return None
     }
 
-    pub fn create_text(&mut self, text: String, font_id: Option<&AssetId<Font>>, text_builder: TextBuilder, asset_manager: &mut AssetManager) -> Result<u32, String> {
+    pub fn create_text(&mut self, text: String, font_id: Option<&ResourceId<Font>>, text_builder: TextBuilder, asset_manager: &mut AssetManager) -> Result<u32, String> {
         let font_id_to_use = match font_id {
             Some(id) => id.duplicate(),
             None => interface::default_font(asset_manager)?,

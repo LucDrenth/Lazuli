@@ -24,6 +24,9 @@ pub extern crate serde_json;
 pub extern crate chrono;
 pub extern crate image;
 
+mod resource_id;
+pub use resource_id::ResourceId;
+
 mod app;
 
 pub fn run_scene<T: Scene + 'static>() {

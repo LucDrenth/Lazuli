@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, Position, ElementRegistry}, material::Material, Color}, set_attribute, error::opengl, asset_manager::{AssetManager, AssetId}, log};
+use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, Position, ElementRegistry}, material::Material, Color}, set_attribute, error::opengl, asset_manager::AssetManager, log, ResourceId};
 use crate::graphics::shapes::RECTANGLE_INDICES;
 
 type VertexPosition = [f32; 2];
@@ -10,7 +10,7 @@ pub struct Rectangle {
     vao: Vao,
     _vbo: Buffer,
     ebo: Buffer,
-    material_id: AssetId<Material>,
+    material_id: ResourceId<Material>,
     world_data: WorldElementData,
     color: Color,
 }
@@ -40,7 +40,7 @@ impl UiElement for Rectangle {
         opengl::gl_check_errors();
     }
 
-    fn material_id(&self) -> &AssetId<Material> {
+    fn material_id(&self) -> &ResourceId<Material> {
         &self.material_id
     }
 

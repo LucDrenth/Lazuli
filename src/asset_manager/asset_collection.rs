@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use super::AssetId;
+use crate::ResourceId;
 
 pub struct AssetEntry<T, U> {
     pub asset: T,
@@ -23,17 +23,17 @@ impl<T, U: std::cmp::PartialEq> AssetCollection<T, U> {
         }
     }
 
-    pub fn get_by_builder_hash(&self, builder_hash: &U) -> Option<AssetId<T>>{
+    pub fn get_by_builder_hash(&self, builder_hash: &U) -> Option<ResourceId<T>>{
         for (asset_id, asset_entry) in self.entries.iter() {
             if asset_entry.builder_hash == *builder_hash {
-                return Some(AssetId::new(*asset_id))
+                return Some(ResourceId::new(*asset_id))
             }
         }
 
         None
     }
 
-    pub fn add(&mut self, asset: T, builder_hash: U) -> Result<AssetId<T>, String> {
+    pub fn add(&mut self, asset: T, builder_hash: U) -> Result<ResourceId<T>, String> {
         self.id_counter += 1;
 
         match self.entries.entry(self.id_counter) {
@@ -48,17 +48,17 @@ impl<T, U: std::cmp::PartialEq> AssetCollection<T, U> {
             },
         }
 
-        Ok(AssetId::new(self.id_counter))
+        Ok(ResourceId::new(self.id_counter))
     }
 
-    pub fn get_asset_by_id(&mut self, id: &AssetId<T>) -> Option<&T> {
+    pub fn get_asset_by_id(&mut self, id: &ResourceId<T>) -> Option<&T> {
         match self.entries.get(id.id()) {
             Some(entry) => Some(&entry.asset),
             None => None,
         }
     }
 
-    pub fn get_mut_asset_by_id(&mut self, id: &AssetId<T>) -> Option<&mut T> {
+    pub fn get_mut_asset_by_id(&mut self, id: &ResourceId<T>) -> Option<&mut T> {
         match self.entries.get_mut(id.id()) {
             Some(entry) => Some(&mut entry.asset),
             None => None,

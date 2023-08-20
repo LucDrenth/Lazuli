@@ -1,6 +1,6 @@
 use std::{fs::File, io::Read, collections::HashMap};
 
-use crate::{graphics::{texture::ImageType, shader::ShaderProgram, material::Material}, asset_manager::{AssetManager, AssetId}, log};
+use crate::{graphics::{texture::ImageType, shader::ShaderProgram, material::Material}, asset_manager::AssetManager, log, ResourceId};
 
 use super::{BitmapCharacter, Bitmap, bitmap::BitmapBuilder, bitmap_cache};
 
@@ -9,7 +9,7 @@ pub struct Font {
 
     /// The width of the space (' ') character. the space is relative to the line height. So 0.5 is halve the line height. 
     pub space_size: f32,
-    pub material_id: AssetId<Material>,
+    pub material_id: ResourceId<Material>,
 }
 
 /// # Arguments
@@ -18,7 +18,7 @@ pub struct Font {
 /// * `bitmap_builder` -
 /// * `shader` - None to use the default text shader
 impl Font {
-    pub fn new(bitmap_builder: impl BitmapBuilder, shader_id: AssetId<ShaderProgram>, asset_manager: &mut AssetManager) -> Result<Self, String> {
+    pub fn new(bitmap_builder: impl BitmapBuilder, shader_id: ResourceId<ShaderProgram>, asset_manager: &mut AssetManager) -> Result<Self, String> {
         match load_font(bitmap_builder.font_file_path()) {
             Ok(font) => {
                 let bitmap = Self::get_bitmap(font, bitmap_builder.font_file_path(), &bitmap_builder)?;

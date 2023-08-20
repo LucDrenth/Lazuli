@@ -3,10 +3,10 @@ use std::f32::consts::{PI, TAU};
 use glam::{Vec3, Vec2};
 use rand::{Rng, rngs::ThreadRng};
 
-use crate::{graphics::{scene::Scene, Cube, shader::{PATH_COLORED_FRAG, ShaderBuilder}, Transform, Camera, Shape, material::Material}, event::{EventSystem, self}, input::{Input, Key}, time, asset_manager::{AssetManager, AssetId}};
+use crate::{graphics::{scene::Scene, Cube, shader::{PATH_COLORED_FRAG, ShaderBuilder}, Transform, Camera, Shape, material::Material}, event::{EventSystem, self}, input::{Input, Key}, time, asset_manager::AssetManager, ResourceId};
 
 pub struct CoordinateSystem {
-    material_id: AssetId<Material>,
+    material_id: ResourceId<Material>,
     cubes: Vec<Cube>,
     transforms: Vec<Transform>,
     rotations: Vec<Vec3>,

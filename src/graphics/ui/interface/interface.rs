@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_manager::{AssetManager, AssetId}, input::Input, graphics::{ui::{widget::{SliderBuilder, SliderUpdateResult, ButtonBuilder, DropdownBuilder}, Position, draw_bounds::DrawBounds}, font::{Font, PlainBitmapBuilder}, Color}};
+use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_manager::AssetManager, input::Input, graphics::{ui::{widget::{SliderBuilder, SliderUpdateResult, ButtonBuilder, DropdownBuilder}, Position, draw_bounds::DrawBounds}, font::{Font, PlainBitmapBuilder}, Color}, ResourceId};
 
 use super::{ElementRegistry, widget_registry::WidgetRegistry};
 
@@ -117,7 +117,7 @@ pub fn default_element_background_color() -> Color { Color::Rgb(56, 56, 56) }
 pub fn default_font_size() -> f32 {
     14.0
 }
-pub fn default_font(asset_manager: &mut AssetManager) -> Result<AssetId<Font>, String> {
+pub fn default_font(asset_manager: &mut AssetManager) -> Result<ResourceId<Font>, String> {
     asset_manager.load_font(PlainBitmapBuilder::new()
         .with_font_file_path("./assets/fonts/roboto.ttf".to_string())
         .with_font_size(50.0)

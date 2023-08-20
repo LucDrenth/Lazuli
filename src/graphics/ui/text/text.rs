@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{font::Font, Transform, ui::{interface::{is_valid_z_index, map_z_index_for_shader, self}, Position, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, ElementRegistry}, material::Material, Color}, asset_manager::{AssetManager, AssetId}, log};
+use crate::{graphics::{font::Font, Transform, ui::{interface::{is_valid_z_index, map_z_index_for_shader, self}, Position, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, ElementRegistry}, material::Material, Color}, asset_manager::AssetManager, log, ResourceId};
 
 use super::glyph::Glyph;
 
@@ -12,8 +12,8 @@ pub struct Text {
     pub color: Color,
     font_size: f32, // the font height in pixels
     world_data: WorldElementData,
-    pub font_id: AssetId<Font>,
-    material_id: AssetId<Material>,
+    pub font_id: ResourceId<Font>,
+    material_id: ResourceId<Material>,
 }
 
 impl UiElement for Text {
@@ -37,7 +37,7 @@ impl UiElement for Text {
         }
     }
 
-    fn material_id(&self) -> &AssetId<Material> {
+    fn material_id(&self) -> &ResourceId<Material> {
         &self.material_id
     }
 
@@ -58,7 +58,7 @@ impl UiElement for Text {
 }
 
 impl Text {
-    pub fn new(text: String, font_id: &AssetId<Font>, text_builder: TextBuilder, asset_manager: &mut AssetManager, element_registry: &mut ElementRegistry) -> Result<Self, String> {
+    pub fn new(text: String, font_id: &ResourceId<Font>, text_builder: TextBuilder, asset_manager: &mut AssetManager, element_registry: &mut ElementRegistry) -> Result<Self, String> {
         let font_material_id;
         match asset_manager.get_font_by_id(font_id) {
             Some(font) => {
