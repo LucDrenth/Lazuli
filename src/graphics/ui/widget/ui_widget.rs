@@ -5,7 +5,11 @@ use crate::graphics::ui::{ElementRegistry, Position, draw_bounds::DrawBounds};
 pub trait UiWidget {
     fn show(&self, element_registry: &mut ElementRegistry);
     fn hide(&self, element_registry: &mut ElementRegistry);
-    fn anchor_element_id(&self) -> u32;
+
+    /// Get the id of the main element (usually the background), which can be 
+    /// used for positioning, anchoring etc.
+    fn get_main_element_id(&self) -> u32;
+
     fn z_index(&self) -> f32;
     fn set_z_index(&mut self, z_index: f32, element_registry: &mut ElementRegistry);
     fn size(&self, element_registry: &ElementRegistry) -> Result<Vec2, String>;

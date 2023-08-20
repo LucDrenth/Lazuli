@@ -14,7 +14,7 @@ pub struct Button {
 
 impl UiWidget for Button {
     /// Background is the main element. It defines the position and size of the slider
-    fn anchor_element_id(&self) -> u32 {
+    fn get_main_element_id(&self) -> u32 {
         self.background_element_id
     }
 
@@ -32,7 +32,7 @@ impl UiWidget for Button {
     }
 
     fn size(&self, element_registry: &ElementRegistry) -> Result<Vec2, String> {
-        Ok(element_registry.get_element_size(self.anchor_element_id()).unwrap())
+        Ok(element_registry.get_element_size(self.get_main_element_id()).unwrap())
     }
 
     fn set_position(&self, position: Position, element_registry: &mut ElementRegistry) {
@@ -52,10 +52,10 @@ impl UiWidget for Button {
     }
 
     fn get_screen_position(&self, element_registry: &ElementRegistry) -> Result<Vec2, String> {
-        element_registry.get_element_screen_position(self.anchor_element_id())
+        element_registry.get_element_screen_position(self.get_main_element_id())
     }
     fn position_transform(&self, element_registry: &ElementRegistry) -> Result<Vec2, String> {
-        element_registry.get_element_position_transform(self.anchor_element_id())
+        element_registry.get_element_position_transform(self.get_main_element_id())
     }
 }
 

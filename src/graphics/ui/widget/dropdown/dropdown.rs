@@ -38,8 +38,8 @@ impl <T: Debug + Clone> UiWidget for Dropdown<T> {
         }
     }
 
-    fn anchor_element_id(&self) -> u32 {
-        self.button.anchor_element_id()
+    fn get_main_element_id(&self) -> u32 {
+        self.button.get_main_element_id()
     }
 
     fn z_index(&self) -> f32 {
@@ -47,7 +47,7 @@ impl <T: Debug + Clone> UiWidget for Dropdown<T> {
     }
 
     fn size(&self, element_registry: &ElementRegistry) -> Result<Vec2, String> {
-        Ok(element_registry.get_element_size(self.anchor_element_id()).unwrap())
+        Ok(element_registry.get_element_size(self.get_main_element_id()).unwrap())
     }
 
     fn set_position(&self, position: Position, element_registry: &mut ElementRegistry) {
@@ -74,10 +74,10 @@ impl <T: Debug + Clone> UiWidget for Dropdown<T> {
     }
 
     fn get_screen_position(&self, element_registry: &ElementRegistry) -> Result<Vec2, String> {
-        element_registry.get_element_screen_position(self.anchor_element_id())
+        element_registry.get_element_screen_position(self.get_main_element_id())
     }
     fn position_transform(&self, element_registry: &ElementRegistry) -> Result<Vec2, String> {
-        element_registry.get_element_position_transform(self.anchor_element_id())
+        element_registry.get_element_position_transform(self.get_main_element_id())
     }
 }
 
@@ -108,7 +108,7 @@ impl<T: Debug + Clone> Dropdown<T> {
         // TODO add background for options
 
         let mut options = vec![];
-        let mut anchor_element_id = button.anchor_element_id();
+        let mut anchor_element_id = button.get_main_element_id();
         for option in builder.options {
             let option_button = Button::new(option.label.clone(), ButtonBuilder::new()
                 .with_position(Position::ElementAnchor(AnchorPoint::BottomOutside(5.0), anchor_element_id))
@@ -119,7 +119,7 @@ impl<T: Debug + Clone> Dropdown<T> {
                 .with_z_index(Self::option_button_z_index(builder.z_index))
             , element_registry, asset_manager)?;
 
-            anchor_element_id = option_button.anchor_element_id();
+            anchor_element_id = option_button.get_main_element_id();
 
             options.push(DropdownOptionButton{ button: option_button, value: option.value, label: option.label });
         }

@@ -76,9 +76,9 @@ impl WidgetRegistry {
     // =================================================== \\
     // =========== General UiWidget functions ============ \\
 
-    pub fn get_anchor_element_id(&self, widget_id: u32) -> Option<u32> {
+    pub fn get_main_element_id(&self, widget_id: u32) -> Option<u32> {
         match self.get_widget_by_id(widget_id) {
-            Some(widget) => Some(widget.anchor_element_id()),
+            Some(widget) => Some(widget.get_main_element_id()),
             None => {
                 log::engine_warn(format!("Returning None for get_widget_by_id because widget with id {} was not found", widget_id));
                 None

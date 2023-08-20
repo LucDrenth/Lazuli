@@ -88,7 +88,7 @@ impl VerticalList {
 
         // update widgets position
         let first_widget_id = *self.widget_ids.first().unwrap();
-        let first_widget_anchor_element_id  = interface.widget_registry().get_anchor_element_id(first_widget_id).unwrap();
+        let first_widget_anchor_element_id  = interface.widget_registry().get_main_element_id(first_widget_id).unwrap();
 
         _ = interface.mut_element_registry().set_element_position_transform(
             first_widget_anchor_element_id, 

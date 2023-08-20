@@ -46,7 +46,7 @@ impl Interface {
 
     // UiWidget functions
     pub fn get_widget_anchor_element_id(&self, widget_id: u32) -> Option<u32> {
-        self.widget_registry.get_anchor_element_id(widget_id)
+        self.widget_registry.get_main_element_id(widget_id)
     }
     pub fn show_widget(&mut self, widget_id: u32) {
         self.widget_registry.show_widget(widget_id, &mut self.element_registry);
