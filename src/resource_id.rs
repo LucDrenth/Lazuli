@@ -20,4 +20,8 @@ impl<T> ResourceId<T> {
     pub fn duplicate(&self) -> ResourceId<T> {
         Self::new(self.id)
     }
+
+    pub fn equals(&self, compare_with: &ResourceId<T>) -> bool {
+        self.id == compare_with.id
+    }
 }
