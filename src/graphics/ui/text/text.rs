@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{font::Font, Transform, ui::{interface::{is_valid_z_index, map_z_index_for_shader, self}, Position, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, ElementRegistry, draw_bounds::DrawBounds}, material::Material, Color}, asset_manager::{AssetManager, AssetId}, log};
+use crate::{graphics::{font::Font, Transform, ui::{interface::{is_valid_z_index, map_z_index_for_shader, self}, Position, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, ElementRegistry}, material::Material, Color}, asset_manager::{AssetManager, AssetId}, log};
 
 use super::glyph::Glyph;
 
