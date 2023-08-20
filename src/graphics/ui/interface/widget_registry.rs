@@ -79,10 +79,7 @@ impl WidgetRegistry {
     pub fn get_main_element_id(&self, widget_id: u32) -> Option<u32> {
         match self.get_widget_by_id(widget_id) {
             Some(widget) => Some(widget.get_main_element_id()),
-            None => {
-                log::engine_warn(format!("Returning None for get_widget_by_id because widget with id {} was not found", widget_id));
-                None
-            },
+            None => None,
         }
     }
 
@@ -94,19 +91,25 @@ impl WidgetRegistry {
     }
 
     pub fn get_widget_screen_position(&self, widget_id: u32, element_registry: &ElementRegistry) -> Result<Vec2, String> {
-        self.get_widget_by_id(widget_id).unwrap().get_screen_position(element_registry)
+        let main_element_id = self.get_main_element_id(widget_id).unwrap();
+        element_registry.get_element_screen_position(main_element_id)
     }
     pub fn set_widget_position(&self, widget_id: u32, position: Position, element_registry: &mut ElementRegistry) {
         self.get_widget_by_id(widget_id).unwrap().set_position(position, element_registry);
     }
     pub fn get_widget_position_transform(&self, widget_id: u32, element_registry: &ElementRegistry) -> Result<Vec2, String> {
-        self.get_widget_by_id(widget_id).unwrap().position_transform(element_registry)
+        let main_element_id = self.get_main_element_id(widget_id).unwrap();
+        element_registry.get_element_position_transform(main_element_id)
     }
     pub fn set_widget_z_index(&mut self, widget_id: u32, z_index: f32, element_registry: &mut ElementRegistry) {
         self.get_mut_widget_by_id(widget_id).unwrap().set_z_index(z_index, element_registry);
     }
     pub fn set_widget_draw_bounds(&mut self, widget_id: u32, draw_bounds: DrawBounds, element_registry: &mut ElementRegistry) {
         self.get_mut_widget_by_id(widget_id).unwrap().set_draw_bounds(draw_bounds, element_registry);
+    }
+    pub fn get_widget_size(&self, widget_id: u32, element_registry: &ElementRegistry) -> Result<Vec2, String> {
+        let main_element_id = self.get_main_element_id(widget_id).unwrap();
+        element_registry.get_element_size(main_element_id)
     }
 
     fn get_widget_by_id(&self, widget_id: u32) -> Option<Box<&dyn UiWidget>> {
@@ -139,13 +142,6 @@ impl WidgetRegistry {
         }
 
         None
-    }
-
-    pub fn get_widget_size(&self, widget_id: u32, element_registry: &ElementRegistry) -> Result<Vec2, String> {
-        match self.get_widget_by_id(widget_id) {
-            Some(widget) => widget.size(element_registry),
-            None => Err(format!("widget with id {} not found", widget_id)),
-        }
     }
 
 

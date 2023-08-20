@@ -1,7 +1,5 @@
 use std::fmt::Debug;
 
-use glam::Vec2;
-
 use crate::{asset_manager::AssetManager, graphics::ui::{ElementRegistry, widget::{Button, ButtonBuilder, UiWidget}, interface::{is_valid_z_index, MAX_Z_INDEX}, Position, AnchorPoint}, log, input::{Input, InputAction}};
 
 struct DropdownOptionButton<T: Debug + Clone> {
@@ -46,10 +44,6 @@ impl <T: Debug + Clone> UiWidget for Dropdown<T> {
         self.z_index
     }
 
-    fn size(&self, element_registry: &ElementRegistry) -> Result<Vec2, String> {
-        Ok(element_registry.get_element_size(self.get_main_element_id()).unwrap())
-    }
-
     fn set_position(&self, position: Position, element_registry: &mut ElementRegistry) {
         self.button.set_position(position, element_registry);
     }
@@ -71,13 +65,6 @@ impl <T: Debug + Clone> UiWidget for Dropdown<T> {
                 option.button.set_draw_bounds(draw_bounds, element_registry);
             }
         }
-    }
-
-    fn get_screen_position(&self, element_registry: &ElementRegistry) -> Result<Vec2, String> {
-        element_registry.get_element_screen_position(self.get_main_element_id())
-    }
-    fn position_transform(&self, element_registry: &ElementRegistry) -> Result<Vec2, String> {
-        element_registry.get_element_position_transform(self.get_main_element_id())
     }
 }
 

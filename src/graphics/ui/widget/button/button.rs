@@ -27,19 +27,14 @@ impl UiWidget for Button {
         _ = element_registry.hide_element(self.text_element_id);
     }
 
-    fn z_index(&self) -> f32 {
-        self.z_index
-    }
-
-    fn size(&self, element_registry: &ElementRegistry) -> Result<Vec2, String> {
-        Ok(element_registry.get_element_size(self.get_main_element_id()).unwrap())
-    }
-
     fn set_position(&self, position: Position, element_registry: &mut ElementRegistry) {
         _ = element_registry.set_element_position(self.background_element_id, position);
         _ = element_registry.set_element_position(self.text_element_id, Position::ElementAnchor(AnchorPoint::Center, self.background_element_id));
     }
 
+    fn z_index(&self) -> f32 {
+        self.z_index
+    }
     fn set_z_index(&mut self, z_index: f32, element_registry: &mut ElementRegistry) {
         self.z_index = z_index;
         _ = element_registry.set_element_z_index(self.background_element_id, z_index);
@@ -49,13 +44,6 @@ impl UiWidget for Button {
     fn set_draw_bounds(&self, draw_bounds: ui::draw_bounds::DrawBounds, element_registry: &mut ElementRegistry) {
         _ = element_registry.set_element_draw_bounds(self.background_element_id, draw_bounds);
         _ = element_registry.set_element_draw_bounds(self.text_element_id, draw_bounds);
-    }
-
-    fn get_screen_position(&self, element_registry: &ElementRegistry) -> Result<Vec2, String> {
-        element_registry.get_element_screen_position(self.get_main_element_id())
-    }
-    fn position_transform(&self, element_registry: &ElementRegistry) -> Result<Vec2, String> {
-        element_registry.get_element_position_transform(self.get_main_element_id())
     }
 }
 
