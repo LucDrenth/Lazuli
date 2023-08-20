@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::graphics::ui::ElementRegistry;
+use crate::graphics::ui::{ElementRegistry, draw_bounds::DrawBounds};
 
 use super::{Position, AnchorElementData};
 
@@ -10,10 +10,11 @@ pub struct WorldElementData {
     size: Vec2, // given in world space (pixels)
     position: Vec2, // the world space coordinates at which we render the center of the element. (0,0) is the center of the screen
     position_type: Position,
-    z_index: f32,
-    pub scale: Vec2,
-
     pub position_transform: Vec2,
+    pub z_index: f32,
+    scale: Vec2,
+    pub show: bool,
+    pub draw_bounds: DrawBounds,
 }
 
 impl WorldElementData {
@@ -22,10 +23,11 @@ impl WorldElementData {
             size,
             position: Vec2::ZERO, // to be calculated with calculate_position
             position_type,
+            position_transform: Vec2::ZERO,
             z_index,
             scale,
-
-            position_transform: Vec2::ZERO,
+            show: true,
+            draw_bounds: DrawBounds::none(),
         };
 
         let anchor_element_data = position_type.get_anchor_element_data(element_registry);
@@ -40,23 +42,35 @@ impl WorldElementData {
             self.position.y + self.position_transform.y
         )
     }
-
     pub fn calculate_position(&mut self, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) {
         self.position = self.position_type.to_coordinates(self.size * self.scale, window_size, anchor_element_data);
+    }
+    pub fn set_position(&mut self, position: Position, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) {
+        self.position_type = position;
+
+        self.calculate_position(window_size, anchor_element_data);
     }
 
     pub fn set_size(&mut self, size: Vec2, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) {
         self.size = size;
         self.calculate_position(window_size, anchor_element_data);
     }
+    pub fn size(&self) -> Vec2 { self.size }
+    pub fn width(&self) -> f32 { self.size.x }
+    pub fn height(&self) -> f32 { self.size.y }
 
     pub fn set_scale(&mut self, scale: Vec2, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) {
         self.scale = scale;
         self.calculate_position(window_size, anchor_element_data);
     }
+    pub fn scale(&self) -> Vec2 { self.scale }
 
     // Check if the given position is within this world element
     pub fn is_within(&self, position: Vec2) -> bool {
+        self.draw_bounds.is_within(position) && self.is_within_current_position(position)
+    }
+
+    fn is_within_current_position(&self, position: Vec2) -> bool {
         let size = self.size * self.scale;
 
         let current_position = self.position + self.position_transform;
@@ -71,17 +85,7 @@ impl WorldElementData {
         // If we implement screen anchor points we might want to use this function
     }
 
-    pub fn set_position(&mut self, position: Position, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) {
-        self.position_type = position;
-
-        self.calculate_position(window_size, anchor_element_data);
-    }
-
+    /// Screen position
     pub fn position(&self) -> Vec2 { self.position + self.position_transform }
     pub fn position_type(&self) -> &Position { &self.position_type }
-    pub fn size(&self) -> &Vec2 { &self.size }
-    pub fn width(&self) -> f32 { self.size.x }
-    pub fn height(&self) -> f32 { self.size.y }
-    pub fn z_index(&self) -> f32 { self.z_index }
-    pub fn set_z_index(&mut self, z_index: f32) { self.z_index = z_index }
 }

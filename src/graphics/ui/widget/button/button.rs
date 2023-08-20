@@ -99,7 +99,7 @@ impl Button {
 
         let window_size = element_registry.size().clone();
         let anchor_element_data = element_registry.get_anchor_data(background_element_id)?; // TODO is this correct?
-        text.set_position(Position::ElementAnchor(AnchorPoint::Center, background_element_id), window_size, Some(anchor_element_data));
+        text.mut_world_data().set_position(Position::ElementAnchor(AnchorPoint::Center, background_element_id), window_size, Some(anchor_element_data));
         let text_element_id = element_registry.add_text(text);
 
         Ok(Self {

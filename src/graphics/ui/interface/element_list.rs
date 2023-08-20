@@ -81,7 +81,7 @@ impl<T: UiElement + 'static> ElementList<T> {
             ordered_elements.push(OrderedElementsItem {
                 element_type: TypeId::of::<T>(),
                 index: i,
-                z_index: self.elements[i].element.world_data().z_index(),
+                z_index: self.elements[i].element.world_data().z_index,
                 item_id: self.elements[i].id,
             })
         }

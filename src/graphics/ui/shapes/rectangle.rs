@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, Position, ElementRegistry, draw_bounds::DrawBounds}, material::Material, Color}, set_attribute, error::opengl, asset_manager::{AssetManager, AssetId}, log};
+use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, Position, ElementRegistry}, material::Material, Color}, set_attribute, error::opengl, asset_manager::{AssetManager, AssetId}, log};
 use crate::graphics::shapes::RECTANGLE_INDICES;
 
 type VertexPosition = [f32; 2];
@@ -13,13 +13,11 @@ pub struct Rectangle {
     material_id: AssetId<Material>,
     world_data: WorldElementData,
     color: Color,
-    show: bool,
-    draw_bounds: DrawBounds,
 }
 
 impl UiElement for Rectangle {
     fn draw(&self, asset_manager: &mut AssetManager, window_size: &Vec2, pixel_density: f32) {
-        if !self.show {
+        if !self.world_data.show {
             return
         }
 
@@ -30,10 +28,10 @@ impl UiElement for Rectangle {
         self.vao.bind();
 
         shader.set_uniform("color", self.color.to_normalised_rgb_tuple());
-        shader.set_uniform("scale", (self.world_data.scale.x, self.world_data.scale.y));
-        shader.set_uniform("zIndex", map_z_index_for_shader(self.world_data.z_index()));
+        shader.set_uniform("scale", (self.world_data.scale().x, self.world_data.scale().y));
+        shader.set_uniform("zIndex", map_z_index_for_shader(self.world_data.z_index));
         shader.set_uniform("worldPosition", self.world_data.shader_position());
-        shader.set_uniform("drawBounds", self.draw_bounds.for_shader(window_size, pixel_density));
+        shader.set_uniform("drawBounds", self.world_data.draw_bounds.for_shader(window_size, pixel_density));
 
         unsafe {
             gl::DrawElements(gl::TRIANGLES, self.ebo.data_size as i32, gl::UNSIGNED_INT, core::ptr::null());
@@ -50,46 +48,16 @@ impl UiElement for Rectangle {
         "rectangle"
     }
 
-    fn world_data(&self) -> &WorldElementData {
-        &self.world_data
-    }
-
-    fn recalculate_position(&mut self, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) {
-        self.world_data.calculate_position(window_size, anchor_element_data);
-    }
+    fn world_data(&self) -> &WorldElementData { &self.world_data }
+    fn mut_world_data(&mut self) -> &mut WorldElementData { &mut self.world_data }
 
     fn handle_window_resize(&mut self, new_window_size: &Vec2) {
         self.world_data.handle_window_resize(new_window_size);
     }
 
-    fn get_scale(&self) -> Vec2 { self.world_data.scale }
-    fn set_scale(&mut self, new_scale: Vec2, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) { 
-        self.world_data.set_scale(new_scale, window_size, anchor_element_data); 
-    }
-    fn get_size(&self) -> Vec2 { self.world_data.size().clone() }
-    fn get_screen_position(&self) -> Vec2 { self.world_data.position().clone() }
-    fn set_position(&mut self, position: Position, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) { 
-        self.world_data.set_position(position, window_size, anchor_element_data) 
-    }
-    fn set_position_transform(&mut self, position_transform: Vec2) { self.world_data.position_transform = position_transform }
-    fn position_transform(&self) -> Vec2 { self.world_data.position_transform }
-
-    fn hide(&mut self) { self.show = false; }
-    fn show(&mut self) { self.show = true; }
-    fn is_shown(&self) -> bool { self.show }
-    
     fn set_color(&mut self, color: Color) {
         self.color = color;
     }
-
-    fn set_z_index(&mut self, z_index: f32) {
-        self.world_data.set_z_index(z_index);
-    }
-
-    fn set_draw_bounds(&mut self, draw_bounds: DrawBounds) {
-        self.draw_bounds = draw_bounds;
-    }
-    fn draw_bounds(&self) -> &DrawBounds { &self.draw_bounds }
 }
 
 impl Rectangle {
@@ -122,13 +90,14 @@ impl Rectangle {
             .expect("Could not get position attribute");
         set_attribute!(vao, position_attribute, Vertex::0);
 
-        let world_data = WorldElementData::new(
+        let mut world_data = WorldElementData::new(
             builder.position,
             builder.z_index, 
             Vec2::new(builder.width, builder.height),
             builder.scale,
             element_registry
         );
+        world_data.show = !builder.hidden;
 
         Ok(Self { 
             vao, 
@@ -137,8 +106,6 @@ impl Rectangle {
             material_id,
             color: builder.color,
             world_data,
-            show: !builder.hidden,
-            draw_bounds: DrawBounds::none(),
         })
     }
 

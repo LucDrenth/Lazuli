@@ -14,13 +14,11 @@ pub struct Text {
     world_data: WorldElementData,
     pub font_id: AssetId<Font>,
     material_id: AssetId<Material>,
-    show: bool,
-    draw_bounds: DrawBounds,
 }
 
 impl UiElement for Text {
     fn draw(&self, asset_manager: &mut AssetManager, window_size: &Vec2, pixel_density: f32) {
-        if !self.show {
+        if !self.world_data.show {
             return
         }
 
@@ -29,10 +27,10 @@ impl UiElement for Text {
         let shader = asset_manager.get_material_shader(&self.material_id).unwrap();
 
         shader.set_uniform("color", self.color.to_normalised_rgb_tuple());
-        shader.set_uniform("scale", (self.world_data.scale.x, self.world_data.scale.y));
-        shader.set_uniform("zIndex", map_z_index_for_shader(self.world_data.z_index()));
+        shader.set_uniform("scale", (self.world_data.scale().x, self.world_data.scale().y));
+        shader.set_uniform("zIndex", map_z_index_for_shader(self.world_data.z_index));
         shader.set_uniform("worldPosition", self.world_data.shader_position());
-        shader.set_uniform("drawBounds", self.draw_bounds.for_shader(window_size, pixel_density));
+        shader.set_uniform("drawBounds", self.world_data.draw_bounds.for_shader(window_size, pixel_density));
 
         for glyph in &self.glyphs {
             glyph.draw();
@@ -47,46 +45,16 @@ impl UiElement for Text {
         "text"
     }
 
-    fn world_data(&self) -> &WorldElementData {
-        &self.world_data
-    }
-
-    fn recalculate_position(&mut self, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) {
-        self.world_data.calculate_position(window_size, anchor_element_data);
-    }
+    fn world_data(&self) -> &WorldElementData { &self.world_data }
+    fn mut_world_data(&mut self) -> &mut WorldElementData { &mut self.world_data }
 
     fn handle_window_resize(&mut self, new_window_size: &Vec2) {
         self.world_data.handle_window_resize(new_window_size);
     }
 
-    fn get_scale(&self) -> Vec2 { self.world_data.scale }
-    fn set_scale(&mut self, new_scale: Vec2, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) { 
-        self.world_data.set_scale(new_scale, window_size, anchor_element_data); 
-    }
-    fn get_size(&self) -> Vec2 { self.world_data.size().clone() }
-    fn get_screen_position(&self) -> Vec2 { self.world_data.position().clone() }
-    fn set_position(&mut self, position: Position, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) { 
-        self.world_data.set_position(position, window_size, anchor_element_data) 
-    }
-    fn set_position_transform(&mut self, position_transform: Vec2) { self.world_data.position_transform = position_transform }
-    fn position_transform(&self) -> Vec2 { self.world_data.position_transform }
-
-    fn hide(&mut self) { self.show = false; }
-    fn show(&mut self) { self.show = true; }
-    fn is_shown(&self) -> bool { self.show }
-
     fn set_color(&mut self, color: Color) {
         self.color = color;
     }
-
-    fn set_z_index(&mut self, z_index: f32) {
-        self.world_data.set_z_index(z_index);
-    }
-
-    fn set_draw_bounds(&mut self, draw_bounds: DrawBounds) {
-        self.draw_bounds = draw_bounds;
-    }
-    fn draw_bounds(&self) -> &DrawBounds { &self.draw_bounds }
 }
 
 impl Text {
@@ -99,13 +67,14 @@ impl Text {
             None => return Err(format!("Failed to get font by id {}", font_id.id())),
         }
 
-        let world_data = WorldElementData::new(
+        let mut world_data = WorldElementData::new(
             text_builder.position
             , text_builder.z_index
             , Vec2::new(0.0, 0.0)
             , text_builder.scale
             , element_registry
         );
+        world_data.show = !text_builder.hidden;
 
         let mut result = Self { 
             text, 
@@ -117,8 +86,6 @@ impl Text {
             world_data,
             font_id: font_id.duplicate(),
             material_id: font_material_id,
-            show: !text_builder.hidden,
-            draw_bounds: DrawBounds::none(),
         };
         result.set_text(
             &result.text.clone(), 

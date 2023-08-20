@@ -2,7 +2,7 @@ use std::any::TypeId;
 
 use glam::Vec2;
 
-use crate::{asset_manager::{AssetManager, AssetId}, input::{Input, MouseButton, InputAction}, graphics::{font::Font, ui::{element::{ui_element::UiElement, AnchorElementData}, Text, TextBuilder, shapes::{RectangleBuilder, Rectangle}, Position, draw_bounds::DrawBounds}, Color}, log};
+use crate::{asset_manager::{AssetManager, AssetId}, input::{Input, MouseButton, InputAction}, graphics::{font::Font, ui::{element::{ui_element::UiElement, AnchorElementData, world_element_data::WorldElementData}, Text, TextBuilder, shapes::{RectangleBuilder, Rectangle}, Position, draw_bounds::DrawBounds}, Color}, log};
 
 use super::{interface, element_list::{ElementList, OrderedElementsItem, self}, anchor_tree::{AnchorTree, AnchorElementIdentifier}};
 
@@ -256,7 +256,10 @@ impl ElementRegistry {
         match self.get_ui_element_by_id(element_id) {
             Some(element) => {
                 let mouse_pos = self.map_mouse_position(&input);
-                element.is_shown() && element.world_data().is_within(mouse_pos) && element.draw_bounds().is_within(mouse_pos)
+                
+                return element.world_data().show 
+                    && element.world_data().is_within(mouse_pos) 
+                ;
             }
             None => {
                 log::engine_warn(format!("ElementRegistry.is_element_hovered for element id {} returned false because element was not found", element_id));
@@ -267,13 +270,12 @@ impl ElementRegistry {
 
     pub fn is_element_clicked(&self, element_id: u32, mouse_button: MouseButton, input_action: &InputAction, input: &Input) -> bool {
         return input.is_mouse_button_action(mouse_button, input_action)
-            && self.is_element_shown(element_id).unwrap()
             && self.is_element_hovered(element_id, input)
     }
 
     pub fn get_element_scale(&self, element_id: u32) -> Result<Vec2, String> {
         match self.get_ui_element_by_id(element_id) {
-            Some(element) => Ok(element.get_scale()),
+            Some(element) => Ok(element.world_data().scale()),
             None => Err(format!("failed to get scale because element with id {} was not found", element_id)),
         }
     }
@@ -281,8 +283,7 @@ impl ElementRegistry {
     pub fn set_element_color(&mut self, element_id: u32, color: Color) -> Result<(), String> {
         match self.get_mut_ui_element_by_id(element_id) {
             Some(element) => {
-                element.set_color(color);
-                Ok(())
+                Ok(element.set_color(color))
             },
             None => Err(format!("failed to set element color because element with id {} was not found", element_id)),
         }
@@ -291,7 +292,7 @@ impl ElementRegistry {
     pub fn set_element_z_index(&mut self, element_id: u32, z_index: f32) -> Result<(), String> {
         match self.get_mut_ui_element_by_id(element_id) {
             Some(element) => {
-                element.set_z_index(z_index);
+                element.mut_world_data().z_index = z_index;
                 self.update_ordered_elements();
                 Ok(())
             },
@@ -302,7 +303,7 @@ impl ElementRegistry {
     pub fn set_element_draw_bounds(&mut self, element_id: u32, draw_bounds: DrawBounds) -> Result<(), String> {
         match self.get_mut_ui_element_by_id(element_id) {
             Some(element) => {
-                Ok(element.set_draw_bounds(draw_bounds))
+                Ok(element.mut_world_data().draw_bounds = draw_bounds)
             },
             None => Err(format!("failed to set element color because element with id {} was not found", element_id)),
         }
@@ -311,7 +312,7 @@ impl ElementRegistry {
     pub fn set_element_position_transform(&mut self, element_id: u32, position_transform: Vec2) -> Result<(), String> {
         match self.get_mut_ui_element_by_id(element_id) {
             Some(element) => {
-                element.set_position_transform(position_transform);
+                element.mut_world_data().position_transform = position_transform;
                 Ok(self.update_anchor_tree(element_id))
             },
             None => Err(format!("failed to set element position_transform because element with id {} was not found", element_id)),
@@ -335,7 +336,7 @@ impl ElementRegistry {
         
         match self.get_mut_ui_element_by_id(element_id) {
             Some(element) => {
-                element.set_position(position, window_size, anchor_element_data);
+                element.mut_world_data().set_position(position, window_size, anchor_element_data);
                 Ok(self.update_anchor_tree(element_id))
             },
             None => Err(format!("failed to set element position because element with id {} was not found", element_id)),
@@ -359,7 +360,7 @@ impl ElementRegistry {
 
         match self.get_mut_ui_element_by_id(element_id) {
             Some(element) => {
-                element.set_scale(scale, window_size, anchor_element_data);
+                element.mut_world_data().set_scale(scale, window_size, anchor_element_data);
                 self.update_anchor_tree(element_id);
                 Ok(())
             },
@@ -383,11 +384,13 @@ impl ElementRegistry {
         if anchor_identifier.type_id == TypeId::of::<Rectangle>() {
             self.rectangle_elements
                 .get_mut_by_id(anchor_identifier.element_id).unwrap()
-                .recalculate_position(self.window_size.clone(), anchor_element_data);
+                .mut_world_data()
+                .calculate_position(self.window_size.clone(), anchor_element_data);
         } else if anchor_identifier.type_id == TypeId::of::<Text>() {
             self.text_elements
                 .get_mut_by_id(anchor_identifier.element_id).unwrap()
-                .recalculate_position(self.window_size.clone(), anchor_element_data);
+                .mut_world_data()
+                .calculate_position(self.window_size.clone(), anchor_element_data);
         } else {
             panic!("Unhandled element type")
         }
@@ -424,7 +427,7 @@ impl ElementRegistry {
     /// get the base size of the element, not counting it's scale
     pub fn get_element_base_size(&self, element_id: u32) -> Result<Vec2, String> {
         match self.get_ui_element_by_id(element_id) {
-            Some(element) => Ok(element.get_size()),
+            Some(element) => Ok(element.world_data().size()),
             None => Err(format!("failed to get size because element with id {} was not found", element_id)),
         }
     }
@@ -432,7 +435,7 @@ impl ElementRegistry {
     /// get the base size of the element multiplied by its scale
     pub fn get_element_size(&self, element_id: u32) -> Result<Vec2, String> {        
         match self.get_ui_element_by_id(element_id) {
-            Some(element) => Ok(element.get_size() * element.get_scale()),
+            Some(element) => Ok(element.world_data().size() * element.world_data().scale()),
             None => Err(format!("failed to get size because element with id {} was not found", element_id)),
         }
     }
@@ -440,14 +443,14 @@ impl ElementRegistry {
     /// Get the position of the element as the center pixel (in world space)
     pub fn get_element_screen_position(&self, element_id: u32) -> Result<Vec2, String> {
         match self.get_ui_element_by_id(element_id) {
-            Some(element) => Ok(element.get_screen_position()),
+            Some(element) => Ok(element.world_data().position()),
             None => Err(format!("failed to get size because element with id {} was not found", element_id)),
         }
     }
 
     pub fn get_element_position_transform(&self, element_id: u32) -> Result<Vec2, String> {
         match self.get_ui_element_by_id(element_id) {
-            Some(element) => Ok(element.position_transform()),
+            Some(element) => Ok(element.world_data().position_transform),
             None => Err(format!("failed to get position transform because element with id {} was not found", element_id)),
         }
     }
@@ -505,7 +508,7 @@ impl ElementRegistry {
     pub fn show_element(&mut self, element_id: u32) -> Result<(), String> {
         match self.get_mut_ui_element_by_id(element_id) {
             Some(element) => {
-                Ok(element.show())
+                Ok(element.mut_world_data().show = true)
             },
             None => Err(format!("failed to show element because element with id {} was not found", element_id)),
         }
@@ -513,15 +516,15 @@ impl ElementRegistry {
     pub fn hide_element(&mut self, element_id: u32) -> Result<(), String> {
         match self.get_mut_ui_element_by_id(element_id) {
             Some(element) => {
-                Ok(element.hide())
+                Ok(element.mut_world_data().show = false)
             },
             None => Err(format!("failed to hide element because element with id {} was not found", element_id)),
         }
     }
-    pub fn is_element_shown(&self, element_id: u32) -> Result<bool, String> {
+    pub fn element_world_data(&self, element_id: u32) -> Result<&WorldElementData, String> {
         match self.get_ui_element_by_id(element_id) {
             Some(element) => {
-                Ok(element.is_shown())
+                Ok(element.world_data())
             },
             None => Err(format!("failed to check if element is shown because element with id {} was not found", element_id)),
         }
