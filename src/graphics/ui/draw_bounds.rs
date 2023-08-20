@@ -58,4 +58,26 @@ impl DrawBounds {
 
         (top * pixel_density, right * pixel_density, bottom * pixel_density, left * pixel_density)
     }
+
+    // Check if the given position is within this world element
+    pub fn is_within(&self, position: Vec2) -> bool {
+        match self.top {
+            Some(top) => if position.y > top { return false },
+            None => (),
+        }
+        match self.right {
+            Some(right) => if position.x > right { return false },
+            None => (),
+        }
+        match self.bottom {
+            Some(bottom) => if position.y < bottom { return false },
+            None => (),
+        }
+        match self.left {
+            Some(left) => if position.x < left { return false },
+            None => (),
+        }
+
+        return true;
+    }
 }

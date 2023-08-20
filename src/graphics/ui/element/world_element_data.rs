@@ -12,6 +12,8 @@ pub struct WorldElementData {
     position_type: Position,
     z_index: f32,
     pub scale: Vec2,
+
+    pub position_transform: Vec2,
 }
 
 impl WorldElementData {
@@ -22,6 +24,8 @@ impl WorldElementData {
             position_type,
             z_index,
             scale,
+
+            position_transform: Vec2::ZERO,
         };
 
         let anchor_element_data = position_type.get_anchor_element_data(element_registry);
@@ -31,7 +35,10 @@ impl WorldElementData {
     }
 
     pub fn shader_position(&self) -> (f32, f32) {
-        (self.position.x, self.position.y)
+        (
+            self.position.x + self.position_transform.x, 
+            self.position.y + self.position_transform.y
+        )
     }
 
     pub fn calculate_position(&mut self, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) {
@@ -52,10 +59,12 @@ impl WorldElementData {
     pub fn is_within(&self, position: Vec2) -> bool {
         let size = self.size * self.scale;
 
-        return position.x >= self.position.x - size.x / 2.0
-            && position.x < self.position.x + size.x / 2.0
-            && position.y >= self.position.y - size.y / 2.0
-            && position.y < self.position.y + size.y / 2.0
+        let current_position = self.position + self.position_transform;
+
+        return position.x >= current_position.x - size.x / 2.0
+            && position.x < current_position.x + size.x / 2.0
+            && position.y >= current_position.y - size.y / 2.0
+            && position.y < current_position.y + size.y / 2.0
     }
 
     pub fn handle_window_resize(&mut self, _new_window_size: &Vec2) {
@@ -68,7 +77,7 @@ impl WorldElementData {
         self.calculate_position(window_size, anchor_element_data);
     }
 
-    pub fn position(&self) -> &Vec2 { &self.position }
+    pub fn position(&self) -> Vec2 { self.position + self.position_transform }
     pub fn position_type(&self) -> &Position { &self.position_type }
     pub fn size(&self) -> &Vec2 { &self.size }
     pub fn width(&self) -> f32 { self.size.x }

@@ -68,6 +68,7 @@ impl UiElement for Text {
     fn set_position(&mut self, position: Position, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) { 
         self.world_data.set_position(position, window_size, anchor_element_data) 
     }
+    fn set_position_transform(&mut self, position_transform: Vec2) { self.world_data.position_transform = position_transform }
 
     fn hide(&mut self) { self.show = false; }
     fn show(&mut self) { self.show = true; }
@@ -84,6 +85,7 @@ impl UiElement for Text {
     fn set_draw_bounds(&mut self, draw_bounds: DrawBounds) {
         self.draw_bounds = draw_bounds;
     }
+    fn draw_bounds(&self) -> &DrawBounds { &self.draw_bounds }
 }
 
 impl Text {

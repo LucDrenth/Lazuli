@@ -255,7 +255,8 @@ impl ElementRegistry {
     pub fn is_element_hovered(&self, element_id: u32, input: &Input) -> bool {
         match self.get_ui_element_by_id(element_id) {
             Some(element) => {
-                element.world_data().is_within(self.map_mouse_position(&input))
+                let mouse_pos = self.map_mouse_position(&input);
+                element.is_shown() && element.world_data().is_within(mouse_pos) && element.draw_bounds().is_within(mouse_pos)
             }
             None => {
                 log::engine_warn(format!("ElementRegistry.is_element_hovered for element id {} returned false because element was not found", element_id));
@@ -304,6 +305,16 @@ impl ElementRegistry {
                 Ok(element.set_draw_bounds(draw_bounds))
             },
             None => Err(format!("failed to set element color because element with id {} was not found", element_id)),
+        }
+    }
+
+    pub fn set_element_position_transform(&mut self, element_id: u32, position_transform: Vec2) -> Result<(), String> {
+        match self.get_mut_ui_element_by_id(element_id) {
+            Some(element) => {
+                element.set_position_transform(position_transform);
+                Ok(self.update_anchor_tree(element_id))
+            },
+            None => Err(format!("failed to set element position_transform because element with id {} was not found", element_id)),
         }
     }
 

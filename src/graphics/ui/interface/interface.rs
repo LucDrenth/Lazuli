@@ -19,7 +19,7 @@ impl Interface {
             widget_registry: WidgetRegistry::new(),
             window_resize_listener: event_system.register::<WindowResizeEvent>(),
             size: window_size,
-            scroll_speed: 0.1,
+            scroll_speed: 0.2,
         }
     }
 

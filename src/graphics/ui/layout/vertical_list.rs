@@ -1,3 +1,5 @@
+use glam::Vec2;
+
 use crate::{graphics::{ui::{Position, AnchorPoint, shapes::RectangleBuilder, Interface, padding::Padding, draw_bounds::DrawBounds}, Color}, asset_manager::AssetManager, log, input::Input};
 
 use super::{Layout, layout::LAYOUT_ELEMENT_EXTRA_Z_INDEX};
@@ -54,9 +56,44 @@ impl Layout for VerticalList {
     }
 
     fn update(&mut self, interface: &mut Interface, input: &Input) {
-        self.current_scroll = (self.current_scroll - input.get_scroll_y() as f32 * interface.scroll_speed()).clamp(0.0, self.max_scroll);
-        
-        // TODO update elements
+        if self.widget_ids.is_empty() || input.get_scroll_y() == 0.0 {
+            return;
+        }
+
+        let new_scroll_amount = (self.current_scroll - input.get_scroll_y() as f32 * interface.scroll_speed()).clamp(0.0, self.max_scroll);
+        self.set_scroll_amount(new_scroll_amount, interface);
+    }
+
+    fn set_z_index(&mut self, z_index: f32, interface: &mut Interface) {
+        self.z_index = z_index;
+
+        for widget_id in self.widget_ids.iter() {
+            interface.set_widget_z_index(*widget_id, self.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX);
+        }
+    }
+}
+
+impl VerticalList {
+    pub fn set_scroll_amount(&mut self, new_scroll_amount: f32, interface: &mut Interface) {
+        if new_scroll_amount == self.current_scroll {
+            // there was no scroll change
+            return;
+        }
+
+        self.current_scroll = new_scroll_amount;
+
+        // update widgets position
+        let first_widget_id = *self.widget_ids.first().unwrap();
+        let first_widget_anchor_element_id  = interface.widget_registry().get_anchor_element_id(first_widget_id).unwrap();
+
+        _ = interface.mut_element_registry().set_element_position_transform(
+            first_widget_anchor_element_id, 
+            Vec2::new(0.0, self.current_scroll)
+        ).map_err(|err|{
+            log::engine_err(format!("failed to scroll VerticalList layout because the first widget element [id={}] was not found", err));
+        });
+
+        // TODO implement and update scrollbar
     }
 }
 
@@ -233,12 +270,12 @@ fn calculate_background_width(widget_ids: &Vec<u32>, padding: &Padding, interfac
 fn calculate_max_scroll(widget_ids: &Vec<u32>, padding: &Padding, background_element_id: u32, layout_height: f32, interface: &Interface) -> f32 {
     match widget_ids.last() {
         Some(last_widget_id) => {
-            let bottom_of_last_element = interface.get_widget_screen_position(*last_widget_id).unwrap().y + interface.get_widget_size(*last_widget_id).unwrap().y / 2.0;
+            let bottom_of_last_element = interface.get_widget_screen_position(*last_widget_id).unwrap().y;
             
             let layout_position_y = interface.element_registry().get_element_screen_position(background_element_id).unwrap().y;
             let bottom_of_layout = layout_position_y - layout_height / 2.0;
 
-            ((bottom_of_last_element - bottom_of_layout).abs() + padding.bottom()).max(0.0)
+            ((bottom_of_last_element - bottom_of_layout).abs() + padding.bottom() + interface.get_widget_size(*last_widget_id).unwrap().y / 2.0).max(0.0)
         },
         None => return 0.0,
     }

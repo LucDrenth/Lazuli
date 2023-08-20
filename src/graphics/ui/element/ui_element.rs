@@ -19,7 +19,9 @@ pub trait UiElement {
     fn recalculate_position(&mut self, window_size: Vec2, anchor_element_data: Option<AnchorElementData>);
     fn set_color(&mut self, color: Color);
     fn set_z_index(&mut self, z_index: f32);
+    fn draw_bounds(&self) -> &DrawBounds;
     fn set_draw_bounds(&mut self, draw_bounds: DrawBounds);
+    fn set_position_transform(&mut self, position_transform: Vec2);
 
     fn hide(&mut self);
     fn show(&mut self);
