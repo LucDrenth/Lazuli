@@ -22,6 +22,7 @@ pub trait UiElement {
     fn draw_bounds(&self) -> &DrawBounds;
     fn set_draw_bounds(&mut self, draw_bounds: DrawBounds);
     fn set_position_transform(&mut self, position_transform: Vec2);
+    fn position_transform(&self) -> Vec2;
 
     fn hide(&mut self);
     fn show(&mut self);

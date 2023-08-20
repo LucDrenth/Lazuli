@@ -69,6 +69,7 @@ impl UiElement for Text {
         self.world_data.set_position(position, window_size, anchor_element_data) 
     }
     fn set_position_transform(&mut self, position_transform: Vec2) { self.world_data.position_transform = position_transform }
+    fn position_transform(&self) -> Vec2 { self.world_data.position_transform }
 
     fn hide(&mut self) { self.show = false; }
     fn show(&mut self) { self.show = true; }

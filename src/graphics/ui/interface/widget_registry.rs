@@ -99,6 +99,9 @@ impl WidgetRegistry {
     pub fn set_widget_position(&self, widget_id: u32, position: Position, element_registry: &mut ElementRegistry) {
         self.get_widget_by_id(widget_id).unwrap().set_position(position, element_registry);
     }
+    pub fn get_widget_position_transform(&self, widget_id: u32, element_registry: &ElementRegistry) -> Result<Vec2, String> {
+        self.get_widget_by_id(widget_id).unwrap().position_transform(element_registry)
+    }
     pub fn set_widget_z_index(&mut self, widget_id: u32, z_index: f32, element_registry: &mut ElementRegistry) {
         self.get_mut_widget_by_id(widget_id).unwrap().set_z_index(z_index, element_registry);
     }

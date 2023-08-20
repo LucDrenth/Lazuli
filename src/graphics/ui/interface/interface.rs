@@ -60,6 +60,9 @@ impl Interface {
     pub fn get_widget_screen_position(&self, widget_id: u32) -> Result<Vec2, String> {
         self.widget_registry.get_widget_screen_position(widget_id, &self.element_registry)
     }
+    pub fn get_widget_position_transform(&self, widget_id: u32) -> Result<Vec2, String> {
+        self.widget_registry.get_widget_position_transform(widget_id, &self.element_registry)
+    }
     pub fn set_widget_position(&mut self, widget_id: u32, position: Position) {
         self.widget_registry.set_widget_position(widget_id, position, &mut self.element_registry);
     }

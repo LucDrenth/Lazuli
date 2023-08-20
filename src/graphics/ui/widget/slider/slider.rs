@@ -69,6 +69,9 @@ impl UiWidget for Slider {
     fn get_screen_position(&self, element_registry: &ElementRegistry) -> Result<Vec2, String> {
         element_registry.get_element_screen_position(self.anchor_element_id())
     }
+    fn position_transform(&self, element_registry: &ElementRegistry) -> Result<Vec2, String> {
+        element_registry.get_element_position_transform(self.anchor_element_id())
+    }
 }
 
 impl Slider {

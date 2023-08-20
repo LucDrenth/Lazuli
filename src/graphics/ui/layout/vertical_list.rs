@@ -40,11 +40,15 @@ impl Layout for VerticalList {
         self.widget_ids.push(widget_id);
 
         // resize background element
+        let old_background_height = interface.element_registry().get_element_size(self.background_element_id).unwrap().y;
         let new_background_height = calculate_background_height(&self.widget_ids, self.gap_size, &self.padding, interface).min(self.max_height);
-        _ = interface.mut_element_registry().set_rectangle_height(
-            self.background_element_id, 
-            new_background_height
-        );
+        
+        if old_background_height != new_background_height {
+            _ = interface.mut_element_registry().set_rectangle_height(
+                self.background_element_id, 
+                new_background_height
+            );
+        }
 
         // set position of newly added widget
         interface.set_widget_position(widget_id, Position::ElementAnchor(anchor_point, anchor_id));
@@ -268,15 +272,21 @@ fn calculate_background_width(widget_ids: &Vec<u32>, padding: &Padding, interfac
 }
 
 fn calculate_max_scroll(widget_ids: &Vec<u32>, padding: &Padding, background_element_id: u32, layout_height: f32, interface: &Interface) -> f32 {
-    match widget_ids.last() {
-        Some(last_widget_id) => {
-            let bottom_of_last_element = interface.get_widget_screen_position(*last_widget_id).unwrap().y;
-            
-            let layout_position_y = interface.element_registry().get_element_screen_position(background_element_id).unwrap().y;
-            let bottom_of_layout = layout_position_y - layout_height / 2.0;
-
-            ((bottom_of_last_element - bottom_of_layout).abs() + padding.bottom() + interface.get_widget_size(*last_widget_id).unwrap().y / 2.0).max(0.0)
-        },
-        None => return 0.0,
+    if widget_ids.is_empty() {
+        return 0.0;
     }
+
+    let first_widget_id = widget_ids.first().unwrap();
+    let last_widget_id = widget_ids.last().unwrap();
+
+    let bottom_of_last_element = interface.get_widget_screen_position(*last_widget_id).unwrap().y;
+            
+    let layout_position_y = interface.element_registry().get_element_screen_position(background_element_id).unwrap().y;
+    let bottom_of_layout = layout_position_y - layout_height / 2.0;
+
+    let max_scroll = (bottom_of_last_element - bottom_of_layout).abs() 
+        + padding.bottom() 
+        + interface.get_widget_size(*last_widget_id).unwrap().y / 2.0 
+        + interface.get_widget_position_transform(*first_widget_id).unwrap().y;
+    (max_scroll).max(0.0)
 }

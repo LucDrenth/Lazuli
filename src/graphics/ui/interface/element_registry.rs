@@ -445,6 +445,13 @@ impl ElementRegistry {
         }
     }
 
+    pub fn get_element_position_transform(&self, element_id: u32) -> Result<Vec2, String> {
+        match self.get_ui_element_by_id(element_id) {
+            Some(element) => Ok(element.position_transform()),
+            None => Err(format!("failed to get position transform because element with id {} was not found", element_id)),
+        }
+    }
+
     pub fn set_text(&mut self, text_element_id: u32, text: &String, asset_manager: &mut AssetManager) -> Result<(), String> {
         let window_size: Vec2 = self.window_size.clone();
         let anchor_data = self.get_anchor_element_data(text_element_id)?;
