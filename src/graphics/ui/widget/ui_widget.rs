@@ -1,4 +1,4 @@
-use crate::graphics::ui::{ElementRegistry, Position, draw_bounds::DrawBounds};
+use crate::{graphics::ui::{ElementRegistry, Position, draw_bounds::DrawBounds, UiElementId}, ResourceId};
 
 pub trait UiWidget {
     fn show(&self, element_registry: &mut ElementRegistry);
@@ -6,7 +6,7 @@ pub trait UiWidget {
 
     /// Get the id of the main element (usually the background), which can be 
     /// used for positioning, anchoring etcetera. It is usually the background element.
-    fn get_main_element_id(&self) -> u32;
+    fn get_main_element_id(&self) -> ResourceId<UiElementId>;
 
     fn z_index(&self) -> f32;
     fn set_z_index(&mut self, z_index: f32, element_registry: &mut ElementRegistry);

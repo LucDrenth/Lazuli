@@ -1,10 +1,10 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{Text, TextBuilder, shapes::RectangleBuilder, ElementRegistry, self, interface::{is_valid_z_index, self}, Position, element::{ui_element::UiElement, AnchorPoint}, widget::UiWidget}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, input::{Input, InputAction, MouseButton}, log};
+use crate::{graphics::{ui::{Text, TextBuilder, shapes::RectangleBuilder, ElementRegistry, self, interface::{is_valid_z_index, self}, Position, element::{ui_element::UiElement, AnchorPoint}, widget::UiWidget, UiElementId}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, input::{Input, InputAction, MouseButton}, log, ResourceId};
 
 pub struct Button {
-    text_element_id: u32,
-    background_element_id: u32,
+    text_element_id: ResourceId<UiElementId>,
+    background_element_id: ResourceId<UiElementId>,
     mouse_action_to_activate: InputAction,
     mouse_button_to_activate: MouseButton,
     z_index: f32,
@@ -14,22 +14,22 @@ pub struct Button {
 
 impl UiWidget for Button {
     /// Background is the main element. It defines the position and size of the slider
-    fn get_main_element_id(&self) -> u32 {
-        self.background_element_id
+    fn get_main_element_id(&self) -> ResourceId<UiElementId> {
+        self.background_element_id.clone()
     }
 
     fn show(&self, element_registry: &mut ElementRegistry) {
-        _ = element_registry.show_element(self.background_element_id);
-        _ = element_registry.show_element(self.text_element_id);
+        _ = element_registry.show_element(&self.background_element_id);
+        _ = element_registry.show_element(&self.text_element_id);
     }
     fn hide(&self, element_registry: &mut ElementRegistry) {
-        _ = element_registry.hide_element(self.background_element_id);
-        _ = element_registry.hide_element(self.text_element_id);
+        _ = element_registry.hide_element(&self.background_element_id);
+        _ = element_registry.hide_element(&self.text_element_id);
     }
 
     fn set_position(&self, position: Position, element_registry: &mut ElementRegistry) {
-        _ = element_registry.set_element_position(self.background_element_id, position);
-        _ = element_registry.set_element_position(self.text_element_id, Position::ElementAnchor(AnchorPoint::Center, self.background_element_id));
+        _ = element_registry.set_element_position(&self.background_element_id, position);
+        _ = element_registry.set_element_position(&self.text_element_id, Position::ElementAnchor(AnchorPoint::Center, self.background_element_id));
     }
 
     fn z_index(&self) -> f32 {
@@ -37,13 +37,13 @@ impl UiWidget for Button {
     }
     fn set_z_index(&mut self, z_index: f32, element_registry: &mut ElementRegistry) {
         self.z_index = z_index;
-        _ = element_registry.set_element_z_index(self.background_element_id, z_index);
-        _ = element_registry.set_element_z_index(self.text_element_id, z_index + 0.01);
+        _ = element_registry.set_element_z_index(&self.background_element_id, z_index);
+        _ = element_registry.set_element_z_index(&self.text_element_id, z_index + 0.01);
     }
 
     fn set_draw_bounds(&self, draw_bounds: ui::draw_bounds::DrawBounds, element_registry: &mut ElementRegistry) {
-        _ = element_registry.set_element_draw_bounds(self.background_element_id, draw_bounds);
-        _ = element_registry.set_element_draw_bounds(self.text_element_id, draw_bounds);
+        _ = element_registry.set_element_draw_bounds(&self.background_element_id, draw_bounds);
+        _ = element_registry.set_element_draw_bounds(&self.text_element_id, draw_bounds);
     }
 }
 
@@ -86,7 +86,7 @@ impl Button {
         let background_element_id = element_registry.add_rectangle(background);
 
         let window_size = element_registry.size().clone();
-        let anchor_element_data = element_registry.get_anchor_data(background_element_id)?; // TODO is this correct?
+        let anchor_element_data = element_registry.get_anchor_data(&background_element_id)?; // TODO is this correct?
         text.mut_world_data().set_position(Position::ElementAnchor(AnchorPoint::Center, background_element_id), window_size, Some(anchor_element_data));
         let text_element_id = element_registry.add_text(text);
 
@@ -102,12 +102,12 @@ impl Button {
     }
 
     pub fn is_hovered(&self, input: &Input, element_registry: &ElementRegistry) -> bool {
-        element_registry.is_element_hovered(self.background_element_id, input)
+        element_registry.is_element_hovered(&self.background_element_id, input)
     }
 
     pub fn is_clicked(&self, input: &Input, element_registry: &ElementRegistry) -> bool {
         !element_registry.is_any_element_dragged() && element_registry.is_element_clicked(
-            self.background_element_id, 
+            &self.background_element_id, 
             self.mouse_button_to_activate,
             &self.mouse_action_to_activate, 
             input
@@ -115,21 +115,21 @@ impl Button {
     }
 
     pub fn set_scale(&mut self, scale: Vec2, element_registry: &mut ElementRegistry) -> Result<(), String> {
-        element_registry.set_element_scale(self.background_element_id, scale)?;
-        element_registry.set_element_scale(self.text_element_id, scale)?;
+        element_registry.set_element_scale(&self.background_element_id, scale)?;
+        element_registry.set_element_scale(&self.text_element_id, scale)?;
         Ok(())
     }
 
     pub fn width(&self) -> f32 { self.width }
     pub fn height(&self) -> f32 { self.height }
-    pub fn text_element_id(&self) -> u32 { self.text_element_id }
+    pub fn text_element_id(&self) -> ResourceId<UiElementId> { self.text_element_id.clone() }
 
     pub fn set_background_color(&self, color: Color, element_registry: &mut ElementRegistry) -> Result<(), String> {
-        element_registry.set_element_color(self.background_element_id, color)
+        element_registry.set_element_color(&self.background_element_id, color)
     }
 
     pub fn set_text_color(&self, color: Color, element_registry: &mut ElementRegistry) -> Result<(), String> {
-        element_registry.set_element_color(self.text_element_id, color)
+        element_registry.set_element_color(&self.text_element_id, color)
     }
 }
 

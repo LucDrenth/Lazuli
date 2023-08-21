@@ -1,6 +1,6 @@
 use std::any::TypeId;
 
-use crate::graphics::ui::element::ui_element::UiElement;
+use crate::{graphics::ui::{element::ui_element::UiElement, UiElementId}, ResourceId};
 
 static mut CURRENT_ID: u32 = 0;
 pub fn generate_id() -> u32 {
@@ -12,7 +12,7 @@ pub fn generate_id() -> u32 {
 
 struct ElementEntry<T: UiElement> {
     element: T,
-    id: u32,
+    id: ResourceId<UiElementId>,
 }
 
 #[derive(Debug)]
@@ -20,7 +20,7 @@ pub struct OrderedElementsItem {
     pub element_type: TypeId,
     pub index: usize,
     pub z_index: f32,
-    pub item_id: u32,
+    pub item_id: ResourceId<UiElementId>,
 }
 
 pub struct ElementList<T: UiElement> {
@@ -32,15 +32,15 @@ impl<T: UiElement + 'static> ElementList<T> {
         Self { elements: vec![] }
     }
 
-    pub fn add(&mut self, element: T) -> u32 {
-        let id = generate_id();
+    pub fn add(&mut self, element: T) -> ResourceId<UiElementId> {
+        let id = ResourceId::new(generate_id());
         self.elements.push(ElementEntry { element, id, });
         id
     }
 
-    pub fn get_by_id(&self, id: u32) -> Option<&T> {
+    pub fn get_by_id(&self, id: &ResourceId<UiElementId>) -> Option<&T> {
         for entry in self.elements.iter() {
-            if entry.id == id {
+            if entry.id.equals(id) {
                 return Some(&entry.element);
             }
         }
@@ -48,9 +48,9 @@ impl<T: UiElement + 'static> ElementList<T> {
         None
     }
 
-    pub fn get_mut_by_id(&mut self, id: u32) -> Option<&mut T> {
+    pub fn get_mut_by_id(&mut self, id: &ResourceId<UiElementId>) -> Option<&mut T> {
         for entry in self.elements.iter_mut() {
-            if entry.id == id {
+            if entry.id.equals(id) {
                 return Some(&mut entry.element);
             }
         }
@@ -82,7 +82,7 @@ impl<T: UiElement + 'static> ElementList<T> {
                 element_type: TypeId::of::<T>(),
                 index: i,
                 z_index: self.elements[i].element.world_data().z_index,
-                item_id: self.elements[i].id,
+                item_id: self.elements[i].id.duplicate(),
             })
         }
     

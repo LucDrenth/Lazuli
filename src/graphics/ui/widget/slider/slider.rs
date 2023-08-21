@@ -1,16 +1,16 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{ElementRegistry, interface::{is_valid_z_index, self}, Text, TextBuilder, Position, shapes::{Rectangle, RectangleBuilder}, element::AnchorPoint, widget::UiWidget}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, log, input::{Input, MouseButton}};
+use crate::{graphics::{ui::{ElementRegistry, interface::{is_valid_z_index, self}, Text, TextBuilder, Position, shapes::{Rectangle, RectangleBuilder}, element::AnchorPoint, widget::UiWidget, UiElementId}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, log, input::{Input, MouseButton}, ResourceId};
 
 pub struct Slider {
-    text_element_id: u32,
-    background_element_id: u32,
-    progress_element_id: u32,
+    text_element_id: ResourceId<UiElementId>,
+    background_element_id: ResourceId<UiElementId>,
+    progress_element_id: ResourceId<UiElementId>,
     value: f32,
     minimum_value: f32,
     maximum_value: f32,
     decimals: usize,
-    id: u32,
+    id: ResourceId<UiElementId>,
     scale: Vec2,
     z_index: f32,
 }
@@ -24,19 +24,19 @@ pub struct SliderUpdateResult {
 
 impl UiWidget for Slider {
     /// Background is the main element. It defines the position and size of the slider
-    fn get_main_element_id(&self) -> u32 {
-        self.background_element_id
+    fn get_main_element_id(&self) -> ResourceId<UiElementId> {
+        self.background_element_id.clone()
     }
 
     fn show(&self, element_registry: &mut ElementRegistry) {
-        _ = element_registry.show_element(self.background_element_id);
-        _ = element_registry.show_element(self.text_element_id);
-        _ = element_registry.show_element(self.progress_element_id);
+        _ = element_registry.show_element(&self.background_element_id);
+        _ = element_registry.show_element(&self.text_element_id);
+        _ = element_registry.show_element(&self.progress_element_id);
     }
     fn hide(&self, element_registry: &mut ElementRegistry) {
-        _ = element_registry.hide_element(self.background_element_id);
-        _ = element_registry.hide_element(self.text_element_id);
-        _ = element_registry.hide_element(self.progress_element_id);
+        _ = element_registry.hide_element(&self.background_element_id);
+        _ = element_registry.hide_element(&self.text_element_id);
+        _ = element_registry.hide_element(&self.progress_element_id);
     }
 
     fn z_index(&self) -> f32 {
@@ -45,21 +45,21 @@ impl UiWidget for Slider {
 
     fn set_z_index(&mut self, z_index: f32, element_registry: &mut ElementRegistry) {
         self.z_index = z_index;
-        _ = element_registry.set_element_z_index(self.background_element_id, z_index);
-        _ = element_registry.set_element_z_index(self.text_element_id, z_index + 0.02);
-        _ = element_registry.set_element_z_index(self.progress_element_id, z_index + 0.01);
+        _ = element_registry.set_element_z_index(&self.background_element_id, z_index);
+        _ = element_registry.set_element_z_index(&self.text_element_id, z_index + 0.02);
+        _ = element_registry.set_element_z_index(&self.progress_element_id, z_index + 0.01);
     }
 
     fn set_position(&self, position: Position, element_registry: &mut ElementRegistry) {
-        _ = element_registry.set_element_position(self.background_element_id, position);
-        _ = element_registry.set_element_position(self.text_element_id, Position::ElementAnchor(AnchorPoint::Center, self.background_element_id));
-        _ = element_registry.set_element_position(self.progress_element_id, Position::ElementAnchor(AnchorPoint::LeftInside(0.0), self.background_element_id));
+        _ = element_registry.set_element_position(&self.background_element_id, position);
+        _ = element_registry.set_element_position(&self.text_element_id, Position::ElementAnchor(AnchorPoint::Center, self.background_element_id));
+        _ = element_registry.set_element_position(&self.progress_element_id, Position::ElementAnchor(AnchorPoint::LeftInside(0.0), self.background_element_id));
     }
 
     fn set_draw_bounds(&self, draw_bounds: crate::graphics::ui::draw_bounds::DrawBounds, element_registry: &mut ElementRegistry) {
-        _ = element_registry.set_element_draw_bounds(self.background_element_id, draw_bounds);
-        _ = element_registry.set_element_draw_bounds(self.text_element_id, draw_bounds);
-        _ = element_registry.set_element_draw_bounds(self.progress_element_id, draw_bounds);
+        _ = element_registry.set_element_draw_bounds(&self.background_element_id, draw_bounds);
+        _ = element_registry.set_element_draw_bounds(&self.text_element_id, draw_bounds);
+        _ = element_registry.set_element_draw_bounds(&self.progress_element_id, draw_bounds);
     }
 }
 
@@ -110,7 +110,7 @@ impl Slider {
             minimum_value: builder.minimum_value,
             maximum_value: builder.maximum_value,
             decimals: builder.decimals,
-            id: element_registry.generate_element_id(),
+            id: ResourceId::new(element_registry.generate_element_id()),
             scale: builder.scale,
             z_index: builder.z_index,
         })
@@ -120,7 +120,7 @@ impl Slider {
     pub fn update(&mut self, input: &Input, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Option<SliderUpdateResult> {
         let did_start_drag = self.check_activate_drag(input, element_registry);
 
-        if !element_registry.is_element_dragged(self.id) {
+        if !element_registry.is_element_dragged(&self.id) {
             return None;
         }
 
@@ -137,15 +137,15 @@ impl Slider {
     /// Check if we should enable dragging
     fn check_activate_drag(&self, input: &Input, element_registry: &mut ElementRegistry) -> bool {
         if input.is_mouse_button_down(MouseButton::Left) && self.is_hovered(input, element_registry) {
-            return element_registry.try_set_dragged_element(self.id);
+            return element_registry.try_set_dragged_element(&self.id);
         }
 
         false
     }
 
     fn handle_drag(&mut self, input: &Input, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) {
-        let element_size = element_registry.get_element_size(self.background_element_id).unwrap();
-        let element_position = element_registry.get_element_screen_position(self.background_element_id).unwrap();
+        let element_size = element_registry.get_element_size(&self.background_element_id).unwrap();
+        let element_position = element_registry.get_element_screen_position(&self.background_element_id).unwrap();
 
         let element_start_x = element_position.x - element_size.x / 2.0;
         let element_end_x = element_position.x + element_size.x / 2.0;
@@ -155,7 +155,7 @@ impl Slider {
     }
 
     pub fn is_hovered(&self, input: &Input, element_registry: &ElementRegistry) -> bool {
-        element_registry.is_element_hovered(self.background_element_id, input)
+        element_registry.is_element_hovered(&self.background_element_id, input)
     }
 
     pub fn value(&self) -> f32 { self.value }
@@ -178,7 +178,7 @@ impl Slider {
     fn update_progress_element(&self, element_registry: &mut ElementRegistry) {
         let scale = Vec2::new(self.value / (self.maximum_value - self.minimum_value), 1.0) * self.scale;
         
-        match element_registry.set_element_scale(self.progress_element_id, scale) {
+        match element_registry.set_element_scale(&self.progress_element_id, scale) {
             Ok(_) => (),
             Err(err) => {
                 log::engine_err(format!("slider update_progress_element failed: {}", err));
@@ -187,7 +187,7 @@ impl Slider {
     }
 
     fn update_text_element(&mut self, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) {
-        match element_registry.set_text(self.text_element_id, &Self::value_string(self.value, self.decimals), asset_manager) {
+        match element_registry.set_text(&self.text_element_id, &Self::value_string(self.value, self.decimals), asset_manager) {
             Ok(_) => (),
             Err(err) => {
                 log::engine_warn(format!("failed to update slider text: {}", err));
@@ -200,14 +200,14 @@ impl Slider {
     }
 
     pub fn size(&self, element_registry: &ElementRegistry) -> Vec2 {
-        element_registry.get_element_size(self.background_element_id).unwrap()
+        element_registry.get_element_size(&self.background_element_id).unwrap()
     }
 
     pub fn set_scale(&mut self, scale: Vec2, element_registry: &mut ElementRegistry) -> Result<(), String> {
         self.scale = scale;
 
-        element_registry.set_element_scale(self.background_element_id, scale)?;
-        element_registry.set_element_scale(self.text_element_id, scale)?;
+        element_registry.set_element_scale(&self.background_element_id, scale)?;
+        element_registry.set_element_scale(&self.text_element_id, scale)?;
         self.update_progress_element(element_registry);
 
         Ok(())

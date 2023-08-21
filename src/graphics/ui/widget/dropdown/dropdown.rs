@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use crate::{asset_manager::AssetManager, graphics::ui::{ElementRegistry, widget::{Button, ButtonBuilder, UiWidget}, interface::{is_valid_z_index, MAX_Z_INDEX}, Position, AnchorPoint}, log, input::{Input, InputAction}};
+use crate::{asset_manager::AssetManager, graphics::ui::{ElementRegistry, widget::{Button, ButtonBuilder, UiWidget}, interface::{is_valid_z_index, MAX_Z_INDEX}, Position, AnchorPoint, UiElementId}, log, input::{Input, InputAction}, ResourceId};
 
 struct DropdownOptionButton<T: Debug + Clone> {
     button: Button,
@@ -36,7 +36,7 @@ impl <T: Debug + Clone> UiWidget for Dropdown<T> {
         }
     }
 
-    fn get_main_element_id(&self) -> u32 {
+    fn get_main_element_id(&self) -> ResourceId<UiElementId> {
         self.button.get_main_element_id()
     }
 
@@ -132,7 +132,7 @@ impl<T: Debug + Clone> Dropdown<T> {
                 if option.button.is_clicked(input, element_registry) {
                     let value = option.value.clone();
 
-                    match element_registry.set_text(self.button.text_element_id(), &option.label, asset_manager) {
+                    match element_registry.set_text(&self.button.text_element_id(), &option.label, asset_manager) {
                         Ok(_) => (),
                         Err(err) => {
                             log::engine_err(format!("failed to set selected dropdown value {:?}: {}", value, err));

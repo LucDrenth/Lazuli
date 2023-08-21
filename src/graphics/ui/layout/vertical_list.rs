@@ -1,12 +1,12 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{Position, AnchorPoint, shapes::RectangleBuilder, Interface, padding::Padding, draw_bounds::DrawBounds, UiWidgetId}, Color}, asset_manager::AssetManager, log, input::Input, ResourceId};
+use crate::{graphics::{ui::{Position, AnchorPoint, shapes::RectangleBuilder, Interface, padding::Padding, draw_bounds::DrawBounds, UiWidgetId, UiElementId}, Color}, asset_manager::AssetManager, log, input::Input, ResourceId};
 
 use super::{Layout, layout::LAYOUT_ELEMENT_EXTRA_Z_INDEX};
 
 pub struct VerticalList {
     widget_ids: Vec<ResourceId<UiWidgetId>>, // List of unique ids. We do not use a HashSet because the order matters.
-    background_element_id: u32,
+    background_element_id: ResourceId<UiElementId>,
     gap_size: f32, // the amount of space between elements
     position: Position,
     max_height: f32,
@@ -28,7 +28,7 @@ impl Layout for VerticalList {
             anchor_point = AnchorPoint::TopInside(self.gap_size);
         } else {
             let anchor_widget_id = self.widget_ids.last().unwrap().clone();
-            anchor_id = interface.get_widget_anchor_element_id(anchor_widget_id).unwrap();
+            anchor_id = interface.get_widget_anchor_element_id(&anchor_widget_id).unwrap();
             anchor_point = AnchorPoint::BottomOutside(self.gap_size);
         }
 
@@ -43,12 +43,12 @@ impl Layout for VerticalList {
         self.widget_ids.push(widget_id.duplicate());
 
         // resize background element
-        let old_background_height = interface.element_registry().get_element_size(self.background_element_id).unwrap().y;
+        let old_background_height = interface.element_registry().get_element_size(&self.background_element_id).unwrap().y;
         let new_background_height = calculate_background_height(&self.widget_ids, self.gap_size, &self.padding, interface).min(self.max_height);
         
         if old_background_height != new_background_height {
             _ = interface.mut_element_registry().set_rectangle_height(
-                self.background_element_id, 
+                &self.background_element_id, 
                 new_background_height
             );
         }
@@ -59,7 +59,7 @@ impl Layout for VerticalList {
         interface.set_widget_draw_bounds(&widget_id, self.draw_bounds.clone());
 
         // update max scroll
-        self.max_scroll = calculate_max_scroll(&self.widget_ids, &self.padding, self.background_element_id, new_background_height, interface);
+        self.max_scroll = calculate_max_scroll(&self.widget_ids, &self.padding, &self.background_element_id, new_background_height, interface);
     }
 
     fn update(&mut self, interface: &mut Interface, input: &Input) {
@@ -94,7 +94,7 @@ impl VerticalList {
         let first_widget_anchor_element_id  = interface.widget_registry().get_main_element_id(first_widget_id).unwrap();
 
         _ = interface.mut_element_registry().set_element_position_transform(
-            first_widget_anchor_element_id, 
+            &first_widget_anchor_element_id, 
             Vec2::new(0.0, self.current_scroll)
         ).map_err(|err|{
             log::engine_err(format!("failed to scroll VerticalList layout because the first widget element [id={}] was not found", err));
@@ -141,7 +141,7 @@ impl VerticalListBuilder {
             .with_z_index(self.z_index)
         , asset_manager)?;
 
-        let layout_position = interface.element_registry().get_ui_element_by_id(background_element_id).unwrap().world_data().position();
+        let layout_position = interface.element_registry().get_ui_element_by_id(&background_element_id).unwrap().world_data().position();
         let draw_bound_top = layout_position.y + background_height / 2.0;
         let draw_bound_bottom = layout_position.y - background_height / 2.0;
         let draw_bound_left = layout_position.x - background_width / 2.0;
@@ -185,7 +185,7 @@ impl VerticalListBuilder {
         }
 
         // We can only set this after the widget positions has been set
-        list.max_scroll = calculate_max_scroll(&list.widget_ids, &list.padding, background_element_id, background_height, interface);
+        list.max_scroll = calculate_max_scroll(&list.widget_ids, &list.padding, &background_element_id, background_height, interface);
 
         Ok(list)
     }
@@ -276,7 +276,7 @@ fn calculate_background_width(widget_ids: &Vec<ResourceId<UiWidgetId>>, padding:
     widest + padding.horizontal()
 }
 
-fn calculate_max_scroll(widget_ids: &Vec<ResourceId<UiWidgetId>>, padding: &Padding, background_element_id: u32, layout_height: f32, interface: &Interface) -> f32 {
+fn calculate_max_scroll(widget_ids: &Vec<ResourceId<UiWidgetId>>, padding: &Padding, background_element_id: &ResourceId<UiElementId>, layout_height: f32, interface: &Interface) -> f32 {
     if widget_ids.is_empty() {
         return 0.0;
     }

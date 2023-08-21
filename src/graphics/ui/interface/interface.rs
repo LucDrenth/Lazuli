@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_manager::AssetManager, input::Input, graphics::{ui::{widget::{SliderBuilder, SliderUpdateResult, ButtonBuilder, DropdownBuilder}, Position, draw_bounds::DrawBounds, UiWidgetId}, font::{Font, PlainBitmapBuilder}, Color}, ResourceId};
+use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_manager::AssetManager, input::Input, graphics::{ui::{widget::{SliderBuilder, SliderUpdateResult, ButtonBuilder, DropdownBuilder}, Position, draw_bounds::DrawBounds, UiWidgetId, UiElementId}, font::{Font, PlainBitmapBuilder}, Color}, ResourceId};
 
 use super::{ElementRegistry, widget_registry::WidgetRegistry};
 
@@ -45,7 +45,7 @@ impl Interface {
     pub fn mut_widget_registry(&mut self) -> &mut WidgetRegistry { &mut self.widget_registry }
 
     // UiWidget functions
-    pub fn get_widget_anchor_element_id(&self, widget_id: &ResourceId<UiWidgetId>) -> Option<u32> {
+    pub fn get_widget_anchor_element_id(&self, widget_id: &ResourceId<UiWidgetId>) -> Option<ResourceId<UiElementId>> {
         self.widget_registry.get_main_element_id(widget_id)
     }
     pub fn show_widget(&mut self, widget_id: &ResourceId<UiWidgetId>) {

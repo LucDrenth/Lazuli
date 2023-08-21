@@ -1,13 +1,13 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, ui::{shapes::RectangleBuilder, widget::{ButtonBuilder, SliderBuilder, DropdownBuilder, DropdownOption}, Position, AnchorPoint, TextBuilder, Interface, VerticalListBuilder, Padding, VerticalList, Layout, UiWidgetId}, Color}, event::EventSystem, input::{Input, Key}, asset_manager::AssetManager, log, ResourceId};
+use crate::{graphics::{scene::Scene, ui::{shapes::RectangleBuilder, widget::{ButtonBuilder, SliderBuilder, DropdownBuilder, DropdownOption}, Position, AnchorPoint, TextBuilder, Interface, VerticalListBuilder, Padding, VerticalList, Layout, UiWidgetId, UiElementId}, Color}, event::EventSystem, input::{Input, Key}, asset_manager::AssetManager, log, ResourceId};
 
 pub struct HelloUi {
     interface: Interface,
     width_slider_id: ResourceId<UiWidgetId>,
     height_slider_id: ResourceId<UiWidgetId>,
     reset_button_id: ResourceId<UiWidgetId>,
-    rectangle_id: u32,
+    rectangle_id: ResourceId<UiElementId>,
     dropdown_id: ResourceId<UiWidgetId>,
     layout: VerticalList,
 }
@@ -100,8 +100,8 @@ impl Scene for HelloUi {
         self.layout.update(&mut self.interface, input);
 
         self.interface.slider_update_result(&self.width_slider_id).map(|result|{
-            let y = self.interface.mut_element_registry().get_element_scale(self.rectangle_id).unwrap().y;
-            self.interface.mut_element_registry().set_element_scale(self.rectangle_id, Vec2 { 
+            let y = self.interface.mut_element_registry().get_element_scale(&self.rectangle_id).unwrap().y;
+            self.interface.mut_element_registry().set_element_scale(&self.rectangle_id, Vec2 { 
                 x: result.new_value, 
                 y,
             }).unwrap();
@@ -112,8 +112,8 @@ impl Scene for HelloUi {
         });
 
         self.interface.slider_update_result(&self.height_slider_id).map(|result|{
-            let x = self.interface.mut_element_registry().get_element_scale(self.rectangle_id).unwrap().x;
-            self.interface.mut_element_registry().set_element_scale(self.rectangle_id, Vec2 { 
+            let x = self.interface.mut_element_registry().get_element_scale(&self.rectangle_id).unwrap().x;
+            self.interface.mut_element_registry().set_element_scale(&self.rectangle_id, Vec2 { 
                 x,
                 y: result.new_value, 
             }).unwrap();
@@ -122,7 +122,7 @@ impl Scene for HelloUi {
         if self.interface.is_button_clicked(&self.reset_button_id) {
             self.interface.set_slider_value(1.0, &self.width_slider_id, asset_manager);
             self.interface.set_slider_value(1.0, &self.height_slider_id, asset_manager);
-            self.interface.mut_element_registry().set_element_scale(self.rectangle_id, Vec2::ONE).unwrap();
+            self.interface.mut_element_registry().set_element_scale(&self.rectangle_id, Vec2::ONE).unwrap();
         }
 
         if input.is_key_down(Key::ArrowUp) {
@@ -147,7 +147,7 @@ impl Scene for HelloUi {
                     },
                 };
 
-                _ = self.interface.mut_element_registry().set_element_color(self.rectangle_id, color.clone());
+                _ = self.interface.mut_element_registry().set_element_color(&self.rectangle_id, color.clone());
                 _ = self.interface.set_button_text_color(color, &self.reset_button_id);
             },
             None => (),

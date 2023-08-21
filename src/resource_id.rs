@@ -1,5 +1,6 @@
 use std::marker::PhantomData;
 
+#[derive(Debug, Clone, Copy)]
 pub struct ResourceId<T> {
     id: u32,
     _phantom: PhantomData<T>,

@@ -7,5 +7,8 @@
 /// lifetimes, which causes a whole lot of complexity which I am currently not ready for.
 //
 
+#[derive(Debug, Clone, Copy)]
 pub struct UiWidgetId;
+
+#[derive(Debug, Clone, Copy)]
 pub struct UiElementId;

@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::graphics::ui::ElementRegistry;
+use crate::{graphics::ui::{ElementRegistry, UiElementId}, ResourceId};
 
 use super::{AnchorPoint, AnchorElementData};
 
@@ -12,7 +12,7 @@ pub enum Position {
     /// Anchored to a point on the screen
     ScreenAnchor(AnchorPoint),
     /// Anchored to another element. Second parameter is an intereface element_id
-    ElementAnchor(AnchorPoint, u32),
+    ElementAnchor(AnchorPoint, ResourceId<UiElementId>),
 }
 
 impl Position {
@@ -47,11 +47,11 @@ impl Position {
     }
 
     /// Return size, coordinates
-    pub fn get_anchor_element_id(&self) -> Option<u32> {
+    pub fn get_anchor_element_id(&self) -> Option<ResourceId<UiElementId>> {
         match self {
             Position::Fixed(_, _) => None,
             Position::ScreenAnchor(_) => None,
-            Position::ElementAnchor(_, element_id) => Some(*element_id),
+            Position::ElementAnchor(_, element_id) => Some(element_id.duplicate()),
         }
     }
 
@@ -60,7 +60,7 @@ impl Position {
             Position::Fixed(_, _) => None,
             Position::ScreenAnchor(_) => None,
             Position::ElementAnchor(_, element_id) => {
-                Some(element_registry.get_anchor_data(*element_id).unwrap())
+                Some(element_registry.get_anchor_data(element_id).unwrap())
             },
         }
     }
