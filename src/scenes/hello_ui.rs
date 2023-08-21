@@ -1,14 +1,14 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, ui::{shapes::RectangleBuilder, widget::{ButtonBuilder, SliderBuilder, DropdownBuilder, DropdownOption}, Position, AnchorPoint, TextBuilder, Interface, VerticalListBuilder, Padding, VerticalList, Layout}, Color}, event::EventSystem, input::{Input, Key}, asset_manager::AssetManager, log};
+use crate::{graphics::{scene::Scene, ui::{shapes::RectangleBuilder, widget::{ButtonBuilder, SliderBuilder, DropdownBuilder, DropdownOption}, Position, AnchorPoint, TextBuilder, Interface, VerticalListBuilder, Padding, VerticalList, Layout, UiWidgetId}, Color}, event::EventSystem, input::{Input, Key}, asset_manager::AssetManager, log, ResourceId};
 
 pub struct HelloUi {
     interface: Interface,
-    width_slider_id: u32,
-    height_slider_id: u32,
-    reset_button_id: u32,
+    width_slider_id: ResourceId<UiWidgetId>,
+    height_slider_id: ResourceId<UiWidgetId>,
+    reset_button_id: ResourceId<UiWidgetId>,
     rectangle_id: u32,
-    dropdown_id: u32,
+    dropdown_id: ResourceId<UiWidgetId>,
     layout: VerticalList,
 }
 
@@ -28,7 +28,7 @@ impl Scene for HelloUi {
             .with_initial_value(1.0)
         , asset_manager)?;
 
-        let anchor = interface.get_widget_anchor_element_id(width_slider_id).unwrap();
+        let anchor = interface.get_widget_anchor_element_id(&width_slider_id).unwrap();
         let _width_slider_label_id = interface.mut_element_registry().create_text("Rectangle width".to_string(), None, TextBuilder::new()
             .with_position(Position::ElementAnchor(AnchorPoint::RightOutside(10.0), anchor))
             .with_z_index(400.0)
@@ -41,7 +41,7 @@ impl Scene for HelloUi {
             .with_position(Position::ScreenAnchor(AnchorPoint::BottomLeftInside(10.0, 10.0)))
         , asset_manager)?;
 
-        let anchor = interface.get_widget_anchor_element_id(height_slider_id).unwrap();
+        let anchor = interface.get_widget_anchor_element_id(&height_slider_id).unwrap();
         let _height_slider_label_id = interface.mut_element_registry().create_text("Rectangle height".to_string(), None, TextBuilder::new()
             .with_position(Position::ElementAnchor(AnchorPoint::RightOutside(10.0), anchor))
             .with_z_index(500.0)
@@ -74,14 +74,14 @@ impl Scene for HelloUi {
             .with_position(Position::ScreenAnchor(AnchorPoint::LeftInside(10.0)))
             .with_padding(Padding::Universal(5.0))
             .with_max_height(200.0)
-            .add_widget(dropdown_id)
-            .add_widget(reset_button_id)
-            .add_widget(width_slider_id)
-            .add_widget(layout_button_1)
-            .add_widget(layout_button_2)
-            .add_widget(layout_button_3)
-            .add_widget(layout_button_4)
-            .add_widget(layout_button_5)
+            .add_widget(&dropdown_id)
+            .add_widget(&reset_button_id)
+            .add_widget(&width_slider_id)
+            .add_widget(&layout_button_1)
+            .add_widget(&layout_button_2)
+            .add_widget(&layout_button_3)
+            .add_widget(&layout_button_4)
+            .add_widget(&layout_button_5)
             .build(&mut interface, asset_manager)?;
 
         Ok(Self { 
@@ -99,7 +99,7 @@ impl Scene for HelloUi {
         self.interface.update(asset_manager, input);
         self.layout.update(&mut self.interface, input);
 
-        self.interface.slider_update_result(self.width_slider_id).map(|result|{
+        self.interface.slider_update_result(&self.width_slider_id).map(|result|{
             let y = self.interface.mut_element_registry().get_element_scale(self.rectangle_id).unwrap().y;
             self.interface.mut_element_registry().set_element_scale(self.rectangle_id, Vec2 { 
                 x: result.new_value, 
@@ -111,7 +111,7 @@ impl Scene for HelloUi {
             }
         });
 
-        self.interface.slider_update_result(self.height_slider_id).map(|result|{
+        self.interface.slider_update_result(&self.height_slider_id).map(|result|{
             let x = self.interface.mut_element_registry().get_element_scale(self.rectangle_id).unwrap().x;
             self.interface.mut_element_registry().set_element_scale(self.rectangle_id, Vec2 { 
                 x,
@@ -119,20 +119,20 @@ impl Scene for HelloUi {
             }).unwrap();
         });
 
-        if self.interface.is_button_clicked(self.reset_button_id) {
-            self.interface.set_slider_value(1.0, self.width_slider_id, asset_manager);
-            self.interface.set_slider_value(1.0, self.height_slider_id, asset_manager);
+        if self.interface.is_button_clicked(&self.reset_button_id) {
+            self.interface.set_slider_value(1.0, &self.width_slider_id, asset_manager);
+            self.interface.set_slider_value(1.0, &self.height_slider_id, asset_manager);
             self.interface.mut_element_registry().set_element_scale(self.rectangle_id, Vec2::ONE).unwrap();
         }
 
         if input.is_key_down(Key::ArrowUp) {
-            _ = self.interface.show_widget(self.reset_button_id);
+            _ = self.interface.show_widget(&self.reset_button_id);
         }
         if input.is_key_down(Key::ArrowDown) {
-            _ = self.interface.hide_widget(self.reset_button_id);
+            _ = self.interface.hide_widget(&self.reset_button_id);
         }
 
-        match self.interface.dropdown_update_result(self.dropdown_id) {
+        match self.interface.dropdown_update_result(&self.dropdown_id) {
             Some(new_value) => {
                 let color = match new_value {
                     1 => Color::hex("#ff0000"),
@@ -148,13 +148,13 @@ impl Scene for HelloUi {
                 };
 
                 _ = self.interface.mut_element_registry().set_element_color(self.rectangle_id, color.clone());
-                _ = self.interface.set_button_text_color(color, self.reset_button_id);
+                _ = self.interface.set_button_text_color(color, &self.reset_button_id);
             },
             None => (),
         }
 
         if input.is_key_down(Key::Space) {
-            self.layout.add_widget(self.height_slider_id, &mut self.interface);
+            self.layout.add_widget(&self.height_slider_id, &mut self.interface);
         }
     }
 

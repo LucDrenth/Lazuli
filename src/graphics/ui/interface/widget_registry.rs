@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{widget::{Slider, SliderBuilder, SliderUpdateResult, Button, ButtonBuilder, UiWidget, Dropdown, DropdownBuilder}, Position, draw_bounds::DrawBounds}, Color}, asset_manager::AssetManager, input::Input, log};
+use crate::{graphics::{ui::{widget::{Slider, SliderBuilder, SliderUpdateResult, Button, ButtonBuilder, UiWidget, Dropdown, DropdownBuilder}, Position, draw_bounds::DrawBounds, UiWidgetId}, Color}, asset_manager::AssetManager, input::Input, log, ResourceId};
 
 use super::{ElementRegistry, widget_list::WidgetList};
 
@@ -48,27 +48,27 @@ impl WidgetRegistry {
     // =============================================================================== \\
     // =========== Functions for adding widgets and getting update result ============ \\
 
-    pub fn add_slider(&mut self, builder: SliderBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<u32, String> {
+    pub fn add_slider(&mut self, builder: SliderBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
         let slider = Slider::new(builder, element_registry, asset_manager)?;
         Ok(self.sliders.push(slider, None))
     }
-    pub fn add_button(&mut self, label: String, builder: ButtonBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<u32, String> {
+    pub fn add_button(&mut self, label: String, builder: ButtonBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
         let button = Button::new(label, builder, element_registry, asset_manager)?;
 
         Ok(self.buttons.push(button, false))
     }
-    pub fn add_dropdown(&mut self, builder: DropdownBuilder<u32>, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<u32, String> {
+    pub fn add_dropdown(&mut self, builder: DropdownBuilder<u32>, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
         let dropdown = Dropdown::new(builder, element_registry, asset_manager)?;
         Ok(self.dropdowns.push(dropdown, None))
     }
 
-    pub fn slider_update_result(&self, slider_id: u32) -> Option<SliderUpdateResult> {
+    pub fn slider_update_result(&self, slider_id: &ResourceId<UiWidgetId>) -> Option<SliderUpdateResult> {
         self.sliders.get_update_result(slider_id)
     }
-    pub fn is_button_clicked(&self, button_id: u32) -> bool {
+    pub fn is_button_clicked(&self, button_id: &ResourceId<UiWidgetId>) -> bool {
         self.buttons.get_update_result(button_id)
     }
-    pub fn dropdown_update_result(&self, dropdown_id: u32) -> Option<u32> {
+    pub fn dropdown_update_result(&self, dropdown_id: &ResourceId<UiWidgetId>) -> Option<u32> {
         self.dropdowns.get_update_result(dropdown_id)
     }
 
@@ -76,69 +76,69 @@ impl WidgetRegistry {
     // =================================================== \\
     // =========== General UiWidget functions ============ \\
 
-    pub fn get_main_element_id(&self, widget_id: u32) -> Option<u32> {
+    pub fn get_main_element_id(&self, widget_id: &ResourceId<UiWidgetId>) -> Option<u32> {
         match self.get_widget_by_id(widget_id) {
             Some(widget) => Some(widget.get_main_element_id()),
             None => None,
         }
     }
 
-    pub fn show_widget(&self, widget_id: u32, element_registry: &mut ElementRegistry) {
+    pub fn show_widget(&self, widget_id: &ResourceId<UiWidgetId>, element_registry: &mut ElementRegistry) {
         self.get_widget_by_id(widget_id).unwrap().show(element_registry);
     }
-    pub fn hide_widget(&self, widget_id: u32, element_registry: &mut ElementRegistry) {
+    pub fn hide_widget(&self, widget_id: &ResourceId<UiWidgetId>, element_registry: &mut ElementRegistry) {
         self.get_widget_by_id(widget_id).unwrap().hide(element_registry);
     }
 
-    pub fn get_widget_screen_position(&self, widget_id: u32, element_registry: &ElementRegistry) -> Result<Vec2, String> {
+    pub fn get_widget_screen_position(&self, widget_id: &ResourceId<UiWidgetId>, element_registry: &ElementRegistry) -> Result<Vec2, String> {
         let main_element_id = self.get_main_element_id(widget_id).unwrap();
         element_registry.get_element_screen_position(main_element_id)
     }
-    pub fn set_widget_position(&self, widget_id: u32, position: Position, element_registry: &mut ElementRegistry) {
+    pub fn set_widget_position(&self, widget_id: &ResourceId<UiWidgetId>, position: Position, element_registry: &mut ElementRegistry) {
         self.get_widget_by_id(widget_id).unwrap().set_position(position, element_registry);
     }
-    pub fn get_widget_position_transform(&self, widget_id: u32, element_registry: &ElementRegistry) -> Result<Vec2, String> {
+    pub fn get_widget_position_transform(&self, widget_id: &ResourceId<UiWidgetId>, element_registry: &ElementRegistry) -> Result<Vec2, String> {
         let main_element_id = self.get_main_element_id(widget_id).unwrap();
         element_registry.get_element_position_transform(main_element_id)
     }
-    pub fn set_widget_z_index(&mut self, widget_id: u32, z_index: f32, element_registry: &mut ElementRegistry) {
+    pub fn set_widget_z_index(&mut self, widget_id: &ResourceId<UiWidgetId>, z_index: f32, element_registry: &mut ElementRegistry) {
         self.get_mut_widget_by_id(widget_id).unwrap().set_z_index(z_index, element_registry);
     }
-    pub fn set_widget_draw_bounds(&mut self, widget_id: u32, draw_bounds: DrawBounds, element_registry: &mut ElementRegistry) {
+    pub fn set_widget_draw_bounds(&mut self, widget_id: &ResourceId<UiWidgetId>, draw_bounds: DrawBounds, element_registry: &mut ElementRegistry) {
         self.get_mut_widget_by_id(widget_id).unwrap().set_draw_bounds(draw_bounds, element_registry);
     }
-    pub fn get_widget_size(&self, widget_id: u32, element_registry: &ElementRegistry) -> Result<Vec2, String> {
+    pub fn get_widget_size(&self, widget_id: &ResourceId<UiWidgetId>, element_registry: &ElementRegistry) -> Result<Vec2, String> {
         let main_element_id = self.get_main_element_id(widget_id).unwrap();
         element_registry.get_element_size(main_element_id)
     }
 
-    fn get_widget_by_id(&self, widget_id: u32) -> Option<Box<&dyn UiWidget>> {
+    fn get_widget_by_id(&self, widget_id: &ResourceId<UiWidgetId>) -> Option<Box<&dyn UiWidget>> {
         for widget_entry in self.sliders.entries.iter() {
-            if widget_entry.id == widget_id { return Some(Box::new(&widget_entry.widget)) }
+            if widget_entry.id.equals(&widget_id) { return Some(Box::new(&widget_entry.widget)) }
         }
 
         for widget_entry in self.buttons.entries.iter() {
-            if widget_entry.id == widget_id { return Some(Box::new(&widget_entry.widget)) }
+            if widget_entry.id.equals(&widget_id) { return Some(Box::new(&widget_entry.widget)) }
         }
 
         for widget_entry in self.dropdowns.entries.iter() {
-            if widget_entry.id == widget_id { return Some(Box::new(&widget_entry.widget)) }
+            if widget_entry.id.equals(&widget_id) { return Some(Box::new(&widget_entry.widget)) }
         }
 
         None
     }
 
-    fn get_mut_widget_by_id(&mut self, widget_id: u32) -> Option<Box<&mut dyn UiWidget>> {
+    fn get_mut_widget_by_id(&mut self, widget_id: &ResourceId<UiWidgetId>) -> Option<Box<&mut dyn UiWidget>> {
         for widget_entry in self.sliders.entries.iter_mut() {
-            if widget_entry.id == widget_id { return Some(Box::new(&mut widget_entry.widget)) }
+            if widget_entry.id.equals(&widget_id) { return Some(Box::new(&mut widget_entry.widget)) }
         }
 
         for widget_entry in self.buttons.entries.iter_mut() {
-            if widget_entry.id == widget_id { return Some(Box::new(&mut widget_entry.widget)) }
+            if widget_entry.id.equals(&widget_id) { return Some(Box::new(&mut widget_entry.widget)) }
         }
 
         for widget_entry in self.dropdowns.entries.iter_mut() {
-            if widget_entry.id == widget_id { return Some(Box::new(&mut widget_entry.widget)) }
+            if widget_entry.id.equals(&widget_id) { return Some(Box::new(&mut widget_entry.widget)) }
         }
 
         None
@@ -148,48 +148,48 @@ impl WidgetRegistry {
     // =================================================== \\
     // ======= Functions to get individual widgets ======= \\
 
-    fn get_slider(&self, slider_id: u32) -> Option<&Slider> {
+    fn get_slider(&self, slider_id: &ResourceId<UiWidgetId>) -> Option<&Slider> {
         self.sliders.get_widget(slider_id)
     }
-    fn get_mut_slider(&mut self, slider_id: u32) -> Option<&mut Slider> {
+    fn get_mut_slider(&mut self, slider_id: &ResourceId<UiWidgetId>) -> Option<&mut Slider> {
         self.sliders.get_mut_widget(slider_id)
 
     }
-    fn get_button(&self, button_id: u32) -> Option<&Button> {
+    fn get_button(&self, button_id: &ResourceId<UiWidgetId>) -> Option<&Button> {
         self.buttons.get_widget(button_id)
     }
-    fn get_mut_button(&mut self, button_id: u32) -> Option<&mut Button> {
+    fn get_mut_button(&mut self, button_id: &ResourceId<UiWidgetId>) -> Option<&mut Button> {
         self.buttons.get_mut_widget(button_id)
     }
-    fn get_dropdown(&self, dropdown_id: u32) -> Option<&Dropdown<u32>> {
+    fn get_dropdown(&self, dropdown_id: &ResourceId<UiWidgetId>) -> Option<&Dropdown<u32>> {
         self.dropdowns.get_widget(dropdown_id)
 
     }
-    fn get_mut_dropdown(&mut self, dropdown_id: u32) -> Option<&mut Dropdown<u32>> {
+    fn get_mut_dropdown(&mut self, dropdown_id: &ResourceId<UiWidgetId>) -> Option<&mut Dropdown<u32>> {
         self.dropdowns.get_mut_widget(dropdown_id)
     }
 
     // =================================================== \\
     // ============ Widget specific functions ============ \\
 
-    pub fn set_slider_value(&mut self, value: f32, slider_id: u32, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) {
+    pub fn set_slider_value(&mut self, value: f32, slider_id: &ResourceId<UiWidgetId>, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) {
         match self.get_mut_slider(slider_id) {
             Some(slider) => slider.set_value(value, element_registry, asset_manager),
-            None => log::engine_warn(format!("Failed to set slider value because slider with id {} was not found", slider_id)),
+            None => log::engine_warn( format!("Failed to set slider value because slider with id {} was not found", slider_id.id()) ),
         }
     }
 
-    pub fn set_button_background_color(&self, color: Color, button_id: u32, element_registry: &mut ElementRegistry) -> Result<(), String> {
+    pub fn set_button_background_color(&self, color: Color, button_id: &ResourceId<UiWidgetId>, element_registry: &mut ElementRegistry) -> Result<(), String> {
         match self.get_button(button_id) {
             Some(button) => button.set_background_color(color, element_registry),
-            None => Err( format!("Failed to set button background color because button with id {} was not found", button_id) ),
+            None => Err( format!("Failed to set button background color because button with id {} was not found", button_id.id()) ),
         }
     }
 
-    pub fn set_button_text_color(&self, color: Color, button_id: u32, element_registry: &mut ElementRegistry) -> Result<(), String> {
+    pub fn set_button_text_color(&self, color: Color, button_id: &ResourceId<UiWidgetId>, element_registry: &mut ElementRegistry) -> Result<(), String> {
         match self.get_button(button_id) {
             Some(button) => button.set_text_color(color, element_registry),
-            None => Err( format!("Failed to set button text color because button with id {} was not found", button_id) ),
+            None => Err( format!("Failed to set button text color because button with id {} was not found", button_id.id()) ),
         }
     }
 }

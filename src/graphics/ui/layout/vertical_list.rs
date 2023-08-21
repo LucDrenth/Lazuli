@@ -1,11 +1,11 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{Position, AnchorPoint, shapes::RectangleBuilder, Interface, padding::Padding, draw_bounds::DrawBounds}, Color}, asset_manager::AssetManager, log, input::Input};
+use crate::{graphics::{ui::{Position, AnchorPoint, shapes::RectangleBuilder, Interface, padding::Padding, draw_bounds::DrawBounds, UiWidgetId}, Color}, asset_manager::AssetManager, log, input::Input, ResourceId};
 
 use super::{Layout, layout::LAYOUT_ELEMENT_EXTRA_Z_INDEX};
 
 pub struct VerticalList {
-    widget_ids: Vec<u32>, // List of unique ids. We do not use a HashSet because the order matters.
+    widget_ids: Vec<ResourceId<UiWidgetId>>, // List of unique ids. We do not use a HashSet because the order matters.
     background_element_id: u32,
     gap_size: f32, // the amount of space between elements
     position: Position,
@@ -18,7 +18,7 @@ pub struct VerticalList {
 }
 
 impl Layout for VerticalList {
-    fn add_widget(&mut self, widget_id: u32, interface: &mut Interface) {
+    fn add_widget(&mut self, widget_id: &ResourceId<UiWidgetId>, interface: &mut Interface) {
         // calculate position of newly added widget
         let anchor_id;
         let anchor_point;
@@ -33,11 +33,14 @@ impl Layout for VerticalList {
         }
 
         // add our new widget to the list if widgets
-        if self.widget_ids.contains(&widget_id) {
-            log::engine_warn(format!("VerticalList: widget with id {} was already in the list", widget_id));
-            return;
+        for existing_widget_id in self.widget_ids.iter() {
+            if existing_widget_id.equals(widget_id) {
+                log::engine_warn( format!("VerticalList: widget with id {} was already in the list", widget_id.id()) );
+                return;
+            }
         }
-        self.widget_ids.push(widget_id);
+
+        self.widget_ids.push(widget_id.duplicate());
 
         // resize background element
         let old_background_height = interface.element_registry().get_element_size(self.background_element_id).unwrap().y;
@@ -51,9 +54,9 @@ impl Layout for VerticalList {
         }
 
         // set position of newly added widget
-        interface.set_widget_position(widget_id, Position::ElementAnchor(anchor_point, anchor_id));
-        interface.set_widget_z_index(widget_id, self.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX);
-        interface.set_widget_draw_bounds(widget_id, self.draw_bounds.clone());
+        interface.set_widget_position(&widget_id, Position::ElementAnchor(anchor_point, anchor_id));
+        interface.set_widget_z_index(&widget_id, self.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX);
+        interface.set_widget_draw_bounds(&widget_id, self.draw_bounds.clone());
 
         // update max scroll
         self.max_scroll = calculate_max_scroll(&self.widget_ids, &self.padding, self.background_element_id, new_background_height, interface);
@@ -72,7 +75,7 @@ impl Layout for VerticalList {
         self.z_index = z_index;
 
         for widget_id in self.widget_ids.iter() {
-            interface.set_widget_z_index(*widget_id, self.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX);
+            interface.set_widget_z_index(widget_id, self.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX);
         }
     }
 }
@@ -87,7 +90,7 @@ impl VerticalList {
         self.current_scroll = new_scroll_amount;
 
         // update widgets position
-        let first_widget_id = *self.widget_ids.first().unwrap();
+        let first_widget_id = self.widget_ids.first().unwrap();
         let first_widget_anchor_element_id  = interface.widget_registry().get_main_element_id(first_widget_id).unwrap();
 
         _ = interface.mut_element_registry().set_element_position_transform(
@@ -102,7 +105,7 @@ impl VerticalList {
 }
 
 pub struct VerticalListBuilder {
-    widget_ids: Vec<u32>,
+    widget_ids: Vec<ResourceId<UiWidgetId>>,
     gap_size: f32, // the amount of space between elements
     background_color: Color,
     max_height: f32,
@@ -163,22 +166,22 @@ impl VerticalListBuilder {
 
         // position widgets
         interface.set_widget_position(
-            list.widget_ids[0], 
+            &list.widget_ids[0], 
             Position::ElementAnchor(AnchorPoint::TopInside(list.padding.top()), list.background_element_id), 
         );
 
         for i in 1..list.widget_ids.len() {
-            let anchor_element = interface.get_widget_anchor_element_id(list.widget_ids[i - 1]).unwrap();
+            let anchor_element = interface.get_widget_anchor_element_id(&list.widget_ids[i - 1]).unwrap();
             
             interface.set_widget_position(
-                list.widget_ids[i], 
+                &list.widget_ids[i], 
                 Position::ElementAnchor(AnchorPoint::BottomOutside(self.gap_size), anchor_element), 
             );
         }
 
         for widget_id in list.widget_ids.iter() {
-            interface.set_widget_z_index(*widget_id, list.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX);
-            interface.set_widget_draw_bounds(*widget_id, list.draw_bounds.clone());
+            interface.set_widget_z_index(widget_id, list.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX);
+            interface.set_widget_draw_bounds(widget_id, list.draw_bounds.clone());
         }
 
         // We can only set this after the widget positions has been set
@@ -192,24 +195,26 @@ impl VerticalListBuilder {
      * Setter functions start here *
      *******************************/
 
-    pub fn add_widget(mut self, widget_id: u32) -> Self {
-        self.try_add_widget(widget_id);
+    pub fn add_widget(mut self, widget_id: &ResourceId<UiWidgetId>) -> Self {
+        self.try_add_widget(widget_id.duplicate());
         self
     }
 
-    pub fn add_widgets(mut self, widget_ids: &Vec<u32>) -> Self {
+    pub fn add_widgets(mut self, widget_ids: &Vec<ResourceId<UiWidgetId>>) -> Self {
         // We do not add them all at once because we only want unique values in the list
         for widget_id in widget_ids.iter() {
-            self.try_add_widget(*widget_id);
+            self.try_add_widget(widget_id.duplicate());
         }
 
         self
     }
 
-    fn try_add_widget(&mut self, widget_id: u32) {
-        if self.widget_ids.contains(&widget_id) {
-            log::engine_warn(format!("VerticalListBuilder: widget with id {} was already in the list", widget_id));
-            return;
+    fn try_add_widget(&mut self, widget_id: ResourceId<UiWidgetId>) {
+        for existing_widget_id in self.widget_ids.iter() {
+            if existing_widget_id.equals(&widget_id) {
+                log::engine_warn(format!("VerticalListBuilder: widget with id {} was already in the list", widget_id.id()));
+                return;
+            }
         }
 
         self.widget_ids.push(widget_id);
@@ -246,18 +251,18 @@ impl VerticalListBuilder {
     }
 }
 
-fn calculate_background_height(widget_ids: &Vec<u32>, gap_size: f32, padding: &Padding, interface: &Interface) -> f32 {
+fn calculate_background_height(widget_ids: &Vec<ResourceId<UiWidgetId>>, gap_size: f32, padding: &Padding, interface: &Interface) -> f32 {
     let mut background_height = padding.top();
 
     for widget_id in widget_ids.iter() {
-        background_height += interface.get_widget_size(*widget_id).unwrap().y + gap_size;
+        background_height += interface.get_widget_size(widget_id).unwrap().y + gap_size;
     }
 
     background_height - gap_size + padding.bottom()
 }
 
 /// Returns the width of widest widget + two times the gap size as padding, or only the gap size if there are no elements
-fn calculate_background_width(widget_ids: &Vec<u32>, padding: &Padding, interface: &Interface) -> f32 {
+fn calculate_background_width(widget_ids: &Vec<ResourceId<UiWidgetId>>, padding: &Padding, interface: &Interface) -> f32 {
     if widget_ids.is_empty() {
         return padding.horizontal();
     }
@@ -265,13 +270,13 @@ fn calculate_background_width(widget_ids: &Vec<u32>, padding: &Padding, interfac
     let mut widest: f32 = 0.0;
 
     for widget_id in widget_ids.iter() {
-        widest = widest.max(interface.get_widget_size(*widget_id).unwrap().x)
+        widest = widest.max(interface.get_widget_size(widget_id).unwrap().x)
     }
 
     widest + padding.horizontal()
 }
 
-fn calculate_max_scroll(widget_ids: &Vec<u32>, padding: &Padding, background_element_id: u32, layout_height: f32, interface: &Interface) -> f32 {
+fn calculate_max_scroll(widget_ids: &Vec<ResourceId<UiWidgetId>>, padding: &Padding, background_element_id: u32, layout_height: f32, interface: &Interface) -> f32 {
     if widget_ids.is_empty() {
         return 0.0;
     }
@@ -279,14 +284,14 @@ fn calculate_max_scroll(widget_ids: &Vec<u32>, padding: &Padding, background_ele
     let first_widget_id = widget_ids.first().unwrap();
     let last_widget_id = widget_ids.last().unwrap();
 
-    let bottom_of_last_element = interface.get_widget_screen_position(*last_widget_id).unwrap().y;
+    let bottom_of_last_element = interface.get_widget_screen_position(last_widget_id).unwrap().y;
             
     let layout_position_y = interface.element_registry().get_element_screen_position(background_element_id).unwrap().y;
     let bottom_of_layout = layout_position_y - layout_height / 2.0;
 
     let max_scroll = (bottom_of_last_element - bottom_of_layout).abs() 
         + padding.bottom() 
-        + interface.get_widget_size(*last_widget_id).unwrap().y / 2.0 
-        + interface.get_widget_position_transform(*first_widget_id).unwrap().y;
+        + interface.get_widget_size(last_widget_id).unwrap().y / 2.0 
+        + interface.get_widget_position_transform(first_widget_id).unwrap().y;
     (max_scroll).max(0.0)
 }

@@ -21,6 +21,7 @@ impl<T> ResourceId<T> {
         Self::new(self.id)
     }
 
+    /// Compare id's
     pub fn equals(&self, compare_with: &ResourceId<T>) -> bool {
         self.id == compare_with.id
     }

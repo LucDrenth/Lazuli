@@ -1,12 +1,12 @@
 use std::fmt::Debug;
 
-use crate::{graphics::ui::widget::UiWidget, log};
+use crate::{graphics::ui::{widget::UiWidget, UiWidgetId}, log, ResourceId};
 
 use super::element_list::generate_id;
 
 pub struct WidgetEntry<T: UiWidget, U: Debug + Clone> {
     pub widget: T,
-    pub id: u32,
+    pub id: ResourceId<UiWidgetId>,
     pub update_result: U,
 }
 
@@ -14,7 +14,7 @@ impl <T: UiWidget, U: Debug + Clone> WidgetEntry<T, U> {
     fn new(widget: T, default_update_result: U) -> Self {
         Self {
             widget: widget,
-            id: generate_id(),
+            id: ResourceId::new(generate_id()),
             update_result: default_update_result,
         }
     }
@@ -30,18 +30,18 @@ impl <T: UiWidget, U: Debug + Clone> WidgetList<T, U> {
         Self { entries: vec![], default_update_result }
     }
 
-    pub fn push(&mut self, widget: T, default_update_result: U) -> u32 {
+    pub fn push(&mut self, widget: T, default_update_result: U) -> ResourceId<UiWidgetId> {
         self.entries.push(WidgetEntry::new(widget, default_update_result));
-        let id = self.entries.last().unwrap().id;
+        let id = self.entries.last().unwrap().id.duplicate();
 
         self.sort();
 
         id
     }
 
-    pub fn get_widget(&self, widget_id: u32) -> Option<&T>  {
+    pub fn get_widget(&self, widget_id: &ResourceId<UiWidgetId>) -> Option<&T>  {
         for entry in self.entries.iter() {
-            if entry.id == widget_id {
+            if entry.id.equals(&widget_id) {
                 return Some(&entry.widget);
             }
         }
@@ -49,9 +49,9 @@ impl <T: UiWidget, U: Debug + Clone> WidgetList<T, U> {
         None
     }
 
-    pub fn get_mut_widget(&mut self, widget_id: u32) -> Option<&mut T> {
+    pub fn get_mut_widget(&mut self, widget_id: &ResourceId<UiWidgetId>) -> Option<&mut T> {
         for entry in self.entries.iter_mut() {
-            if entry.id == widget_id {
+            if entry.id.equals(&widget_id) {
                 return Some(&mut entry.widget);
             }
         }
@@ -60,16 +60,16 @@ impl <T: UiWidget, U: Debug + Clone> WidgetList<T, U> {
     }
 
     /// Returns the update result of the given widget, or default if the widget was not found
-    pub fn get_update_result(&self, widget_id: u32) -> U {
+    pub fn get_update_result(&self, widget_id: &ResourceId<UiWidgetId>) -> U {
         for entry in self.entries.iter() {
-            if entry.id == widget_id {
+            if entry.id.equals(&widget_id) {
                 return entry.update_result.clone();
             }
         }
 
         log::engine_warn(format!(
             "WidgetList.get_update_result returning default {:?} because widget with id {} was not found", 
-            self.default_update_result, widget_id)
+            self.default_update_result, widget_id.id())
         );
 
         self.default_update_result.clone()

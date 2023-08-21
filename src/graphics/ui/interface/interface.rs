@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_manager::AssetManager, input::Input, graphics::{ui::{widget::{SliderBuilder, SliderUpdateResult, ButtonBuilder, DropdownBuilder}, Position, draw_bounds::DrawBounds}, font::{Font, PlainBitmapBuilder}, Color}, ResourceId};
+use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_manager::AssetManager, input::Input, graphics::{ui::{widget::{SliderBuilder, SliderUpdateResult, ButtonBuilder, DropdownBuilder}, Position, draw_bounds::DrawBounds, UiWidgetId}, font::{Font, PlainBitmapBuilder}, Color}, ResourceId};
 
 use super::{ElementRegistry, widget_registry::WidgetRegistry};
 
@@ -45,64 +45,64 @@ impl Interface {
     pub fn mut_widget_registry(&mut self) -> &mut WidgetRegistry { &mut self.widget_registry }
 
     // UiWidget functions
-    pub fn get_widget_anchor_element_id(&self, widget_id: u32) -> Option<u32> {
+    pub fn get_widget_anchor_element_id(&self, widget_id: &ResourceId<UiWidgetId>) -> Option<u32> {
         self.widget_registry.get_main_element_id(widget_id)
     }
-    pub fn show_widget(&mut self, widget_id: u32) {
+    pub fn show_widget(&mut self, widget_id: &ResourceId<UiWidgetId>) {
         self.widget_registry.show_widget(widget_id, &mut self.element_registry);
     }
-    pub fn hide_widget(&mut self, widget_id: u32) {
+    pub fn hide_widget(&mut self, widget_id: &ResourceId<UiWidgetId>) {
         self.widget_registry.hide_widget(widget_id, &mut self.element_registry);
     }
-    pub fn get_widget_size(&self, widget_id: u32) -> Result<Vec2, String> {
+    pub fn get_widget_size(&self, widget_id: &ResourceId<UiWidgetId>) -> Result<Vec2, String> {
         self.widget_registry.get_widget_size(widget_id, &self.element_registry)
     }
-    pub fn get_widget_screen_position(&self, widget_id: u32) -> Result<Vec2, String> {
+    pub fn get_widget_screen_position(&self, widget_id: &ResourceId<UiWidgetId>) -> Result<Vec2, String> {
         self.widget_registry.get_widget_screen_position(widget_id, &self.element_registry)
     }
-    pub fn get_widget_position_transform(&self, widget_id: u32) -> Result<Vec2, String> {
+    pub fn get_widget_position_transform(&self, widget_id: &ResourceId<UiWidgetId>) -> Result<Vec2, String> {
         self.widget_registry.get_widget_position_transform(widget_id, &self.element_registry)
     }
-    pub fn set_widget_position(&mut self, widget_id: u32, position: Position) {
+    pub fn set_widget_position(&mut self, widget_id: &ResourceId<UiWidgetId>, position: Position) {
         self.widget_registry.set_widget_position(widget_id, position, &mut self.element_registry);
     }
-    pub fn set_widget_z_index(&mut self, widget_id: u32, z_index: f32) {
+    pub fn set_widget_z_index(&mut self, widget_id: &ResourceId<UiWidgetId>, z_index: f32) {
         self.widget_registry.set_widget_z_index(widget_id, z_index, &mut self.element_registry);
     }
-    pub fn set_widget_draw_bounds(&mut self, widget_id: u32, draw_bounds: DrawBounds) {
+    pub fn set_widget_draw_bounds(&mut self, widget_id: &ResourceId<UiWidgetId>, draw_bounds: DrawBounds) {
         self.widget_registry.set_widget_draw_bounds(widget_id, draw_bounds, &mut self.element_registry);
     }
 
     // button specific functions
-    pub fn add_button(&mut self, label: String, builder: ButtonBuilder, asset_manager: &mut AssetManager) -> Result<u32, String> {
+    pub fn add_button(&mut self, label: String, builder: ButtonBuilder, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
         self.widget_registry.add_button(label, builder, &mut self.element_registry, asset_manager)
     }
-    pub fn is_button_clicked(&self, button_id: u32) -> bool {
+    pub fn is_button_clicked(&self, button_id: &ResourceId<UiWidgetId>) -> bool {
         self.widget_registry.is_button_clicked(button_id)
     }
-    pub fn set_button_background_color(&mut self, color: Color, button_id: u32) -> Result<(), String> {
+    pub fn set_button_background_color(&mut self, color: Color, button_id: &ResourceId<UiWidgetId>) -> Result<(), String> {
         self.widget_registry.set_button_background_color(color, button_id, &mut self.element_registry)
     }
-    pub fn set_button_text_color(&mut self, color: Color, button_id: u32) -> Result<(), String> {
+    pub fn set_button_text_color(&mut self, color: Color, button_id: &ResourceId<UiWidgetId>) -> Result<(), String> {
         self.widget_registry.set_button_text_color(color, button_id, &mut self.element_registry)
     }
 
     // slider specific functions
-    pub fn add_slider(&mut self, builder: SliderBuilder, asset_manager: &mut AssetManager) -> Result<u32, String> {
+    pub fn add_slider(&mut self, builder: SliderBuilder, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
         self.widget_registry.add_slider(builder, &mut self.element_registry, asset_manager)
     }
-    pub fn slider_update_result(&self, slider_id: u32) -> Option<SliderUpdateResult> {
+    pub fn slider_update_result(&self, slider_id: &ResourceId<UiWidgetId>) -> Option<SliderUpdateResult> {
         self.widget_registry.slider_update_result(slider_id)
     }
-    pub fn set_slider_value(&mut self, value: f32, slider_id: u32, asset_manager: &mut AssetManager) {
+    pub fn set_slider_value(&mut self, value: f32, slider_id: &ResourceId<UiWidgetId>, asset_manager: &mut AssetManager) {
         self.widget_registry.set_slider_value(value, slider_id, &mut self.element_registry, asset_manager);
     }
 
     // dropdown specific functions
-    pub fn add_dropdown(&mut self, builder: DropdownBuilder<u32>, asset_manager: &mut AssetManager) -> Result<u32, String> {
+    pub fn add_dropdown(&mut self, builder: DropdownBuilder<u32>, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
         self.widget_registry.add_dropdown(builder, &mut self.element_registry, asset_manager)
     }
-    pub fn dropdown_update_result(&self, dropdown_id: u32) -> Option<u32> {
+    pub fn dropdown_update_result(&self, dropdown_id: &ResourceId<UiWidgetId>) -> Option<u32> {
         self.widget_registry.dropdown_update_result(dropdown_id)
     }
 
