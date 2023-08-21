@@ -45,7 +45,7 @@ impl Interface {
     pub fn mut_widget_registry(&mut self) -> &mut WidgetRegistry { &mut self.widget_registry }
 
     // UiWidget functions
-    pub fn get_widget_anchor_element_id(&self, widget_id: &ResourceId<UiWidgetId>) -> Option<ResourceId<UiElementId>> {
+    pub fn get_widget_main_element_id(&self, widget_id: &ResourceId<UiWidgetId>) -> Option<ResourceId<UiElementId>> {
         self.widget_registry.get_main_element_id(widget_id)
     }
     pub fn show_widget(&mut self, widget_id: &ResourceId<UiWidgetId>) {

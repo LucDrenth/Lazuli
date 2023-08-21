@@ -28,7 +28,7 @@ impl Layout for VerticalList {
             anchor_point = AnchorPoint::TopInside(self.gap_size);
         } else {
             let anchor_widget_id = self.widget_ids.last().unwrap().clone();
-            anchor_id = interface.get_widget_anchor_element_id(&anchor_widget_id).unwrap();
+            anchor_id = interface.get_widget_main_element_id(&anchor_widget_id).unwrap();
             anchor_point = AnchorPoint::BottomOutside(self.gap_size);
         }
 
@@ -171,7 +171,7 @@ impl VerticalListBuilder {
         );
 
         for i in 1..list.widget_ids.len() {
-            let anchor_element = interface.get_widget_anchor_element_id(&list.widget_ids[i - 1]).unwrap();
+            let anchor_element = interface.get_widget_main_element_id(&list.widget_ids[i - 1]).unwrap();
             
             interface.set_widget_position(
                 &list.widget_ids[i], 
