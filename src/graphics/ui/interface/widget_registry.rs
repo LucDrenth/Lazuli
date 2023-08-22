@@ -46,8 +46,8 @@ impl WidgetRegistry {
     // =============================================================================== \\
     // =========== Functions for adding widgets and getting update result ============ \\
 
-    pub fn add_slider(&mut self, builder: SliderBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
-        let slider = Slider::new(builder, element_registry, asset_manager)?;
+    pub fn add_slider(&mut self, builder: &SliderBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
+        let slider = builder.build(element_registry, asset_manager)?;
         Ok(self.sliders.push(slider, None))
     }
     pub fn add_button(&mut self, label: impl Into<String>, builder: &ButtonBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {

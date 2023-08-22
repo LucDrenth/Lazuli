@@ -2,11 +2,13 @@ use glam::Vec2;
 
 use crate::{graphics::{ui::{ElementRegistry, interface::{is_valid_z_index, self}, Text, TextBuilder, Position, shapes::{Rectangle, RectangleBuilder}, element::AnchorPoint, widget::UiWidget, UiElementId}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, log, input::{Input, MouseButton}, ResourceId};
 
+#[derive(Clone, Copy, Debug)]
 pub enum SliderProgressBarAlignment {
     /// Default. Progress bar goes in to the slide direction (follows the mouse).
     Natural,
     Center,
 }
+#[derive(Clone, Copy, Debug)]
 pub enum SliderDirection {
     /// All the way to the left is the minimum value. All the way to the right is the maximum value
     LeftToRight,
@@ -94,63 +96,6 @@ impl UiWidget for Slider {
 }
 
 impl Slider {
-    pub fn new(builder: SliderBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<Self, String> {
-        let font_id = match builder.font_path {
-            Some(font_path) => asset_manager.load_font(PlainBitmapBuilder::new()
-                .with_font_file_path(font_path)
-                .with_font_size(50.0)
-                , None)?,
-            None => interface::default_font(asset_manager)?,
-        };
-
-        let background = Rectangle::new(RectangleBuilder::new()
-            .with_width(builder.width)
-            .with_height(builder.height)
-            .with_z_index(builder.z_index)
-            .with_position(builder.position)
-            .with_color(builder.background_color)
-            .with_scale(builder.scale)
-        , asset_manager, element_registry)?;
-        let background_element_id = element_registry.add_rectangle(background);
-
-        let progress_rectangle = Rectangle::new(RectangleBuilder::new()
-            .with_width(builder.width)
-            .with_height(builder.height)
-            .with_z_index(builder.z_index + 0.01)
-            .with_color(builder.progress_color)
-            .with_position(Position::ElementAnchor(
-                progress_bar_alignment_to_anchor_point(&builder.progress_bar_alignment, &builder.direction), 
-                background_element_id
-            ))
-            .with_scale(Vec2::new(builder.initial_value / (builder.maximum_value - builder.minimum_value), 1.0) * builder.scale)
-        , asset_manager, element_registry)?;
-        let progress_element_id = element_registry.add_rectangle(progress_rectangle);
-
-        let text = Text::new(Self::value_string(builder.initial_value, builder.decimals), &font_id, TextBuilder::new()
-            .with_color(builder.text_color)
-            .with_z_index(builder.z_index + 0.02)
-            .with_scale(builder.scale)
-            .with_position(Position::ElementAnchor(AnchorPoint::Center, background_element_id))
-            .with_font_size(builder.font_size)
-        , asset_manager, element_registry)?;
-        let text_element_id = element_registry.add_text(text);
-
-        Ok(Self {
-            text_element_id,
-            background_element_id,
-            progress_element_id,
-            progress_bar_alignment: builder.progress_bar_alignment,
-            value: builder.initial_value,
-            minimum_value: builder.minimum_value,
-            maximum_value: builder.maximum_value,
-            decimals: builder.decimals,
-            id: ResourceId::new(element_registry.generate_element_id()),
-            scale: builder.scale,
-            z_index: builder.z_index,
-            direction: builder.direction,
-        })
-    }
-
     /// Returns Some if there is a change by dragging the slider
     pub fn update(&mut self, input: &Input, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Option<SliderUpdateResult> {
         let did_start_drag = self.check_activate_drag(input, element_registry);
@@ -296,6 +241,63 @@ impl SliderBuilder {
             scale: Vec2::ONE,
             direction: SliderDirection::LeftToRight,
         }
+    }
+
+    pub fn build(&self, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<Slider, String> {
+        let font_id = match &self.font_path {
+            Some(font_path) => asset_manager.load_font(PlainBitmapBuilder::new()
+                .with_font_file_path(font_path.clone())
+                .with_font_size(50.0)
+                , None)?,
+            None => interface::default_font(asset_manager)?,
+        };
+
+        let background = Rectangle::new(RectangleBuilder::new()
+            .with_width(self.width)
+            .with_height(self.height)
+            .with_z_index(self.z_index)
+            .with_position(self.position)
+            .with_color(self.background_color.clone())
+            .with_scale(self.scale)
+        , asset_manager, element_registry)?;
+        let background_element_id = element_registry.add_rectangle(background);
+
+        let progress_rectangle = Rectangle::new(RectangleBuilder::new()
+            .with_width(self.width)
+            .with_height(self.height)
+            .with_z_index(self.z_index + 0.01)
+            .with_color(self.progress_color.clone())
+            .with_position(Position::ElementAnchor(
+                progress_bar_alignment_to_anchor_point(&self.progress_bar_alignment, &self.direction), 
+                background_element_id
+            ))
+            .with_scale(Vec2::new(self.initial_value / (self.maximum_value - self.minimum_value), 1.0) * self.scale)
+        , asset_manager, element_registry)?;
+        let progress_element_id = element_registry.add_rectangle(progress_rectangle);
+
+        let text = Text::new(Slider::value_string(self.initial_value, self.decimals), &font_id, TextBuilder::new()
+            .with_color(self.text_color.clone())
+            .with_z_index(self.z_index + 0.02)
+            .with_scale(self.scale)
+            .with_position(Position::ElementAnchor(AnchorPoint::Center, background_element_id))
+            .with_font_size(self.font_size)
+        , asset_manager, element_registry)?;
+        let text_element_id = element_registry.add_text(text);
+
+        Ok(Slider {
+            text_element_id,
+            background_element_id,
+            progress_element_id,
+            progress_bar_alignment: self.progress_bar_alignment,
+            value: self.initial_value,
+            minimum_value: self.minimum_value,
+            maximum_value: self.maximum_value,
+            decimals: self.decimals,
+            id: ResourceId::new(element_registry.generate_element_id()),
+            scale: self.scale,
+            z_index: self.z_index,
+            direction: self.direction,
+        })
     }
 
     pub fn with_z_index(mut self, z_index: f32) -> Self {

@@ -103,7 +103,7 @@ impl Interface {
     }
 
     // slider specific functions
-    pub fn add_slider(&mut self, builder: SliderBuilder, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
+    pub fn add_slider(&mut self, builder: &SliderBuilder, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
         self.widget_registry.add_slider(builder, &mut self.element_registry, asset_manager)
     }
     pub fn slider_update_result(&self, slider_id: &ResourceId<UiWidgetId>) -> Option<SliderUpdateResult> {
