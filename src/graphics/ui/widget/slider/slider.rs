@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{ElementRegistry, interface::{is_valid_z_index, self}, Text, TextBuilder, Position, element::AnchorPoint, widget::UiWidget, UiElementId, self}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, log, input::{Input, MouseButton}, ResourceId};
+use crate::{graphics::{ui::{ElementRegistry, interface::{is_valid_z_index, self}, TextBuilder, Position, element::AnchorPoint, widget::UiWidget, UiElementId, self}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, log, input::{Input, MouseButton}, ResourceId};
 
 #[derive(Clone, Copy, Debug)]
 pub enum SliderProgressBarAlignment {
@@ -275,13 +275,13 @@ impl SliderBuilder {
             .build(asset_manager, element_registry)?;
         let progress_element_id = element_registry.add_rectangle(progress_rectangle);
 
-        let text = Text::new(Slider::value_string(self.initial_value, self.decimals), &font_id, TextBuilder::new()
+        let text = TextBuilder::new()
             .with_color(self.text_color.clone())
             .with_z_index(self.z_index + 0.02)
             .with_scale(self.scale)
             .with_position(Position::ElementAnchor(AnchorPoint::Center, background_element_id))
             .with_font_size(self.font_size)
-        , asset_manager, element_registry)?;
+            .build(Slider::value_string(self.initial_value, self.decimals), &font_id, asset_manager, element_registry)?;
         let text_element_id = element_registry.add_text(text);
 
         Ok(Slider {

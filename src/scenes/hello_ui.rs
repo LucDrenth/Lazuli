@@ -28,7 +28,7 @@ impl Scene for HelloUi {
         let width_slider_id = interface.add_slider(&slider_size_builder, asset_manager)?;
 
         let anchor = interface.get_widget_main_element_id(&width_slider_id).unwrap();
-        let _width_slider_label_id = interface.mut_element_registry().create_text("Rectangle width".to_string(), None, TextBuilder::new()
+        let _width_slider_label_id = interface.mut_element_registry().create_text("Rectangle width".to_string(), None, &TextBuilder::new()
             .with_position(Position::ElementAnchor(AnchorPoint::RightOutside(10.0), anchor))
         , asset_manager)?;
 
@@ -40,7 +40,7 @@ impl Scene for HelloUi {
         let height_slider_id = interface.add_slider(&slider_size_builder, asset_manager)?;
 
         let anchor = interface.get_widget_main_element_id(&height_slider_id).unwrap();
-        let _height_slider_label_id = interface.mut_element_registry().create_text("Rectangle height".to_string(), None, TextBuilder::new()
+        let _height_slider_label_id = interface.mut_element_registry().create_text("Rectangle height".to_string(), None, &TextBuilder::new()
             .with_position(Position::ElementAnchor(AnchorPoint::RightOutside(10.0), anchor))
             .with_z_index(500.0)
         , asset_manager)?;

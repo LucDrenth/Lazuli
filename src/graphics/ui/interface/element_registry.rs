@@ -144,13 +144,13 @@ impl ElementRegistry {
         return None
     }
 
-    pub fn create_text(&mut self, text: String, font_id: Option<&ResourceId<Font>>, text_builder: TextBuilder, asset_manager: &mut AssetManager) -> Result<ResourceId<UiElementId>, String> {
+    pub fn create_text(&mut self, text: impl Into<String>, font_id: Option<&ResourceId<Font>>, text_builder: &TextBuilder, asset_manager: &mut AssetManager) -> Result<ResourceId<UiElementId>, String> {
         let font_id_to_use = match font_id {
             Some(id) => id.duplicate(),
             None => interface::default_font(asset_manager)?,
         };
 
-        let text_element = Text::new(text, &font_id_to_use, text_builder, asset_manager, self)?;
+        let text_element = text_builder.build(text, &font_id_to_use, asset_manager, self)?;
         Ok(self.add_text(text_element))
     }
 

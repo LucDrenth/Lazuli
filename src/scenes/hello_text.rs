@@ -16,7 +16,7 @@ impl Scene for HelloText {
             .with_font_size(50.0)
         , None)?;
         
-        interface.mut_element_registry().create_text("Welcome to Lazuli engine".to_string(), Some(&plain_font_id), TextBuilder::new()
+        interface.mut_element_registry().create_text("Welcome to Lazuli engine".to_string(), Some(&plain_font_id), &TextBuilder::new()
             .with_font_size(25.0)
             .with_color(Color::Rgb(255, 255, 255))
             .with_letter_spacing(0.05)

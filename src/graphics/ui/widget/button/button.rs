@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{Text, TextBuilder, ElementRegistry, self, interface::{is_valid_z_index, self}, Position, element::{ui_element::UiElement, AnchorPoint}, widget::UiWidget, UiElementId, text::TextAlign, Padding}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, input::{Input, InputAction, MouseButton}, log, ResourceId};
+use crate::{graphics::{ui::{TextBuilder, ElementRegistry, self, interface::{is_valid_z_index, self}, Position, element::{AnchorPoint, ui_element::UiElement}, widget::UiWidget, UiElementId, text::TextAlign, Padding}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, input::{Input, InputAction, MouseButton}, log, ResourceId};
 
 pub struct Button {
     text_element_id: ResourceId<UiElementId>,
@@ -141,13 +141,13 @@ impl ButtonBuilder {
             None => interface::default_font(asset_manager)?,
         };
 
-        let mut text = Text::new(label.into(), &font_id, TextBuilder::new()
+        let mut text = TextBuilder::new()
             .with_color(self.text_color.clone())
             .with_z_index(self.z_index + 0.01)
             .with_font_size(self.font_size)
             .with_scale(self.scale)
             .with_hidden(self.hidden)
-        , asset_manager, element_registry)?;
+            .build(label, &font_id, asset_manager, element_registry)?;
         
         let button_width = match self.width {
             Some(width) => width,

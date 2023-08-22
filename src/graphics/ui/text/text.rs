@@ -58,45 +58,6 @@ impl UiElement for Text {
 }
 
 impl Text {
-    pub fn new(text: String, font_id: &ResourceId<Font>, text_builder: TextBuilder, asset_manager: &mut AssetManager, element_registry: &mut ElementRegistry) -> Result<Self, String> {
-        let font_material_id;
-        match asset_manager.get_font_by_id(font_id) {
-            Some(font) => {
-                font_material_id = font.material_id.duplicate();
-            },
-            None => return Err(format!("Failed to get font by id {}", font_id.id())),
-        }
-
-        let mut world_data = WorldElementData::new(
-            text_builder.position
-            , text_builder.z_index
-            , Vec2::new(0.0, 0.0)
-            , text_builder.scale
-            , element_registry
-        );
-        world_data.show = !text_builder.hidden;
-
-        let mut result = Self { 
-            text, 
-            glyphs: vec![],
-            transform: Transform::new(),
-            letter_spacing: text_builder.letter_spacing,
-            color: text_builder.color,
-            font_size: text_builder.font_size,
-            world_data,
-            font_id: font_id.duplicate(),
-            material_id: font_material_id,
-        };
-        result.set_text(
-            &result.text.clone(), 
-            element_registry.size().clone(), 
-            result.world_data.position_type().get_anchor_element_data(element_registry), 
-            asset_manager
-        )?;
-
-        Ok(result)
-    }
-
     pub fn set_text(&mut self, text: &String, window_size: Vec2, anchor_element_data: Option<AnchorElementData>, asset_manager: &mut AssetManager) -> Result<(), String> {
         let font_space_size;
         let bitmap_spread;
@@ -206,6 +167,45 @@ impl TextBuilder {
             scale: Vec2::ONE,
             hidden: false,
         }
+    }
+
+    pub fn build(&self, text: impl Into<String>, font_id: &ResourceId<Font>, asset_manager: &mut AssetManager, element_registry: &mut ElementRegistry) -> Result<Text, String> {
+        let font_material_id;
+        match asset_manager.get_font_by_id(font_id) {
+            Some(font) => {
+                font_material_id = font.material_id.duplicate();
+            },
+            None => return Err(format!("Failed to get font by id {}", font_id.id())),
+        }
+
+        let mut world_data = WorldElementData::new(
+            self.position
+            , self.z_index
+            , Vec2::new(0.0, 0.0)
+            , self.scale
+            , element_registry
+        );
+        world_data.show = !self.hidden;
+
+        let mut result = Text { 
+            text: text.into(), 
+            glyphs: vec![],
+            transform: Transform::new(),
+            letter_spacing: self.letter_spacing,
+            color: self.color.clone(),
+            font_size: self.font_size,
+            world_data,
+            font_id: font_id.duplicate(),
+            material_id: font_material_id,
+        };
+        result.set_text(
+            &result.text.clone(), 
+            element_registry.size().clone(), 
+            result.world_data.position_type().get_anchor_element_data(element_registry), 
+            asset_manager
+        )?;
+
+        Ok(result)
     }
 
     pub fn with_font_size(mut self, font_size: f32) -> Self {
