@@ -114,7 +114,7 @@ impl Interface {
     }
 
     // dropdown specific functions
-    pub fn add_dropdown(&mut self, builder: DropdownBuilder<u32>, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
+    pub fn add_dropdown(&mut self, builder: &DropdownBuilder<u32>, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
         self.widget_registry.add_dropdown(builder, &mut self.element_registry, asset_manager)
     }
     pub fn dropdown_update_result(&self, dropdown_id: &ResourceId<UiWidgetId>) -> Option<u32> {

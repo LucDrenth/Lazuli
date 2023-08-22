@@ -54,8 +54,8 @@ impl WidgetRegistry {
         let button = builder.build(label, element_registry, asset_manager)?;
         Ok(self.buttons.push(button, false))
     }
-    pub fn add_dropdown(&mut self, builder: DropdownBuilder<u32>, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
-        let dropdown = Dropdown::new(builder, element_registry, asset_manager)?;
+    pub fn add_dropdown(&mut self, builder: &DropdownBuilder<u32>, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
+        let dropdown = builder.build(element_registry, asset_manager)?;
         Ok(self.dropdowns.push(dropdown, None))
     }
 

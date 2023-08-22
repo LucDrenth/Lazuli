@@ -48,18 +48,18 @@ impl Scene for HelloUi {
         , asset_manager)?;
 
 
-        let reset_button_id = interface.add_button("Reset".to_string(), &ButtonBuilder::new()
+        let reset_button_id = interface.add_button("Reset", &ButtonBuilder::new()
         , asset_manager)?;
 
-        let dropdown_id = interface.add_dropdown(DropdownBuilder::new()
-            .with_placeholder_text("--- selected a color ---".to_string())
+        let dropdown_id = interface.add_dropdown(&DropdownBuilder::new()
+            .with_placeholder_text("--- selected a color ---")
             .with_options(vec![
-                DropdownOption{ label: "Red".to_string(), value:  1 },
-                DropdownOption{ label: "Green".to_string(), value: 2 },
-                DropdownOption{ label: "Blue".to_string(), value: 3 },
-                DropdownOption{ label: "Yellow".to_string(), value: 4 },
-                DropdownOption{ label: "Pink".to_string(), value: 5 },
-                DropdownOption{ label: "Cyan".to_string(), value: 6 },
+                DropdownOption::new("Red", 1 ),
+                DropdownOption::new("Green", 2 ),
+                DropdownOption::new("Blue", 3 ),
+                DropdownOption::new("Yellow", 4 ),
+                DropdownOption::new("Pink", 5 ),
+                DropdownOption::new("Cyan", 6 ),
             ])
             .with_position(Position::ScreenAnchor(AnchorPoint::TopLeftInside(10.0, 10.0)))
         , asset_manager)?;

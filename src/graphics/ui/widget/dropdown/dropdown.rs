@@ -93,63 +93,6 @@ impl <T: Debug + Clone> UiWidget for Dropdown<T> {
 }
 
 impl<T: Debug + Clone> Dropdown<T> {
-    pub fn new(builder: DropdownBuilder<T>, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<Self, String> {
-        builder.validate()?;
-
-        let selected_value: Option<T>;
-        let label;
-
-        if builder.placeholder_text.is_some() {
-            label = builder.placeholder_text.unwrap();
-            selected_value = None;
-        } else if builder.initially_selected_index.is_some() {
-            let selected_option = &builder.options[builder.initially_selected_index.unwrap() as usize];
-            label = selected_option.label.clone();
-            selected_value = Some(selected_option.value.clone());
-        } else {
-            label = "".to_string();
-            selected_value = None;
-        };
-
-        let button = ButtonBuilder::new()
-            .with_position(builder.position)
-            .with_z_index(builder.z_index)
-            .with_text_align(builder.text_align)
-            .build(label, element_registry, asset_manager)?;
-
-        // TODO add background for options
-
-        let mut options = vec![];
-        let mut anchor_element_id = button.get_main_element_id();
-
-        // TODO replace hardcoded 5.0 with a 'gap' property
-
-        let mut option_button_builder = ButtonBuilder::new()
-            .with_position(Position::ElementAnchor(AnchorPoint::BottomOutside(5.0), anchor_element_id))
-            .with_width(button.width())
-            .with_height(button.height())
-            .with_mouse_action_to_activate(InputAction::UpOrDown)
-            .with_hidden(true)
-            .with_z_index(Self::option_button_z_index(builder.z_index))
-            .with_text_align(builder.text_align);
-
-        for option in builder.options {
-            option_button_builder = option_button_builder.with_position(Position::ElementAnchor(AnchorPoint::BottomOutside(5.0), anchor_element_id));
-            let option_button = option_button_builder.build(option.label.clone(), element_registry, asset_manager)?;
-            anchor_element_id = option_button.get_main_element_id();
-            options.push(DropdownOptionButton{ button: option_button, value: option.value, label: option.label });
-        }
-
-        Ok(Self {
-            z_index: builder.z_index,
-            button,
-            options,
-            is_open: false,
-            selected: selected_value,
-            option_buttons_respect_draw_bounds: builder.option_buttons_respect_draw_bounds,
-        })
-    }
-
     fn option_button_z_index(base_z_index: f32) -> f32 {
         (1000.0 + base_z_index).min(MAX_Z_INDEX - 1.0)
     }
@@ -232,8 +175,65 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
         }
     }
 
-    pub fn with_placeholder_text(mut self, placeholder_text: String) -> Self {
-        self.placeholder_text = Some(placeholder_text);
+    pub fn build(&self, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<Dropdown<T>, String> {
+        self.validate()?;
+
+        let selected_value: Option<T>;
+        let label;
+
+        if self.placeholder_text.is_some() {
+            label = self.placeholder_text.clone().unwrap();
+            selected_value = None;
+        } else if self.initially_selected_index.is_some() {
+            let selected_option = &self.options[self.initially_selected_index.unwrap() as usize];
+            label = selected_option.label.clone();
+            selected_value = Some(selected_option.value.clone());
+        } else {
+            label = "".to_string();
+            selected_value = None;
+        };
+
+        let button = ButtonBuilder::new()
+            .with_position(self.position)
+            .with_z_index(self.z_index)
+            .with_text_align(self.text_align)
+            .build(label, element_registry, asset_manager)?;
+
+        // TODO add background for options
+
+        let mut options = vec![];
+        let mut anchor_element_id = button.get_main_element_id();
+
+        // TODO replace hardcoded 5.0 with a 'gap' property
+
+        let mut option_button_builder = ButtonBuilder::new()
+            .with_position(Position::ElementAnchor(AnchorPoint::BottomOutside(5.0), anchor_element_id))
+            .with_width(button.width())
+            .with_height(button.height())
+            .with_mouse_action_to_activate(InputAction::UpOrDown)
+            .with_hidden(true)
+            .with_z_index(Dropdown::<T>::option_button_z_index(self.z_index))
+            .with_text_align(self.text_align);
+
+        for option in &self.options {
+            option_button_builder = option_button_builder.with_position(Position::ElementAnchor(AnchorPoint::BottomOutside(5.0), anchor_element_id));
+            let option_button = option_button_builder.build(option.label.clone(), element_registry, asset_manager)?;
+            anchor_element_id = option_button.get_main_element_id();
+            options.push(DropdownOptionButton{ button: option_button, value: option.value.clone(), label: option.label.clone() });
+        }
+
+        Ok(Dropdown {
+            z_index: self.z_index,
+            button,
+            options,
+            is_open: false,
+            selected: selected_value,
+            option_buttons_respect_draw_bounds: self.option_buttons_respect_draw_bounds,
+        })
+    }
+
+    pub fn with_placeholder_text(mut self, placeholder_text: impl Into<String>) -> Self {
+        self.placeholder_text = Some(placeholder_text.into());
         self.initially_selected_index = None;
         self
     }
