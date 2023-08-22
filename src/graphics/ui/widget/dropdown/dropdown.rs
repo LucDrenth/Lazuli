@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use glam::Vec2;
 
-use crate::{asset_manager::AssetManager, graphics::ui::{ElementRegistry, widget::{Button, ButtonBuilder, UiWidget}, interface::{is_valid_z_index, MAX_Z_INDEX}, Position, AnchorPoint, UiElementId}, log, input::{Input, InputAction}, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::ui::{ElementRegistry, widget::{Button, ButtonBuilder, UiWidget}, interface::{is_valid_z_index, MAX_Z_INDEX}, Position, AnchorPoint, UiElementId, TextAlign}, log, input::{Input, InputAction}, ResourceId};
 
 struct DropdownOptionButton<T: Debug + Clone> {
     button: Button,
@@ -114,6 +114,7 @@ impl<T: Debug + Clone> Dropdown<T> {
         let button = Button::new(label, ButtonBuilder::new()
             .with_position(builder.position)
             .with_z_index(builder.z_index)
+            .with_text_align(builder.text_align)
         , element_registry, asset_manager)?;
 
         // TODO add background for options
@@ -128,6 +129,7 @@ impl<T: Debug + Clone> Dropdown<T> {
                 .with_mouse_action_to_activate(InputAction::UpOrDown)
                 .with_hidden(true)
                 .with_z_index(Self::option_button_z_index(builder.z_index))
+                .with_text_align(builder.text_align)
             , element_registry, asset_manager)?;
 
             anchor_element_id = option_button.get_main_element_id();
@@ -205,6 +207,7 @@ pub struct DropdownBuilder<T: Debug + Clone> {
     z_index: f32,
     position: Position,
     option_buttons_respect_draw_bounds: bool,
+    text_align: TextAlign,
 }
 
 impl<T: Debug + Clone> DropdownBuilder<T> {
@@ -216,6 +219,7 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
             z_index: 10.0,
             position: Position::ScreenAnchor(AnchorPoint::Center),
             option_buttons_respect_draw_bounds: false,
+            text_align: TextAlign::Left,
         }
     }
 
@@ -265,6 +269,11 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
 
     pub fn with_option_buttons_respect_draw_bounds(mut self, option_buttons_respect_draw_bounds: bool) -> Self {
         self.option_buttons_respect_draw_bounds = option_buttons_respect_draw_bounds;
+        self
+    }
+
+    pub fn with_text_align(mut self, text_align: TextAlign) -> Self {
+        self.text_align = text_align;
         self
     }
 }

@@ -6,6 +6,7 @@ pub mod widget;
 pub mod shapes;
 pub use text::text::Text;
 pub use text::text::TextBuilder;
+pub use text::TextAlign;
 
 pub use element::Position;
 pub use element::AnchorPoint;
