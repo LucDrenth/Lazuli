@@ -3,8 +3,15 @@ use glam::Vec2;
 use crate::{graphics::{ui::{ElementRegistry, interface::{is_valid_z_index, self}, Text, TextBuilder, Position, shapes::{Rectangle, RectangleBuilder}, element::AnchorPoint, widget::UiWidget, UiElementId}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, log, input::{Input, MouseButton}, ResourceId};
 
 pub enum SliderProgressBarAlignment {
-    Natural, // default. Progress bar goes in to the slide direction (follows the mouse).
+    /// Default. Progress bar goes in to the slide direction (follows the mouse).
+    Natural,
     Center,
+}
+pub enum SliderDirection {
+    /// All the way to the left is the minimum value. All the way to the right is the maximum value
+    LeftToRight,
+    /// All the way to the right is the minimum value. All the way to the left is the maximum value
+    RightToLeft,
 }
 
 pub struct Slider {
@@ -19,6 +26,7 @@ pub struct Slider {
     id: ResourceId<UiElementId>,
     scale: Vec2,
     z_index: f32,
+    direction: SliderDirection,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -60,7 +68,7 @@ impl UiWidget for Slider {
         _ = element_registry.set_element_position(&self.background_element_id, position);
         _ = element_registry.set_element_position(&self.text_element_id, Position::ElementAnchor(AnchorPoint::Center, self.background_element_id));
         _ = element_registry.set_element_position(&self.progress_element_id, Position::ElementAnchor(
-            progress_bar_alignment_to_anchor_point(&self.progress_bar_alignment)
+            progress_bar_alignment_to_anchor_point(&self.progress_bar_alignment, &self.direction)
             , self.background_element_id
         ));
     }
@@ -111,7 +119,7 @@ impl Slider {
             .with_z_index(builder.z_index + 0.01)
             .with_color(builder.progress_color)
             .with_position(Position::ElementAnchor(
-                progress_bar_alignment_to_anchor_point(&builder.progress_bar_alignment), 
+                progress_bar_alignment_to_anchor_point(&builder.progress_bar_alignment, &builder.direction), 
                 background_element_id
             ))
             .with_scale(Vec2::new(builder.initial_value / (builder.maximum_value - builder.minimum_value), 1.0) * builder.scale)
@@ -139,6 +147,7 @@ impl Slider {
             id: ResourceId::new(element_registry.generate_element_id()),
             scale: builder.scale,
             z_index: builder.z_index,
+            direction: builder.direction,
         })
     }
 
@@ -173,9 +182,17 @@ impl Slider {
         let element_size = element_registry.get_element_size(&self.background_element_id).unwrap();
         let element_position = element_registry.get_element_screen_position(&self.background_element_id).unwrap();
 
-        let element_start_x = element_position.x - element_size.x / 2.0;
-        let element_end_x = element_position.x + element_size.x / 2.0;
-        let normalised_value = (element_registry.map_mouse_position(input).x - element_start_x) / (element_end_x - element_start_x);
+        // The new slider progress as a value from 0.0 to 1.0
+        let normalised_value = match self.direction {
+            SliderDirection::LeftToRight => {
+                let element_start_x = element_position.x - element_size.x / 2.0;
+                (element_registry.map_mouse_position(input).x - element_start_x) / element_size.x
+            },
+            SliderDirection::RightToLeft => {
+                let element_end_x = element_position.x + element_size.x / 2.0;
+                (element_end_x - element_registry.map_mouse_position(input).x) / element_size.x
+            },
+        };
 
         self.set_normalised_value(normalised_value, element_registry, asset_manager);
     }
@@ -256,6 +273,7 @@ pub struct SliderBuilder {
     height: f32,
     decimals: usize,
     scale: Vec2,
+    direction: SliderDirection,
 }
 
 impl SliderBuilder {
@@ -276,6 +294,7 @@ impl SliderBuilder {
             height: 25.0,
             decimals: 2,
             scale: Vec2::ONE,
+            direction: SliderDirection::LeftToRight,
         }
     }
 
@@ -359,11 +378,21 @@ impl SliderBuilder {
         self.scale = scale;
         self
     }
+
+    pub fn with_direction(mut self, direction: SliderDirection) -> Self {
+        self.direction = direction;
+        self
+    }
 }
 
-fn progress_bar_alignment_to_anchor_point(progress_bar_alignment: &SliderProgressBarAlignment) -> AnchorPoint {
+fn progress_bar_alignment_to_anchor_point(progress_bar_alignment: &SliderProgressBarAlignment, direction: &SliderDirection) -> AnchorPoint {
     match progress_bar_alignment {
-        SliderProgressBarAlignment::Natural => AnchorPoint::LeftInside(0.0),
+        SliderProgressBarAlignment::Natural => {
+            match direction {
+                SliderDirection::LeftToRight => AnchorPoint::LeftInside(0.0),
+                SliderDirection::RightToLeft => AnchorPoint::RightInside(0.0),
+            }
+        },
         SliderProgressBarAlignment::Center => AnchorPoint::Center,
     }
 }
