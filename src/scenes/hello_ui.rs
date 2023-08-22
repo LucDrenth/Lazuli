@@ -48,7 +48,7 @@ impl Scene for HelloUi {
         , asset_manager)?;
 
 
-        let reset_button_id = interface.add_button("Reset".to_string(), ButtonBuilder::new()
+        let reset_button_id = interface.add_button("Reset".to_string(), &ButtonBuilder::new()
         , asset_manager)?;
 
         let dropdown_id = interface.add_dropdown(DropdownBuilder::new()
@@ -64,11 +64,12 @@ impl Scene for HelloUi {
             .with_position(Position::ScreenAnchor(AnchorPoint::TopLeftInside(10.0, 10.0)))
         , asset_manager)?;
 
-        let layout_button_1 = interface.add_button("Button 1".to_string(), ButtonBuilder::new(), asset_manager)?;
-        let layout_button_2 = interface.add_button("Button 2".to_string(), ButtonBuilder::new(), asset_manager)?;
-        let layout_button_3 = interface.add_button("Button 3".to_string(), ButtonBuilder::new(), asset_manager)?;
-        let layout_button_4 = interface.add_button("Button 4".to_string(), ButtonBuilder::new(), asset_manager)?;
-        let layout_button_5 = interface.add_button("Button 5".to_string(), ButtonBuilder::new(), asset_manager)?;
+        let layout_button_builder = ButtonBuilder::new();
+        let layout_button_1 = interface.add_button("Button 1", &layout_button_builder, asset_manager)?;
+        let layout_button_2 = interface.add_button("Button 2", &layout_button_builder, asset_manager)?;
+        let layout_button_3 = interface.add_button("Button 3", &layout_button_builder, asset_manager)?;
+        let layout_button_4 = interface.add_button("Button 4", &layout_button_builder, asset_manager)?;
+        let layout_button_5 = interface.add_button("Button 5", &layout_button_builder, asset_manager)?;
 
         let layout = VerticalListBuilder::new()
             .with_position(Position::ScreenAnchor(AnchorPoint::LeftInside(10.0)))

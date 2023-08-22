@@ -50,9 +50,8 @@ impl WidgetRegistry {
         let slider = Slider::new(builder, element_registry, asset_manager)?;
         Ok(self.sliders.push(slider, None))
     }
-    pub fn add_button(&mut self, label: String, builder: ButtonBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
-        let button = Button::new(label, builder, element_registry, asset_manager)?;
-
+    pub fn add_button(&mut self, label: impl Into<String>, builder: &ButtonBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
+        let button = builder.build(label, element_registry, asset_manager)?;
         Ok(self.buttons.push(button, false))
     }
     pub fn add_dropdown(&mut self, builder: DropdownBuilder<u32>, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {

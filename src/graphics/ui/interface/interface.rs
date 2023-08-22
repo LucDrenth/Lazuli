@@ -89,7 +89,7 @@ impl Interface {
     }
 
     // button specific functions
-    pub fn add_button(&mut self, label: String, builder: ButtonBuilder, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
+    pub fn add_button(&mut self, label: impl Into<String>, builder: &ButtonBuilder, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
         self.widget_registry.add_button(label, builder, &mut self.element_registry, asset_manager)
     }
     pub fn is_button_clicked(&self, button_id: &ResourceId<UiWidgetId>) -> bool {

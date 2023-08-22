@@ -63,68 +63,6 @@ impl UiWidget for Button {
 }
 
 impl Button {
-    pub fn new(label: String, builder: ButtonBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<Self, String> {
-        let font_id = match builder.font_path {
-            Some(font_path) => asset_manager.load_font(PlainBitmapBuilder::new()
-                .with_font_file_path(font_path)
-                .with_font_size(50.0)
-                , None)?,
-            None => interface::default_font(asset_manager)?,
-        };
-
-        let mut text = Text::new(label, &font_id, TextBuilder::new()
-            .with_color(builder.text_color)
-            .with_z_index(builder.z_index + 0.01)
-            .with_font_size(builder.font_size)
-            .with_scale(builder.scale)
-            .with_hidden(builder.hidden)
-        , asset_manager, element_registry)?;
-        
-        let button_width = match builder.width {
-            Some(width) => width,
-            None => text.world_data().width() + builder.padding.horizontal(),
-        };
-        let button_height = match builder.height {
-            Some(height) => height,
-            None => text.world_data().height() + builder.padding.vertical(),
-        };
-
-        let background = ui::shapes::Rectangle::new(RectangleBuilder::new()
-            .with_width(button_width)
-            .with_height(button_height)
-            .with_color(builder.background_color)
-            .with_z_index(builder.z_index)
-            .with_position(builder.position)
-            .with_scale(builder.scale)
-            .with_hidden(builder.hidden)
-        , asset_manager, element_registry)?;
-        let background_element_id = element_registry.add_rectangle(background);
-
-        let window_size = element_registry.size().clone();
-        let anchor_element_data = element_registry.get_anchor_data(&background_element_id)?;
-        text.mut_world_data().set_position(
-            Position::ElementAnchor(
-                text_align_to_anchor_point(&builder.text_align, &builder.padding), 
-                background_element_id
-            ), 
-            window_size, 
-            Some(anchor_element_data)
-        );
-        let text_element_id = element_registry.add_text(text);
-
-        Ok(Self {
-            text_element_id,
-            background_element_id,
-            mouse_action_to_activate: builder.mouse_action_to_activate,
-            mouse_button_to_activate: builder.mouse_button_to_activate,
-            z_index: builder.z_index,
-            width: button_width,
-            height: button_height,
-            text_align: builder.text_align,
-            padding: builder.padding,
-        })
-    }
-
     pub fn is_hovered(&self, input: &Input, element_registry: &ElementRegistry) -> bool {
         element_registry.is_element_hovered(&self.background_element_id, input)
     }
@@ -192,6 +130,68 @@ impl ButtonBuilder {
             hidden: false,
             text_align: TextAlign::Center,
         }
+    }
+
+    pub fn build(&self, label: impl Into<String>, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<Button, String> {
+        let font_id = match &self.font_path {
+            Some(font_path) => asset_manager.load_font(PlainBitmapBuilder::new()
+                .with_font_file_path(font_path.clone())
+                .with_font_size(50.0)
+                , None)?,
+            None => interface::default_font(asset_manager)?,
+        };
+
+        let mut text = Text::new(label.into(), &font_id, TextBuilder::new()
+            .with_color(self.text_color.clone())
+            .with_z_index(self.z_index + 0.01)
+            .with_font_size(self.font_size)
+            .with_scale(self.scale)
+            .with_hidden(self.hidden)
+        , asset_manager, element_registry)?;
+        
+        let button_width = match self.width {
+            Some(width) => width,
+            None => text.world_data().width() + self.padding.horizontal(),
+        };
+        let button_height = match self.height {
+            Some(height) => height,
+            None => text.world_data().height() + self.padding.vertical(),
+        };
+
+        let background = ui::shapes::Rectangle::new(RectangleBuilder::new()
+            .with_width(button_width)
+            .with_height(button_height)
+            .with_color(self.background_color.clone())
+            .with_z_index(self.z_index)
+            .with_position(self.position)
+            .with_scale(self.scale)
+            .with_hidden(self.hidden)
+        , asset_manager, element_registry)?;
+        let background_element_id = element_registry.add_rectangle(background);
+
+        let window_size = element_registry.size().clone();
+        let anchor_element_data = element_registry.get_anchor_data(&background_element_id)?;
+        text.mut_world_data().set_position(
+            Position::ElementAnchor(
+                text_align_to_anchor_point(&self.text_align, &self.padding), 
+                background_element_id
+            ), 
+            window_size, 
+            Some(anchor_element_data)
+        );
+        let text_element_id = element_registry.add_text(text);
+
+        Ok(Button {
+            text_element_id,
+            background_element_id,
+            mouse_action_to_activate: self.mouse_action_to_activate,
+            mouse_button_to_activate: self.mouse_button_to_activate,
+            z_index: self.z_index,
+            width: button_width,
+            height: button_height,
+            text_align: self.text_align,
+            padding: self.padding.clone(),
+        })
     }
 
     pub fn with_background_color(mut self, background_color: Color) -> Self {

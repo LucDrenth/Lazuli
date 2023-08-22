@@ -111,29 +111,32 @@ impl<T: Debug + Clone> Dropdown<T> {
             selected_value = None;
         };
 
-        let button = Button::new(label, ButtonBuilder::new()
+        let button = ButtonBuilder::new()
             .with_position(builder.position)
             .with_z_index(builder.z_index)
             .with_text_align(builder.text_align)
-        , element_registry, asset_manager)?;
+            .build(label, element_registry, asset_manager)?;
 
         // TODO add background for options
 
         let mut options = vec![];
         let mut anchor_element_id = button.get_main_element_id();
+
+        // TODO replace hardcoded 5.0 with a 'gap' property
+
+        let mut option_button_builder = ButtonBuilder::new()
+            .with_position(Position::ElementAnchor(AnchorPoint::BottomOutside(5.0), anchor_element_id))
+            .with_width(button.width())
+            .with_height(button.height())
+            .with_mouse_action_to_activate(InputAction::UpOrDown)
+            .with_hidden(true)
+            .with_z_index(Self::option_button_z_index(builder.z_index))
+            .with_text_align(builder.text_align);
+
         for option in builder.options {
-            let option_button = Button::new(option.label.clone(), ButtonBuilder::new()
-                .with_position(Position::ElementAnchor(AnchorPoint::BottomOutside(5.0), anchor_element_id))
-                .with_width(button.width())
-                .with_height(button.height())
-                .with_mouse_action_to_activate(InputAction::UpOrDown)
-                .with_hidden(true)
-                .with_z_index(Self::option_button_z_index(builder.z_index))
-                .with_text_align(builder.text_align)
-            , element_registry, asset_manager)?;
-
+            option_button_builder = option_button_builder.with_position(Position::ElementAnchor(AnchorPoint::BottomOutside(5.0), anchor_element_id));
+            let option_button = option_button_builder.build(option.label.clone(), element_registry, asset_manager)?;
             anchor_element_id = option_button.get_main_element_id();
-
             options.push(DropdownOptionButton{ button: option_button, value: option.value, label: option.label });
         }
 
@@ -198,6 +201,12 @@ impl<T: Debug + Clone> Dropdown<T> {
 pub struct DropdownOption<T: Debug + Clone> {
     pub label: String,
     pub value: T,
+}
+
+impl <T: Debug + Clone> DropdownOption<T> {
+    pub fn new(label: impl Into<String>, value: T) -> Self {
+        DropdownOption { label: label.into(), value }
+    }
 }
 
 pub struct DropdownBuilder<T: Debug + Clone> {

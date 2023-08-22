@@ -5,6 +5,7 @@ pub struct Input {
     current_state: State,
 }
 
+#[derive(Debug, Clone, Copy)]
 pub enum InputAction {
     Down,
     Up,
