@@ -1,5 +1,7 @@
 use std::fmt::Debug;
 
+use glam::Vec2;
+
 use crate::{asset_manager::AssetManager, graphics::ui::{ElementRegistry, widget::{Button, ButtonBuilder, UiWidget}, interface::{is_valid_z_index, MAX_Z_INDEX}, Position, AnchorPoint, UiElementId}, log, input::{Input, InputAction}, ResourceId};
 
 struct DropdownOptionButton<T: Debug + Clone> {
@@ -14,7 +16,7 @@ pub struct Dropdown<T: Debug + Clone> {
     options: Vec<DropdownOptionButton<T>>,
     is_open: bool,
     selected: Option<T>,
-    /// if false, option buttons do not use draw bounds
+    /// If false, option buttons do not use draw bounds
     option_buttons_respect_draw_bounds: bool,
 }
 
@@ -64,6 +66,28 @@ impl <T: Debug + Clone> UiWidget for Dropdown<T> {
             for option in self.options.iter() {
                 option.button.set_draw_bounds(draw_bounds, element_registry);
             }
+        }
+    }
+
+    fn set_width(&self, width: f32, element_registry: &mut ElementRegistry) {
+        self.button.set_width(width, element_registry);
+        
+        for option in &self.options {
+            option.button.set_width(width, element_registry);
+        }
+    }
+    fn set_height(&self, height: f32, element_registry: &mut ElementRegistry) {
+        self.button.set_height(height, element_registry);
+
+        for option in &self.options {
+            option.button.set_height(height, element_registry);
+        }
+    }
+    fn set_size(&self, size: Vec2, element_registry: &mut ElementRegistry) {
+        self.button.set_size(size, element_registry);
+
+        for option in &self.options {
+            option.button.set_size(size, element_registry);
         }
     }
 }

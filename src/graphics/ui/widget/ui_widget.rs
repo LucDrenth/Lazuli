@@ -1,3 +1,5 @@
+use glam::Vec2;
+
 use crate::{graphics::ui::{ElementRegistry, Position, draw_bounds::DrawBounds, UiElementId}, ResourceId};
 
 pub trait UiWidget {
@@ -12,4 +14,8 @@ pub trait UiWidget {
     fn set_z_index(&mut self, z_index: f32, element_registry: &mut ElementRegistry);
     fn set_position(&self, position: Position, element_registry: &mut ElementRegistry);
     fn set_draw_bounds(&self, draw_bounds: DrawBounds, element_registry: &mut ElementRegistry);
+
+    fn set_width(&self, width: f32, element_registry: &mut ElementRegistry);
+    fn set_height(&self, height: f32, element_registry: &mut ElementRegistry);
+    fn set_size(&self, size: Vec2, element_registry: &mut ElementRegistry);
 }

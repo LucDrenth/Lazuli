@@ -61,6 +61,19 @@ impl UiWidget for Slider {
         _ = element_registry.set_element_draw_bounds(&self.text_element_id, draw_bounds);
         _ = element_registry.set_element_draw_bounds(&self.progress_element_id, draw_bounds);
     }
+
+    fn set_width(&self, width: f32, element_registry: &mut ElementRegistry) {
+        _ = element_registry.set_rectangle_width(&self.background_element_id, width);
+        _ = element_registry.set_rectangle_width(&self.progress_element_id, width);
+    }
+    fn set_height(&self, height: f32, element_registry: &mut ElementRegistry) {
+        _ = element_registry.set_rectangle_height(&self.background_element_id, height);
+        _ = element_registry.set_rectangle_height(&self.progress_element_id, height);
+    }
+    fn set_size(&self, size: Vec2, element_registry: &mut ElementRegistry) {
+        _ = element_registry.set_rectangle_size(&self.background_element_id, size);
+        _ = element_registry.set_rectangle_size(&self.progress_element_id, size);
+    }
 }
 
 impl Slider {

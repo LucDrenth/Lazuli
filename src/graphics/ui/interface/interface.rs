@@ -46,31 +46,46 @@ impl Interface {
 
     // UiWidget functions
     pub fn get_widget_main_element_id(&self, widget_id: &ResourceId<UiWidgetId>) -> Option<ResourceId<UiElementId>> {
-        self.widget_registry.get_main_element_id(widget_id)
+        match self.widget_registry.get_widget_by_id(widget_id) {
+            Some(widget) => Some(widget.get_main_element_id()),
+            None => None,
+        }
     }
     pub fn show_widget(&mut self, widget_id: &ResourceId<UiWidgetId>) {
-        self.widget_registry.show_widget(widget_id, &mut self.element_registry);
+        self.widget_registry.get_widget_by_id(widget_id).unwrap().show(&mut self.element_registry);
     }
     pub fn hide_widget(&mut self, widget_id: &ResourceId<UiWidgetId>) {
-        self.widget_registry.hide_widget(widget_id, &mut self.element_registry);
+        self.widget_registry.get_widget_by_id(widget_id).unwrap().hide(&mut self.element_registry);
     }
     pub fn get_widget_size(&self, widget_id: &ResourceId<UiWidgetId>) -> Result<Vec2, String> {
-        self.widget_registry.get_widget_size(widget_id, &self.element_registry)
+        let main_element_id = self.get_widget_main_element_id(widget_id).unwrap();
+        self.element_registry.get_element_size(&main_element_id)
     }
     pub fn get_widget_screen_position(&self, widget_id: &ResourceId<UiWidgetId>) -> Result<Vec2, String> {
-        self.widget_registry.get_widget_screen_position(widget_id, &self.element_registry)
+        let main_element_id = self.get_widget_main_element_id(widget_id).unwrap();
+        self.element_registry.get_element_screen_position(&main_element_id)
     }
     pub fn get_widget_position_transform(&self, widget_id: &ResourceId<UiWidgetId>) -> Result<Vec2, String> {
-        self.widget_registry.get_widget_position_transform(widget_id, &self.element_registry)
+        let main_element_id = self.get_widget_main_element_id(widget_id).unwrap();
+        self.element_registry.get_element_position_transform(&main_element_id)
     }
     pub fn set_widget_position(&mut self, widget_id: &ResourceId<UiWidgetId>, position: Position) {
-        self.widget_registry.set_widget_position(widget_id, position, &mut self.element_registry);
+        self.widget_registry.get_widget_by_id(widget_id).unwrap().set_position(position, &mut self.element_registry)
     }
     pub fn set_widget_z_index(&mut self, widget_id: &ResourceId<UiWidgetId>, z_index: f32) {
-        self.widget_registry.set_widget_z_index(widget_id, z_index, &mut self.element_registry);
+        self.widget_registry.get_mut_widget_by_id(widget_id).unwrap().set_z_index(z_index, &mut self.element_registry);
     }
     pub fn set_widget_draw_bounds(&mut self, widget_id: &ResourceId<UiWidgetId>, draw_bounds: DrawBounds) {
-        self.widget_registry.set_widget_draw_bounds(widget_id, draw_bounds, &mut self.element_registry);
+        self.widget_registry.get_mut_widget_by_id(widget_id).unwrap().set_draw_bounds(draw_bounds, &mut self.element_registry);
+    }
+    pub fn set_widget_width(&mut self, widget_id: &ResourceId<UiWidgetId>, width: f32) {
+        self.widget_registry.get_widget_by_id(widget_id).unwrap().set_width(width, &mut self.element_registry);
+    }
+    pub fn set_widget_height(&mut self, widget_id: &ResourceId<UiWidgetId>, height: f32) {
+        self.widget_registry.get_widget_by_id(widget_id).unwrap().set_height(height, &mut self.element_registry);
+    }
+    pub fn set_widget_size(&mut self, widget_id: &ResourceId<UiWidgetId>, size: Vec2) {
+        self.widget_registry.get_widget_by_id(widget_id).unwrap().set_size(size, &mut self.element_registry);
     }
 
     // button specific functions

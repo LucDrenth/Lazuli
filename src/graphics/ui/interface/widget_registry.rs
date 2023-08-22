@@ -1,6 +1,4 @@
-use glam::Vec2;
-
-use crate::{graphics::{ui::{widget::{Slider, SliderBuilder, SliderUpdateResult, Button, ButtonBuilder, UiWidget, Dropdown, DropdownBuilder}, Position, draw_bounds::DrawBounds, UiWidgetId, UiElementId}, Color}, asset_manager::AssetManager, input::Input, log, ResourceId};
+use crate::{graphics::{ui::{widget::{Slider, SliderBuilder, SliderUpdateResult, Button, ButtonBuilder, UiWidget, Dropdown, DropdownBuilder}, UiWidgetId}, Color}, asset_manager::AssetManager, input::Input, log, ResourceId};
 
 use super::{ElementRegistry, widget_list::WidgetList};
 
@@ -74,45 +72,8 @@ impl WidgetRegistry {
 
 
     // =================================================== \\
-    // =========== General UiWidget functions ============ \\
-
-    pub fn get_main_element_id(&self, widget_id: &ResourceId<UiWidgetId>) -> Option<ResourceId<UiElementId>> {
-        match self.get_widget_by_id(widget_id) {
-            Some(widget) => Some(widget.get_main_element_id()),
-            None => None,
-        }
-    }
-
-    pub fn show_widget(&self, widget_id: &ResourceId<UiWidgetId>, element_registry: &mut ElementRegistry) {
-        self.get_widget_by_id(widget_id).unwrap().show(element_registry);
-    }
-    pub fn hide_widget(&self, widget_id: &ResourceId<UiWidgetId>, element_registry: &mut ElementRegistry) {
-        self.get_widget_by_id(widget_id).unwrap().hide(element_registry);
-    }
-
-    pub fn get_widget_screen_position(&self, widget_id: &ResourceId<UiWidgetId>, element_registry: &ElementRegistry) -> Result<Vec2, String> {
-        let main_element_id = self.get_main_element_id(widget_id).unwrap();
-        element_registry.get_element_screen_position(&main_element_id)
-    }
-    pub fn set_widget_position(&self, widget_id: &ResourceId<UiWidgetId>, position: Position, element_registry: &mut ElementRegistry) {
-        self.get_widget_by_id(widget_id).unwrap().set_position(position, element_registry);
-    }
-    pub fn get_widget_position_transform(&self, widget_id: &ResourceId<UiWidgetId>, element_registry: &ElementRegistry) -> Result<Vec2, String> {
-        let main_element_id = self.get_main_element_id(widget_id).unwrap();
-        element_registry.get_element_position_transform(&main_element_id)
-    }
-    pub fn set_widget_z_index(&mut self, widget_id: &ResourceId<UiWidgetId>, z_index: f32, element_registry: &mut ElementRegistry) {
-        self.get_mut_widget_by_id(widget_id).unwrap().set_z_index(z_index, element_registry);
-    }
-    pub fn set_widget_draw_bounds(&mut self, widget_id: &ResourceId<UiWidgetId>, draw_bounds: DrawBounds, element_registry: &mut ElementRegistry) {
-        self.get_mut_widget_by_id(widget_id).unwrap().set_draw_bounds(draw_bounds, element_registry);
-    }
-    pub fn get_widget_size(&self, widget_id: &ResourceId<UiWidgetId>, element_registry: &ElementRegistry) -> Result<Vec2, String> {
-        let main_element_id = self.get_main_element_id(widget_id).unwrap();
-        element_registry.get_element_size(&main_element_id)
-    }
-
-    fn get_widget_by_id(&self, widget_id: &ResourceId<UiWidgetId>) -> Option<Box<&dyn UiWidget>> {
+    // =========== Functions to get a UiWidget ============ \\
+    pub fn get_widget_by_id(&self, widget_id: &ResourceId<UiWidgetId>) -> Option<Box<&dyn UiWidget>> {
         for widget_entry in self.sliders.entries.iter() {
             if widget_entry.id.equals(&widget_id) { return Some(Box::new(&widget_entry.widget)) }
         }
@@ -128,7 +89,7 @@ impl WidgetRegistry {
         None
     }
 
-    fn get_mut_widget_by_id(&mut self, widget_id: &ResourceId<UiWidgetId>) -> Option<Box<&mut dyn UiWidget>> {
+    pub fn get_mut_widget_by_id(&mut self, widget_id: &ResourceId<UiWidgetId>) -> Option<Box<&mut dyn UiWidget>> {
         for widget_entry in self.sliders.entries.iter_mut() {
             if widget_entry.id.equals(&widget_id) { return Some(Box::new(&mut widget_entry.widget)) }
         }

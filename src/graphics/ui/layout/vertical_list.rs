@@ -15,6 +15,7 @@ pub struct VerticalList {
     padding: Padding,
     draw_bounds: DrawBounds,
     z_index: f32,
+    resize_widgets: bool,
 }
 
 impl Layout for VerticalList {
@@ -43,17 +44,19 @@ impl Layout for VerticalList {
         self.widget_ids.push(widget_id.duplicate());
 
         // resize background element
-        let old_background_height = interface.element_registry().get_element_size(&self.background_element_id).unwrap().y;
+        let old_background_size = interface.element_registry().get_element_size(&self.background_element_id).unwrap();
         let new_background_height = calculate_background_height(&self.widget_ids, self.gap_size, &self.padding, interface).min(self.max_height);
         
-        if old_background_height != new_background_height {
+        if old_background_size.y != new_background_height {
             _ = interface.mut_element_registry().set_rectangle_height(
                 &self.background_element_id, 
                 new_background_height
             );
         }
 
-        // set position of newly added widget
+        // update position and size of the newly added widget
+        interface.set_widget_width(widget_id, old_background_size.x - self.padding.horizontal());
+
         interface.set_widget_position(&widget_id, Position::ElementAnchor(anchor_point, anchor_id));
         interface.set_widget_z_index(&widget_id, self.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX);
         interface.set_widget_draw_bounds(&widget_id, self.draw_bounds.clone());
@@ -91,7 +94,7 @@ impl VerticalList {
 
         // update widgets position
         let first_widget_id = self.widget_ids.first().unwrap();
-        let first_widget_anchor_element_id  = interface.widget_registry().get_main_element_id(first_widget_id).unwrap();
+        let first_widget_anchor_element_id  = interface.get_widget_main_element_id(first_widget_id).unwrap();
 
         _ = interface.mut_element_registry().set_element_position_transform(
             &first_widget_anchor_element_id, 
@@ -112,6 +115,7 @@ pub struct VerticalListBuilder {
     position: Position,
     padding: Padding,
     z_index: f32,
+    resize_widgets: bool,
 }
 
 impl VerticalListBuilder {
@@ -126,6 +130,7 @@ impl VerticalListBuilder {
             position: Position::ScreenAnchor(AnchorPoint::Center),
             padding: Padding::Universal(default_gap_size),
             z_index: 100.0,
+            resize_widgets: true,
         }
     }
 
@@ -158,13 +163,14 @@ impl VerticalListBuilder {
             padding: self.padding,
             draw_bounds: DrawBounds::some(draw_bound_top, draw_bound_right, draw_bound_bottom, draw_bound_left),
             z_index: self.z_index,
+            resize_widgets: self.resize_widgets,
         };
 
         if list.widget_ids.is_empty() {
             return Ok(list);
         }
 
-        // position widgets
+        // position and resize widgets
         interface.set_widget_position(
             &list.widget_ids[0], 
             Position::ElementAnchor(AnchorPoint::TopInside(list.padding.top()), list.background_element_id), 
@@ -182,6 +188,7 @@ impl VerticalListBuilder {
         for widget_id in list.widget_ids.iter() {
             interface.set_widget_z_index(widget_id, list.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX);
             interface.set_widget_draw_bounds(widget_id, list.draw_bounds.clone());
+            interface.set_widget_width(widget_id, background_width - list.padding.horizontal());
         }
 
         // We can only set this after the widget positions has been set
@@ -247,6 +254,11 @@ impl VerticalListBuilder {
 
     pub fn with_z_index(mut self, z_index: f32) -> Self {
         self.z_index = z_index;
+        self
+    }
+
+    pub fn with_resize_widgets(mut self, resize_widgets: bool) -> Self {
+        self.resize_widgets = resize_widgets;
         self
     }
 }

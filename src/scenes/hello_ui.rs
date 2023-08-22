@@ -72,8 +72,8 @@ impl Scene for HelloUi {
 
         let layout = VerticalListBuilder::new()
             .with_position(Position::ScreenAnchor(AnchorPoint::LeftInside(10.0)))
-            .with_padding(Padding::Universal(5.0))
-            .with_max_height(200.0)
+            .with_padding(Padding::Universal(10.0))
+            .with_max_height(230.0)
             .add_widget(&dropdown_id)
             .add_widget(&reset_button_id)
             .add_widget(&width_slider_id)
