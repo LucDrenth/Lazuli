@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{Text, TextBuilder, shapes::RectangleBuilder, ElementRegistry, self, interface::{is_valid_z_index, self}, Position, element::{ui_element::UiElement, AnchorPoint}, widget::UiWidget, UiElementId, text::TextAlign, Padding}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, input::{Input, InputAction, MouseButton}, log, ResourceId};
+use crate::{graphics::{ui::{Text, TextBuilder, ElementRegistry, self, interface::{is_valid_z_index, self}, Position, element::{ui_element::UiElement, AnchorPoint}, widget::UiWidget, UiElementId, text::TextAlign, Padding}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, input::{Input, InputAction, MouseButton}, log, ResourceId};
 
 pub struct Button {
     text_element_id: ResourceId<UiElementId>,
@@ -158,7 +158,7 @@ impl ButtonBuilder {
             None => text.world_data().height() + self.padding.vertical(),
         };
 
-        let background = ui::shapes::Rectangle::new(RectangleBuilder::new()
+        let background = ui::shapes::RectangleBuilder::new()
             .with_width(button_width)
             .with_height(button_height)
             .with_color(self.background_color.clone())
@@ -166,7 +166,7 @@ impl ButtonBuilder {
             .with_position(self.position)
             .with_scale(self.scale)
             .with_hidden(self.hidden)
-        , asset_manager, element_registry)?;
+            .build(asset_manager, element_registry)?;
         let background_element_id = element_registry.add_rectangle(background);
 
         let window_size = element_registry.size().clone();

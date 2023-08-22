@@ -61,54 +61,6 @@ impl UiElement for Rectangle {
 }
 
 impl Rectangle {
-    pub fn new(builder: RectangleBuilder, asset_manager: &mut AssetManager, element_registry: &ElementRegistry) -> Result<Self, String> {
-        let shader_builder = match builder.shader_builder {
-            Some(custom_shader_builder) => custom_shader_builder,
-            None => Self::default_shader_builder(),
-        };
-
-        let shader_id = asset_manager.load_shader(shader_builder)?;
-        let material_id = asset_manager.load_material(&shader_id)?;
-
-        let vertices: [Vertex; 4] = [
-            Vertex([-builder.width / 2.0, -builder.height / 2.0]), // bottom left
-            Vertex([builder.width / 2.0, -builder.height / 2.0]), // bottom right
-            Vertex([builder.width / 2.0, builder.height / 2.0]), // top right
-            Vertex([-builder.width / 2.0, builder.height / 2.0])  // top left
-        ];
-
-        let vao = Vao::new();
-        vao.bind();
-        
-        let mut vbo = Buffer::new_vbo();
-        vbo.set_data(&vertices, gl::STATIC_DRAW);
-
-        let mut ebo = Buffer::new_ebo();
-        ebo.set_data(&RECTANGLE_INDICES, gl::STATIC_DRAW);
-
-        let position_attribute = asset_manager.get_shader_by_id(&shader_id).unwrap().get_attribute_location("position")
-            .expect("Could not get position attribute");
-        set_attribute!(vao, position_attribute, Vertex::0);
-
-        let mut world_data = WorldElementData::new(
-            builder.position,
-            builder.z_index, 
-            Vec2::new(builder.width, builder.height),
-            builder.scale,
-            element_registry
-        );
-        world_data.show = !builder.hidden;
-
-        Ok(Self { 
-            vao, 
-            _vbo: vbo,
-            ebo,
-            material_id,
-            color: builder.color,
-            world_data,
-        })
-    }
-
     pub fn default_shader_builder() -> ShaderBuilder {
         ShaderBuilder::new()
             .with_vertex_shader_path("./assets/shaders/ui/rectangle.vert".to_string())
@@ -163,6 +115,54 @@ impl RectangleBuilder {
             scale: Vec2::ONE,
             hidden: false,
         }
+    }
+
+    pub fn build(&self, asset_manager: &mut AssetManager, element_registry: &ElementRegistry) -> Result<Rectangle, String> {
+        let shader_self = match self.shader_builder.clone() {
+            Some(custom_shader_self) => custom_shader_self,
+            None => Rectangle::default_shader_builder(),
+        };
+
+        let shader_id = asset_manager.load_shader(shader_self)?;
+        let material_id = asset_manager.load_material(&shader_id)?;
+
+        let vertices: [Vertex; 4] = [
+            Vertex([-self.width / 2.0, -self.height / 2.0]), // bottom left
+            Vertex([self.width / 2.0, -self.height / 2.0]), // bottom right
+            Vertex([self.width / 2.0, self.height / 2.0]), // top right
+            Vertex([-self.width / 2.0, self.height / 2.0])  // top left
+        ];
+
+        let vao = Vao::new();
+        vao.bind();
+        
+        let mut vbo = Buffer::new_vbo();
+        vbo.set_data(&vertices, gl::STATIC_DRAW);
+
+        let mut ebo = Buffer::new_ebo();
+        ebo.set_data(&RECTANGLE_INDICES, gl::STATIC_DRAW);
+
+        let position_attribute = asset_manager.get_shader_by_id(&shader_id).unwrap().get_attribute_location("position")
+            .expect("Could not get position attribute");
+        set_attribute!(vao, position_attribute, Vertex::0);
+
+        let mut world_data = WorldElementData::new(
+            self.position,
+            self.z_index, 
+            Vec2::new(self.width, self.height),
+            self.scale,
+            element_registry
+        );
+        world_data.show = !self.hidden;
+
+        Ok(Rectangle { 
+            vao, 
+            _vbo: vbo,
+            ebo,
+            material_id,
+            color: self.color.clone(),
+            world_data,
+        })
     }
 
     pub fn with_color(mut self, color: Color) -> Self {

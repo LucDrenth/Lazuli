@@ -165,8 +165,8 @@ impl ElementRegistry {
         id
     }
 
-    pub fn create_rectangle(&mut self, builder: RectangleBuilder, asset_manager: &mut AssetManager) -> Result<ResourceId<UiElementId>, String> {
-        let rectangle_element = Rectangle::new(builder, asset_manager, self)?;
+    pub fn create_rectangle(&mut self, builder: &RectangleBuilder, asset_manager: &mut AssetManager) -> Result<ResourceId<UiElementId>, String> {
+        let rectangle_element = builder.build(asset_manager, self)?;
         Ok(self.add_rectangle(rectangle_element))
     }
 

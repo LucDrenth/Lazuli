@@ -138,7 +138,7 @@ impl VerticalListBuilder {
         let background_width = calculate_background_width(&self.widget_ids, &self.padding, interface);
         let background_height = calculate_background_height(&self.widget_ids, self.gap_size, &self.padding, interface).min(self.max_height);
 
-        let background_element_id = interface.mut_element_registry().create_rectangle(RectangleBuilder::new()
+        let background_element_id = interface.mut_element_registry().create_rectangle(&RectangleBuilder::new()
             .with_color(self.background_color)
             .with_position(self.position)
             .with_width(background_width)

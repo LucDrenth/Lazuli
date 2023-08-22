@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{ElementRegistry, interface::{is_valid_z_index, self}, Text, TextBuilder, Position, shapes::{Rectangle, RectangleBuilder}, element::AnchorPoint, widget::UiWidget, UiElementId}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, log, input::{Input, MouseButton}, ResourceId};
+use crate::{graphics::{ui::{ElementRegistry, interface::{is_valid_z_index, self}, Text, TextBuilder, Position, element::AnchorPoint, widget::UiWidget, UiElementId, self}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, log, input::{Input, MouseButton}, ResourceId};
 
 #[derive(Clone, Copy, Debug)]
 pub enum SliderProgressBarAlignment {
@@ -252,17 +252,17 @@ impl SliderBuilder {
             None => interface::default_font(asset_manager)?,
         };
 
-        let background = Rectangle::new(RectangleBuilder::new()
+        let background = ui::shapes::RectangleBuilder::new()
             .with_width(self.width)
             .with_height(self.height)
             .with_z_index(self.z_index)
             .with_position(self.position)
             .with_color(self.background_color.clone())
             .with_scale(self.scale)
-        , asset_manager, element_registry)?;
+            .build(asset_manager, element_registry)?;
         let background_element_id = element_registry.add_rectangle(background);
 
-        let progress_rectangle = Rectangle::new(RectangleBuilder::new()
+        let progress_rectangle = ui::shapes::RectangleBuilder::new()
             .with_width(self.width)
             .with_height(self.height)
             .with_z_index(self.z_index + 0.01)
@@ -272,7 +272,7 @@ impl SliderBuilder {
                 background_element_id
             ))
             .with_scale(Vec2::new(self.initial_value / (self.maximum_value - self.minimum_value), 1.0) * self.scale)
-        , asset_manager, element_registry)?;
+            .build(asset_manager, element_registry)?;
         let progress_element_id = element_registry.add_rectangle(progress_rectangle);
 
         let text = Text::new(Slider::value_string(self.initial_value, self.decimals), &font_id, TextBuilder::new()

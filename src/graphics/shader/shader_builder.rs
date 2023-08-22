@@ -2,7 +2,7 @@ use std::{hash::{Hash, Hasher}, collections::hash_map::DefaultHasher};
 
 use super::ShaderProgram;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ShaderBuilder {
     vertex_shader_path: String,
     fragment_shader_path: String,
