@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{Text, TextBuilder, shapes::RectangleBuilder, ElementRegistry, self, interface::{is_valid_z_index, self}, Position, element::{ui_element::UiElement, AnchorPoint}, widget::UiWidget, UiElementId, text::TextAlign}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, input::{Input, InputAction, MouseButton}, log, ResourceId};
+use crate::{graphics::{ui::{Text, TextBuilder, shapes::RectangleBuilder, ElementRegistry, self, interface::{is_valid_z_index, self}, Position, element::{ui_element::UiElement, AnchorPoint}, widget::UiWidget, UiElementId, text::TextAlign, Padding}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, input::{Input, InputAction, MouseButton}, log, ResourceId};
 
 pub struct Button {
     text_element_id: ResourceId<UiElementId>,
@@ -11,7 +11,7 @@ pub struct Button {
     width: f32,
     height: f32,
     text_align: TextAlign,
-    padding_x: f32, // TODO replace with Padding enum
+    padding: Padding,
 }
 
 impl UiWidget for Button {
@@ -32,7 +32,7 @@ impl UiWidget for Button {
     fn set_position(&self, position: Position, element_registry: &mut ElementRegistry) {
         _ = element_registry.set_element_position(&self.background_element_id, position);
         _ = element_registry.set_element_position(&self.text_element_id, Position::ElementAnchor(
-            text_align_to_anchor_point(&self.text_align, self.padding_x), 
+            text_align_to_anchor_point(&self.text_align, &self.padding), 
             self.background_element_id)
         );
     }
@@ -82,11 +82,11 @@ impl Button {
         
         let button_width = match builder.width {
             Some(width) => width,
-            None => text.world_data().width() + builder.padding_x * 2.0,
+            None => text.world_data().width() + builder.padding.horizontal(),
         };
         let button_height = match builder.height {
             Some(height) => height,
-            None => text.world_data().height() + builder.padding_y * 2.0,
+            None => text.world_data().height() + builder.padding.vertical(),
         };
 
         let background = ui::shapes::Rectangle::new(RectangleBuilder::new()
@@ -104,7 +104,7 @@ impl Button {
         let anchor_element_data = element_registry.get_anchor_data(&background_element_id)?;
         text.mut_world_data().set_position(
             Position::ElementAnchor(
-                text_align_to_anchor_point(&builder.text_align, builder.padding_x), 
+                text_align_to_anchor_point(&builder.text_align, &builder.padding), 
                 background_element_id
             ), 
             window_size, 
@@ -121,7 +121,7 @@ impl Button {
             width: button_width,
             height: button_height,
             text_align: builder.text_align,
-            padding_x: builder.padding_x,
+            padding: builder.padding,
         })
     }
 
@@ -161,8 +161,7 @@ pub struct ButtonBuilder {
     background_color: Color,
     text_color: Color,
     font_path: Option<String>,
-    padding_x: f32,
-    padding_y: f32,
+    padding: Padding,
     z_index: f32,
     position: Position,
     font_size: f32,
@@ -181,8 +180,7 @@ impl ButtonBuilder {
             background_color: interface::default_element_background_color(),
             text_color: interface::default_text_color(),
             font_path: None,
-            padding_x: 14.0,
-            padding_y: 8.0,
+            padding: Padding::HorizontalVertical(15.0, 8.0),
             z_index: 10.0,
             position: Position::ScreenAnchor(AnchorPoint::Center),
             font_size: interface::default_font_size(),
@@ -211,19 +209,8 @@ impl ButtonBuilder {
         self
     }
 
-    pub fn with_padding_x(mut self, padding_x: f32) -> Self {
-        self.padding_x = padding_x;
-        self
-    }
-
-    pub fn with_padding_y(mut self, padding_y: f32) -> Self {
-        self.padding_x = padding_y;
-        self
-    }
-
-    pub fn with_padding(mut self, padding: f32) -> Self {
-        self.padding_x = padding;
-        self.padding_y = padding;
+    pub fn with_padding(mut self, padding: Padding) -> Self {
+        self.padding = padding;
         self
     }
 
@@ -284,13 +271,10 @@ impl ButtonBuilder {
     }
 }
 
-/// # Arguments
-/// * `text_align` -
-/// * `horizontal_padding` - the padding on either the left or right side. NOT the total horizontal padding
-fn text_align_to_anchor_point(text_align: &TextAlign, horizontal_padding: f32) -> AnchorPoint {
+fn text_align_to_anchor_point(text_align: &TextAlign, padding: &Padding) -> AnchorPoint {
     match text_align {
-        TextAlign::Left => AnchorPoint::LeftInside(horizontal_padding),
+        TextAlign::Left => AnchorPoint::LeftInside(padding.left()),
         TextAlign::Center => AnchorPoint::Center,
-        TextAlign::Right => AnchorPoint::RightInside(horizontal_padding),
+        TextAlign::Right => AnchorPoint::RightInside(padding.right()),
     }
 }
