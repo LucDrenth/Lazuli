@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, ui::{shapes::RectangleBuilder, widget::{ButtonBuilder, SliderBuilder, DropdownBuilder, DropdownOption}, Position, AnchorPoint, TextBuilder, Interface, VerticalListBuilder, Padding, VerticalList, Layout, UiWidgetId, UiElementId}, Color}, event::EventSystem, input::{Input, Key}, asset_manager::AssetManager, log, ResourceId};
+use crate::{graphics::{scene::Scene, ui::{shapes::RectangleBuilder, widget::{ButtonBuilder, SliderBuilder, DropdownBuilder, DropdownOption, SliderProgressBarAlignment}, Position, AnchorPoint, TextBuilder, Interface, VerticalListBuilder, Padding, VerticalList, Layout, UiWidgetId, UiElementId}, Color}, event::EventSystem, input::{Input, Key}, asset_manager::AssetManager, log, ResourceId};
 
 pub struct HelloUi {
     interface: Interface,
@@ -39,6 +39,7 @@ impl Scene for HelloUi {
             .with_z_index(500.0)
             .with_initial_value(1.0)
             .with_position(Position::ScreenAnchor(AnchorPoint::BottomLeftInside(10.0, 10.0)))
+            .with_progress_bar_alignment(SliderProgressBarAlignment::Center)
         , asset_manager)?;
 
         let anchor = interface.get_widget_main_element_id(&height_slider_id).unwrap();

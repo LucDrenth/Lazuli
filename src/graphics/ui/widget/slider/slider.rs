@@ -2,10 +2,16 @@ use glam::Vec2;
 
 use crate::{graphics::{ui::{ElementRegistry, interface::{is_valid_z_index, self}, Text, TextBuilder, Position, shapes::{Rectangle, RectangleBuilder}, element::AnchorPoint, widget::UiWidget, UiElementId}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, log, input::{Input, MouseButton}, ResourceId};
 
+pub enum SliderProgressBarAlignment {
+    Natural, // default. Progress bar goes in to the slide direction (follows the mouse).
+    Center,
+}
+
 pub struct Slider {
     text_element_id: ResourceId<UiElementId>,
     background_element_id: ResourceId<UiElementId>,
     progress_element_id: ResourceId<UiElementId>,
+    progress_bar_alignment: SliderProgressBarAlignment,
     value: f32,
     minimum_value: f32,
     maximum_value: f32,
@@ -53,7 +59,10 @@ impl UiWidget for Slider {
     fn set_position(&self, position: Position, element_registry: &mut ElementRegistry) {
         _ = element_registry.set_element_position(&self.background_element_id, position);
         _ = element_registry.set_element_position(&self.text_element_id, Position::ElementAnchor(AnchorPoint::Center, self.background_element_id));
-        _ = element_registry.set_element_position(&self.progress_element_id, Position::ElementAnchor(AnchorPoint::LeftInside(0.0), self.background_element_id));
+        _ = element_registry.set_element_position(&self.progress_element_id, Position::ElementAnchor(
+            progress_bar_alignment_to_anchor_point(&self.progress_bar_alignment)
+            , self.background_element_id
+        ));
     }
 
     fn set_draw_bounds(&self, draw_bounds: crate::graphics::ui::draw_bounds::DrawBounds, element_registry: &mut ElementRegistry) {
@@ -101,7 +110,10 @@ impl Slider {
             .with_height(builder.height)
             .with_z_index(builder.z_index + 0.01)
             .with_color(builder.progress_color)
-            .with_position(Position::ElementAnchor(AnchorPoint::LeftInside(0.0), background_element_id)) // TODO why does it not center at the left?
+            .with_position(Position::ElementAnchor(
+                progress_bar_alignment_to_anchor_point(&builder.progress_bar_alignment), 
+                background_element_id
+            ))
             .with_scale(Vec2::new(builder.initial_value / (builder.maximum_value - builder.minimum_value), 1.0) * builder.scale)
         , asset_manager, element_registry)?;
         let progress_element_id = element_registry.add_rectangle(progress_rectangle);
@@ -119,6 +131,7 @@ impl Slider {
             text_element_id,
             background_element_id,
             progress_element_id,
+            progress_bar_alignment: builder.progress_bar_alignment,
             value: builder.initial_value,
             minimum_value: builder.minimum_value,
             maximum_value: builder.maximum_value,
@@ -230,6 +243,7 @@ impl Slider {
 pub struct SliderBuilder {
     background_color: Color,
     progress_color: Color,
+    progress_bar_alignment: SliderProgressBarAlignment,
     text_color: Color,
     z_index: f32,
     position: Position,
@@ -251,6 +265,7 @@ impl SliderBuilder {
             position: Position::ScreenAnchor(AnchorPoint::Center),
             background_color: interface::default_element_background_color(),
             progress_color: Color::Rgb(31, 90, 147),
+            progress_bar_alignment: SliderProgressBarAlignment::Natural,
             text_color: interface::default_text_color(),
             font_path: None,
             font_size: interface::default_font_size(),
@@ -287,6 +302,11 @@ impl SliderBuilder {
 
     pub fn with_progress_color(mut self, progress_color: Color) -> Self {
         self.progress_color = progress_color;
+        self
+    }
+
+    pub fn with_progress_bar_alignment(mut self, progress_bar_alignment: SliderProgressBarAlignment) -> Self {
+        self.progress_bar_alignment = progress_bar_alignment;
         self
     }
 
@@ -338,5 +358,12 @@ impl SliderBuilder {
     pub fn with_scale(mut self, scale: Vec2) -> Self {
         self.scale = scale;
         self
+    }
+}
+
+fn progress_bar_alignment_to_anchor_point(progress_bar_alignment: &SliderProgressBarAlignment) -> AnchorPoint {
+    match progress_bar_alignment {
+        SliderProgressBarAlignment::Natural => AnchorPoint::LeftInside(0.0),
+        SliderProgressBarAlignment::Center => AnchorPoint::Center,
     }
 }
