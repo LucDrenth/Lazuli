@@ -41,8 +41,6 @@ impl Interface {
 
     pub fn element_registry(&self) -> &ElementRegistry { &self.element_registry }
     pub fn mut_element_registry(&mut self) -> &mut ElementRegistry { &mut self.element_registry }
-    pub fn widget_registry(&self) ->  &WidgetRegistry { &self.widget_registry }
-    pub fn mut_widget_registry(&mut self) -> &mut WidgetRegistry { &mut self.widget_registry }
 
     // UiWidget functions
     pub fn get_widget_main_element_id(&self, widget_id: &ResourceId<UiWidgetId>) -> Option<ResourceId<UiElementId>> {
