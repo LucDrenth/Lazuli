@@ -14,7 +14,7 @@ impl Scene for HelloTexture {
             .with_fragment_shader_path(PATH_TEXTURED_FRAG.to_string())
         )?;
         let material_id = asset_manager.load_material(&shader_id)?;
-        let texture_id = asset_manager.load_texture("./assets/images/pattern.png".to_string())?;
+        let texture_id = asset_manager.load_texture("./assets/images/pattern.png")?;
         asset_manager.add_material_texture(&material_id, &texture_id);
 
         let shape = Rectangle::new_textured(asset_manager.get_shader_by_id(&shader_id).unwrap());
