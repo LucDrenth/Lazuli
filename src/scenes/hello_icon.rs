@@ -14,7 +14,7 @@ impl Scene for HelloIcon {
         let rectangle_id = interface.mut_element_registry().create_rectangle(&RectangleBuilder::new()
             .without_color()
             .with_color(Color::Rgba(255, 255, 0, 0.75))
-            // .with_texture(RectangleTexture::Path("./assets/images/lazuli-rock.png".to_string()))
+            .with_texture(RectangleTexture::Path("./assets/images/lazuli-rock.png".to_string()))
             .with_width(700.0)
             .with_height(500.0)
         , asset_manager)?;
