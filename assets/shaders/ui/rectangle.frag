@@ -2,7 +2,7 @@
 
 out vec4 FragColor;
 
-uniform vec3 color;
+uniform vec4 color;
 
 // x = top, y = right, z = bottom, w = left
 uniform vec4 drawBounds;
@@ -21,5 +21,5 @@ void main() {
         discard;
     }
 
-    FragColor = vec4(color, 1.0);
+    FragColor = vec4(color);
 }

@@ -1,5 +1,5 @@
 use lazuli::scenes::*;
 
 fn main() {
-    lazuli::run_scene::<HelloUi>();
+    lazuli::run_scene::<HelloIcon>();
 }

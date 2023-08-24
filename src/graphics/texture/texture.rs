@@ -83,6 +83,7 @@ impl Texture {
 }
 
 fn to_gl_texture_unit(unit: u32) -> GLenum {
+    // TODO some systems have lower amount of available texture units. Get this dynamically
     let lowest = gl::TEXTURE0;
     let highest = gl::TEXTURE31;
 

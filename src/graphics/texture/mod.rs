@@ -10,3 +10,5 @@ pub use downsample::downsample_rgba_image;
 
 mod image_type;
 pub use image_type::ImageType;
+
+pub mod vertex_coordinates;

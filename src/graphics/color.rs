@@ -52,15 +52,41 @@ impl Color {
         );
     }
 
+    pub fn set_opacity(&self, opacity: f32) -> Self {
+        match self {
+            Color::Rgb(r, g, b) => Self::Rgba(*r, *g, *b, opacity),
+            Color::Rgba(r, g, b, _) => Self::Rgba(*r, *g, *b, opacity),
+            Color::Hex(hex) => {
+                let rgb = hex_to_rgb(hex);
+                Self::Rgba(rgb.0, rgb.1, rgb.2, opacity)
+
+                // TODO return `Self::Hex`. For this, we'll need to have a function 
+                // that converts a f32 (opacity) to a 2 character hexadecimal code
+            },
+        }
+    }
+
+    pub fn opacity(&self) -> f32 {
+        match self {
+            Color::Rgb(_, _, _) => 1.0,
+            Color::Rgba(_, _, _, a) => *a,
+            Color::Hex(_) => todo!(),
+        }
+    }
+
+    pub fn transparent() -> Self { Self::Rgba(255, 255, 255, 0.0) }
     pub fn rgba_white() -> Self { Self::Rgba(255, 255, 255, 1.0) }
     pub fn rgb_white() -> Self { Self::Rgb(255, 255, 255) }
-    pub fn hex_white() -> Self { Self::Hex("#FFFFFF".to_string()) }
+    pub fn hex_white() -> Self { Self::hex("#FFFFFF") }
     pub fn rgba_black() -> Self { Self::Rgba(0, 0, 0, 1.0) }
     pub fn rgb_black() -> Self { Self::Rgb(0, 0, 0) }
-    pub fn hex_black() -> Self { Self::Hex("#000000".to_string()) }
-    pub fn rgba_grey() -> Self { Self::Rgba(122, 122, 122, 1.0) }
-    pub fn rgb_grey() -> Self { Self::Rgb(122, 122, 122) }
-    pub fn hex_grey() -> Self { Self::Hex("#888888".to_string()) }
+    pub fn hex_black() -> Self { Self::hex("#000000") }
+    pub fn rgba_gray() -> Self { Self::Rgba(122, 122, 122, 1.0) }
+    pub fn rgb_gray() -> Self { Self::Rgb(122, 122, 122) }
+    pub fn hex_gray() -> Self { Self::hex("#888888") }
+    pub fn rgb_yellow() -> Self { Self::Rgb(255, 255, 0) }
+    pub fn rgba_yellow() -> Self { Self::Rgba(255, 255, 0, 1.0) }
+    pub fn hex_yellow() -> Self { Self::hex("#FFFF00") }
 }
 
 pub fn hex_to_rgb(hex: &String) -> (u8, u8, u8) {

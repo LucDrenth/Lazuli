@@ -1,10 +1,11 @@
 use glam::Vec2;
 
-use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, Position, ElementRegistry}, material::Material, Color}, set_attribute, error::opengl, asset_manager::AssetManager, log, ResourceId};
+use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, Position, ElementRegistry}, material::Material, Color, texture::{vertex_coordinates, Texture}}, set_attribute, error::opengl, asset_manager::AssetManager, log, ResourceId};
 use crate::graphics::shapes::RECTANGLE_INDICES;
 
 type VertexPosition = [f32; 2];
-pub struct Vertex(VertexPosition);
+type TextureCoordinates = [f32; 2];
+pub struct Vertex(VertexPosition, TextureCoordinates);
 
 pub struct Rectangle {
     vao: Vao,
@@ -27,7 +28,7 @@ impl UiElement for Rectangle {
         shader.apply();
         self.vao.bind();
 
-        shader.set_uniform("color", self.color.to_normalised_rgb_tuple());
+        shader.set_uniform("color", self.color.to_normalised_rgba_tuple());
         shader.set_uniform("scale", (self.world_data.scale().x, self.world_data.scale().y));
         shader.set_uniform("zIndex", map_z_index_for_shader(self.world_data.z_index));
         shader.set_uniform("worldPosition", self.world_data.shader_position());
@@ -67,6 +68,12 @@ impl Rectangle {
             .with_fragment_shader_path("./assets/shaders/ui/rectangle.frag".to_string())
     }
 
+    pub fn default_textured_shader_builder() -> ShaderBuilder {
+        ShaderBuilder::new()
+            .with_vertex_shader_path("./assets/shaders/ui/rectangle-textured.vert".to_string())
+            .with_fragment_shader_path("./assets/shaders/ui/rectangle-textured.frag".to_string())
+    }
+
     pub fn set_width(&mut self, width: f32, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) {
         let height = self.world_data.height();
         self.set_size(Vec2::new(width, height), window_size, anchor_element_data);
@@ -78,17 +85,46 @@ impl Rectangle {
     }
 
     pub fn set_size(&mut self, size: Vec2, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) {
-        let vertices: [Vertex; 4] = [
-            Vertex([-size.x / 2.0, -size.y / 2.0]), // bottom left
-            Vertex([size.x / 2.0, -size.y / 2.0]), // bottom right
-            Vertex([size.x / 2.0, size.y / 2.0]), // top right
-            Vertex([-size.x / 2.0, size.y / 2.0])  // top left
-        ];
-
         self.vao.bind();
-        self._vbo.update_data(&vertices);
+        self._vbo.update_data(&Self::create_vertices(&size));
 
         self.world_data.set_size(size, window_size, anchor_element_data);
+    }
+
+    fn create_vertices(size: &Vec2) -> [Vertex; 4] {
+        [
+            Vertex([-size.x / 2.0,  -size.y / 2.0], vertex_coordinates::FULL_BOTTOM_LEFT), // bottom left
+            Vertex([size.x / 2.0,   -size.y / 2.0], vertex_coordinates::FULL_BOTTOM_RIGHT), // bottom right
+            Vertex([size.x / 2.0,   size.y / 2.0],  vertex_coordinates::FULL_TOP_RIGHT), // top right
+            Vertex([-size.x / 2.0,  size.y / 2.0],  vertex_coordinates::FULL_TOP_LEFT),  // top left
+        ]
+    }
+}
+
+pub enum RectangleTexture {
+    Id(ResourceId<Texture>),
+    Path(String),
+}
+
+impl RectangleTexture {
+    fn upload(&self, material_id: &ResourceId<Material>, asset_manager: &mut AssetManager) -> Result<ResourceId<Texture>, String> {
+        match self {
+            RectangleTexture::Id(texture_id) => {
+                asset_manager.add_material_texture(&material_id, &texture_id);
+                Ok(texture_id.duplicate())
+            },
+            RectangleTexture::Path(texture_path) => {
+                match asset_manager.load_texture(texture_path) {
+                    Ok(texture_id) => {
+                        asset_manager.add_material_texture(&material_id, &texture_id);
+                        Ok(texture_id)
+                    },
+                    Err(err) => {
+                        Err(err)
+                    },
+                }
+            },
+        }
     }
 }
 
@@ -96,11 +132,11 @@ pub struct RectangleBuilder {
     color: Color,
     position: Position,
     shader_builder: Option<ShaderBuilder>,
-    width: f32,
-    height: f32,
+    size: Vec2,
     z_index: f32,
     scale: Vec2,
     hidden: bool,
+    texture: Option<RectangleTexture>,
 }
 
 impl RectangleBuilder {
@@ -109,35 +145,34 @@ impl RectangleBuilder {
             color: Color::Rgb(126, 126, 126), // gray
             shader_builder: None,
             position: Position::ScreenAnchor(AnchorPoint::Center),
-            width: 100.0,
-            height: 40.0,
+            size: Vec2::new(100.0, 40.0),
             z_index: 10.0,
             scale: Vec2::ONE,
             hidden: false,
+            texture: None,
         }
     }
 
     pub fn build(&self, asset_manager: &mut AssetManager, element_registry: &ElementRegistry) -> Result<Rectangle, String> {
-        let shader_self = match self.shader_builder.clone() {
+        let shader_builder = match self.shader_builder.clone() {
             Some(custom_shader_self) => custom_shader_self,
-            None => Rectangle::default_shader_builder(),
+            None => self.default_shader_builder(),
         };
 
-        let shader_id = asset_manager.load_shader(shader_self)?;
+        let shader_id = asset_manager.load_shader(shader_builder)?;
         let material_id = asset_manager.load_material(&shader_id)?;
 
-        let vertices: [Vertex; 4] = [
-            Vertex([-self.width / 2.0, -self.height / 2.0]), // bottom left
-            Vertex([self.width / 2.0, -self.height / 2.0]), // bottom right
-            Vertex([self.width / 2.0, self.height / 2.0]), // top right
-            Vertex([-self.width / 2.0, self.height / 2.0])  // top left
-        ];
+        if let Some(texture_mode) = &self.texture {
+            _ = texture_mode.upload(&material_id, asset_manager).map_err(|err| {
+                log::engine_err(format!("failed to add rectangle texture: {}", err));
+            });
+        }
 
         let vao = Vao::new();
         vao.bind();
         
         let mut vbo = Buffer::new_vbo();
-        vbo.set_data(&vertices, gl::STATIC_DRAW);
+        vbo.set_data(&Rectangle::create_vertices(&self.size), gl::STATIC_DRAW);
 
         let mut ebo = Buffer::new_ebo();
         ebo.set_data(&RECTANGLE_INDICES, gl::STATIC_DRAW);
@@ -146,10 +181,16 @@ impl RectangleBuilder {
             .expect("Could not get position attribute");
         set_attribute!(vao, position_attribute, Vertex::0);
 
+        if self.texture.is_some() {
+            let texture_coordinates_attribute = asset_manager.get_shader_by_id(&shader_id).unwrap().get_attribute_location("textureCoordinates")
+                .expect("Could not get position attribute");
+            set_attribute!(vao, texture_coordinates_attribute, Vertex::1);
+        }
+
         let mut world_data = WorldElementData::new(
             self.position,
             self.z_index, 
-            Vec2::new(self.width, self.height),
+            self.size,
             self.scale,
             element_registry
         );
@@ -165,8 +206,20 @@ impl RectangleBuilder {
         })
     }
 
+    fn default_shader_builder(&self) -> ShaderBuilder {
+        match self.texture {
+            Some(_) => Rectangle::default_textured_shader_builder(),
+            None => Rectangle::default_shader_builder(),
+        }
+    }
+
     pub fn with_color(mut self, color: Color) -> Self {
         self.color = color;
+        self
+    }
+
+    pub fn without_color(mut self) -> Self {
+        self.color = Color::transparent();
         self
     }
 
@@ -181,12 +234,17 @@ impl RectangleBuilder {
     }
 
     pub fn with_width(mut self, width: f32) -> Self {
-        self.width = width;
+        self.size.x = width;
         self
     }
 
     pub fn with_height(mut self, height: f32) -> Self {
-        self.height = height;
+        self.size.y = height;
+        self
+    }
+
+    pub fn with_size(mut self, size: Vec2) -> Self {
+        self.size = size;
         self
     }
 
@@ -207,6 +265,11 @@ impl RectangleBuilder {
 
     pub fn with_hidden(mut self, hidden: bool) -> Self {
         self.hidden = hidden;
+        self
+    }
+
+    pub fn with_texture(mut self, texture: RectangleTexture) -> Self {
+        self.texture = Some(texture);
         self
     }
 }

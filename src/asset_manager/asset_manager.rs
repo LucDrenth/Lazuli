@@ -98,20 +98,14 @@ impl AssetManager {
         self.shaders.get_asset_by_id(id)
     }
 
+    /// Create a new material. We do not check for existing materials with the same hash because each
+    /// objet in the world will need a separate material.
+    /// 
+    /// If we want to have a builder hash in the feature, we probably want to add all parameters to it, which
+    /// is only the shader_id at the time of writing.
     pub fn load_material(&mut self, shader_id: &ResourceId<ShaderProgram>) -> Result<ResourceId<Material>, String> {
-        // All parameters of this function must be put in this hash
-        let mut hasher = DefaultHasher::new();
-        shader_id.id().hash(&mut hasher);
-        let hash = hasher.finish();
-
-        match self.materials.get_by_builder_hash(&hash) {
-            Some(existing) => return Ok(existing),
-            None => (),
-        }
-
         let material = Material::new(shader_id.duplicate());
-        
-        self.materials.add(material, hash)
+        self.materials.add(material, 0)
     }
 
     pub fn get_material_by_id(&mut self, id: &ResourceId<Material>) -> Option<&mut Material> {
