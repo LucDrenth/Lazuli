@@ -1,6 +1,7 @@
 pub struct WindowBuilder {
     pub name: String,
     pub size: WindowSize,
+    pub resizable: bool,
 }
 
 pub enum WindowSize {
@@ -14,6 +15,7 @@ impl WindowBuilder {
         Self { 
             name: "Lazuli project".to_string(),
             size: WindowSize::Pixels(800, 600),
+            resizable: true,
         }
     }
 
@@ -34,6 +36,11 @@ impl WindowBuilder {
 
     pub fn with_maximized(mut self) -> Self {
         self.size = WindowSize::Maximized;
+        self
+    }
+
+    pub fn with_resizable(mut self, resizable: bool) -> Self {
+        self.resizable = resizable;
         self
     }
 }
