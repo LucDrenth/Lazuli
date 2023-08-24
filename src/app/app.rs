@@ -3,7 +3,7 @@ use std::env;
 use crate::asset_manager::AssetManager;
 use crate::event::EventSystem;
 use crate::graphics::scene::Scene;
-use crate::graphics::window::{Window, GlutinWindow};
+use crate::graphics::window::{Window, GlutinWindow, WindowBuilder};
 use crate::graphics::renderer::Renderer;
 use crate::input::Input;
 
@@ -15,12 +15,12 @@ pub struct App {
 }
 
 impl App {
-    pub fn new<T: Scene + 'static>() {
+    pub fn new<T: Scene + 'static>(window_builder: WindowBuilder) {
         // TODO since backtrace can be slow, we need to disable this in release mode
         env::set_var("RUST_BACKTRACE", "1");
 
         let mut event_system = EventSystem::new();
-        let window = Self::create_window(&mut event_system);
+        let window = Self::create_window(window_builder, &mut event_system);
         let input = Input::new();
         let asset_manager = AssetManager::new();
 
@@ -28,8 +28,8 @@ impl App {
         app.run::<T>();
     }
 
-    fn create_window(event_system: &mut EventSystem) -> Box<dyn Window> {
-        let window = GlutinWindow::new(String::from("Lazuli"), event_system);
+    fn create_window(window_builder: WindowBuilder, event_system: &mut EventSystem) -> Box<dyn Window> {
+        let window = GlutinWindow::new(window_builder, event_system);
         Box::new(window)
     }
 

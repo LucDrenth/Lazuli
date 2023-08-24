@@ -1,6 +1,6 @@
 # About
-This project uses Lazuli as a graphics engine
+This project uses [Lazuli](https://github.com/lucdrenth/lazuli) as a graphics engine.
 
 # Running
-To run the project as intended, use './scripts/run.sh'.
-Alternatively, run `cargo run` in a terminal
+To run the project as intended, use [run.sh](./scripts/run.sh).
+Alternatively, run `cargo run` in a terminal.

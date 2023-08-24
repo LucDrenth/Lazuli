@@ -1,5 +1,5 @@
 use app::App;
-use graphics::scene::Scene;
+use graphics::{scene::Scene, window::WindowBuilder};
 
 pub mod graphics;
 pub mod scenes;
@@ -29,10 +29,10 @@ pub use resource_id::ResourceId;
 
 mod app;
 
-pub fn run_scene<T: Scene + 'static>() {
-    App::new::<T>();
+pub fn run_scene<T: Scene + 'static>(window_builder: WindowBuilder) {
+    App::new::<T>(window_builder);
 }
 
 pub fn hello_triangle() {
-    run_scene::<scenes::HelloTriangle>();
+    run_scene::<scenes::HelloTriangle>(WindowBuilder::new());
 }

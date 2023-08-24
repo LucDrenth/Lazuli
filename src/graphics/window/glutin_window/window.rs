@@ -134,17 +134,30 @@ impl Window for GlutinWindow {
 }
 
 impl GlutinWindow {
-    pub fn new(name: String, event_system: &mut EventSystem) -> Self {
-        let window = WindowBuilder::new()
-            .with_title(name)
-            .with_inner_size(glutin::dpi::LogicalSize::new(800, 600));
+    pub fn new(window_builder: crate::graphics::window::WindowBuilder, event_system: &mut EventSystem) -> Self {
+        let mut glutin_window_builder = WindowBuilder::new()
+            .with_title(window_builder.name)
+        ;
+
+        // set window size
+        glutin_window_builder = match window_builder.size {
+            crate::graphics::window::WindowSize::FullScreen => {
+                glutin_window_builder.with_fullscreen(Some(glutin::window::Fullscreen::Borderless(None)))
+            },
+            crate::graphics::window::WindowSize::Maximized => {
+                glutin_window_builder.with_maximized(true)
+            },
+            crate::graphics::window::WindowSize::Pixels(width, height) => {
+                glutin_window_builder.with_inner_size(glutin::dpi::LogicalSize::new(width, height))
+            },
+        };
 
         let event_loop = EventLoop::new();
 
         let gl_context = ContextBuilder::new()
             .with_gl(GlRequest::Specific(Api::OpenGl, (3, 3)))
             .with_gl_profile(GlProfile::Core)
-            .build_windowed(window, &event_loop)
+            .build_windowed(glutin_window_builder, &event_loop)
             .expect("Cannot create window context");
 
         let render_context = unsafe {

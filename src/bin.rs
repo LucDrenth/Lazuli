@@ -1,5 +1,9 @@
-use lazuli::scenes::*;
+use lazuli::{scenes::*, graphics::window::WindowBuilder};
 
 fn main() {
-    lazuli::run_scene::<HelloIcon>();
+    let window_builder = WindowBuilder::new()
+        .with_name("Lazuli app")
+    ;
+
+    lazuli::run_scene::<HelloIcon>(window_builder);
 }
