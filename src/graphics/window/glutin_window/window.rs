@@ -134,9 +134,9 @@ impl Window for GlutinWindow {
 }
 
 impl GlutinWindow {
-    pub fn new(window_builder: crate::graphics::window::WindowBuilder, event_system: &mut EventSystem) -> Self {
+    pub fn new(window_builder: &crate::graphics::window::WindowBuilder, event_system: &mut EventSystem) -> Self {
         let mut glutin_window_builder = WindowBuilder::new()
-            .with_title(window_builder.name)
+            .with_title(window_builder.name.clone())
             .with_resizable(window_builder.resizable)
         ;
 
