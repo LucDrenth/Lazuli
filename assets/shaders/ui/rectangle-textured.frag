@@ -9,6 +9,7 @@ uniform sampler2D texture0;
 uniform vec4 drawBounds; // x = top, y = right, z = bottom, w = left
 
 void main() {
+    // check draw bounds
     float bound_top = drawBounds.x;
     float bound_right = drawBounds.y;
     float boud_bottom = drawBounds.z;
@@ -22,15 +23,13 @@ void main() {
         discard;
     }
 
+    // calculate frag color
     vec4 texture_color = texture(texture0, textureCoords);
+    float bg_color_alpha_contribution = (1.0 - texture_color.w) * color.w;
 
-    if (texture_color.w < 1.0) {
-        // This does not give the desired result, but it should be something like this, but weighted
-        // FragColor = (texture_color + color) / 2;
+    vec3 frag_from_texture = texture_color.xyz * texture_color.w;
+    vec3 frag_from_color = color.xyz * bg_color_alpha_contribution;
+    float frag_alpha = texture_color.w + bg_color_alpha_contribution;
 
-        // TODO  mix with texture_color
-        FragColor = color;
-    } else {
-        FragColor = texture_color;
-    }
+    FragColor = vec4(frag_from_texture + frag_from_color, frag_alpha);
 }
