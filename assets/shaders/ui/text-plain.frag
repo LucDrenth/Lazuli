@@ -10,20 +10,18 @@ uniform vec3 color;
 // x = top, y = right, z = bottom, w = left
 uniform vec4 drawBounds;
 
+bool is_within_draw_bounds(float top, float right, float bottom, float left) {
+    return gl_FragCoord.y <= top &&
+           gl_FragCoord.y >= bottom &&
+           gl_FragCoord.x >= left &&
+           gl_FragCoord.x <= right;
+}
+
 void main() {
-    float boundTop = drawBounds.x;
-    float boundRight = drawBounds.y;
-    float boundBottom = drawBounds.z;
-    float boundLeft = drawBounds.w;
-    
-    if (gl_FragCoord.y > boundTop || 
-        gl_FragCoord.y < boundBottom || 
-        gl_FragCoord.x < boundLeft || 
-        gl_FragCoord.x > boundRight
-    ) {
+    if (!is_within_draw_bounds(drawBounds.x, drawBounds.y, drawBounds.z, drawBounds.w)) {
         discard;
     }
-
+    
     float alpha = texture(texture0, textureCoords).r;
     FragColor = vec4(color, alpha);
 }

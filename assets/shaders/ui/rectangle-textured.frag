@@ -8,22 +8,18 @@ uniform vec4 color;
 uniform sampler2D texture0;
 uniform vec4 drawBounds; // x = top, y = right, z = bottom, w = left
 
+bool is_within_draw_bounds(float top, float right, float bottom, float left) {
+    return gl_FragCoord.y <= top &&
+           gl_FragCoord.y >= bottom &&
+           gl_FragCoord.x >= left &&
+           gl_FragCoord.x <= right;
+}
+
 void main() {
-    // check draw bounds
-    float bound_top = drawBounds.x;
-    float bound_right = drawBounds.y;
-    float boud_bottom = drawBounds.z;
-    float bound_left = drawBounds.w;
-    
-    if (gl_FragCoord.y > bound_top || 
-        gl_FragCoord.y < boud_bottom || 
-        gl_FragCoord.x < bound_left || 
-        gl_FragCoord.x > bound_right
-    ) {
+    if (!is_within_draw_bounds(drawBounds.x, drawBounds.y, drawBounds.z, drawBounds.w)) {
         discard;
     }
 
-    // calculate frag color
     vec4 texture_color = texture(texture0, textureCoords);
     float bg_color_alpha_contribution = (1.0 - texture_color.w) * color.w;
 
