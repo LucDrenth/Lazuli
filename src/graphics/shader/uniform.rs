@@ -1,5 +1,5 @@
 use gl::types::GLuint;
-use glam::Mat4;
+use glam::{Mat4, Vec2, Vec4, Vec3};
 
 pub enum UniformValue {
     Float(f32),
@@ -92,6 +92,22 @@ impl From<(u8, u8, u8, u8)> for UniformValue {
 impl From<Mat4> for UniformValue {
     fn from(value: Mat4) -> Self {
         UniformValue::Mat4(value)
+    }
+}
+
+impl From<Vec2> for UniformValue {
+    fn from(value: Vec2) -> Self {
+        UniformValue::Float2(value.x, value.y)
+    }
+}
+impl From<Vec3> for UniformValue {
+    fn from(value: Vec3) -> Self {
+        UniformValue::Float3(value.x, value.y, value.z)
+    }
+}
+impl From<Vec4> for UniformValue {
+    fn from(value: Vec4) -> Self {
+        UniformValue::Float4(value.x, value.y, value.z, value.w)
     }
 }
 
