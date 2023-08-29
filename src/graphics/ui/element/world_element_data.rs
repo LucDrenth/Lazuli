@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::graphics::ui::{ElementRegistry, draw_bounds::DrawBounds};
+use crate::graphics::ui::{ElementRegistry, bounds_2d::Bounds2d};
 
 use super::{Position, AnchorElementData};
 
@@ -14,7 +14,7 @@ pub struct WorldElementData {
     pub z_index: f32,
     scale: Vec2,
     pub show: bool,
-    pub draw_bounds: DrawBounds,
+    pub draw_bounds: Bounds2d,
 }
 
 impl WorldElementData {
@@ -27,7 +27,7 @@ impl WorldElementData {
             z_index,
             scale,
             show: true,
-            draw_bounds: DrawBounds::none(),
+            draw_bounds: Bounds2d::none(),
         };
 
         let anchor_element_data = position_type.get_anchor_element_data(element_registry);

@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{Position, AnchorPoint, shapes::RectangleBuilder, Interface, padding::Padding, draw_bounds::DrawBounds, UiWidgetId, UiElementId}, Color}, asset_manager::AssetManager, log, input::Input, ResourceId};
+use crate::{graphics::{ui::{Position, AnchorPoint, shapes::RectangleBuilder, Interface, padding::Padding, bounds_2d::Bounds2d, UiWidgetId, UiElementId}, Color}, asset_manager::AssetManager, log, input::Input, ResourceId};
 
 use super::{Layout, layout::LAYOUT_ELEMENT_EXTRA_Z_INDEX};
 
@@ -13,7 +13,7 @@ pub struct VerticalList {
     current_scroll: f32,
     max_scroll: f32,
     padding: Padding,
-    draw_bounds: DrawBounds,
+    draw_bounds: Bounds2d,
     z_index: f32,
     resize_widgets: bool,
 }
@@ -161,7 +161,7 @@ impl VerticalListBuilder {
             current_scroll: 0.0,
             max_scroll: 0.0, // Will be set after the widget position have been set
             padding: self.padding,
-            draw_bounds: DrawBounds::some(draw_bound_top, draw_bound_right, draw_bound_bottom, draw_bound_left),
+            draw_bounds: Bounds2d::some(draw_bound_top, draw_bound_right, draw_bound_bottom, draw_bound_left),
             z_index: self.z_index,
             resize_widgets: self.resize_widgets,
         };

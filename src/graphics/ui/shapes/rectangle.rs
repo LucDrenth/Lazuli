@@ -1,7 +1,9 @@
-use glam::{Vec2, Vec4};
+use glam::Vec2;
 
-use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, Position, ElementRegistry}, material::Material, Color, texture::{vertex_coordinates, Texture}}, set_attribute, error::opengl, asset_manager::AssetManager, log, ResourceId};
+use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, Position, ElementRegistry, bounds_2d::Bounds2d}, material::Material, Color, texture::{vertex_coordinates, Texture}}, set_attribute, error::opengl, asset_manager::AssetManager, log, ResourceId};
 use crate::graphics::shapes::RECTANGLE_INDICES;
+
+use super::rectangle_border::{Border, BorderSize};
 
 type VertexPosition = [f32; 2];
 type TextureCoordinates = [f32; 2];
@@ -16,9 +18,7 @@ pub struct Rectangle {
     world_data: WorldElementData,
 
     color: Color,
-
-    border_size: f32,
-    border_color: Color,
+    border: Border,
 }
 
 impl UiElement for Rectangle {
@@ -36,16 +36,12 @@ impl UiElement for Rectangle {
         let fragment_shader_size = self.world_data.size() * self.world_data.scale();
         let shader_position = self.world_data.shader_position();
 
-        // TODO once we separate border size in to top, right, bottom and left we need to take in to account the element scale
-        let border_size = self.border_size * pixel_density;
-
-        // TODO refactor to a Bounds2D, which should also be used for drawBounds
-        let border_bounds = Vec4{
-            z: ((window_size.y - fragment_shader_size.y) / 2.0 + shader_position.y) * pixel_density + border_size, // top
-            y: ((window_size.x + fragment_shader_size.x) / 2.0 + shader_position.x) * pixel_density - border_size, // right
-            x: ((window_size.y + fragment_shader_size.y) / 2.0 + shader_position.y) * pixel_density - border_size, // bottom
-            w: ((window_size.x - fragment_shader_size.x) / 2.0 + shader_position.x) * pixel_density + border_size, // left
-        };
+        let border_bounds = Bounds2d::some(
+            fragment_shader_size.y / 2.0 + shader_position.y - self.border.size.top * self.world_data.scale().y,
+            fragment_shader_size.x / 2.0 + shader_position.x - self.border.size.right * self.world_data.scale().y,
+            -fragment_shader_size.y / 2.0 + shader_position.y + self.border.size.bottom * self.world_data.scale().y,
+            -fragment_shader_size.x / 2.0 + shader_position.x + self.border.size.left * self.world_data.scale().y,
+        );
 
         shader.set_uniform("color", self.color.to_normalised_rgba_tuple());
         shader.set_uniform("scale", (self.world_data.scale().x, self.world_data.scale().y));
@@ -53,8 +49,8 @@ impl UiElement for Rectangle {
         shader.set_uniform("worldPosition", shader_position);
         shader.set_uniform("drawBounds", self.world_data.draw_bounds.for_fragment_shader(window_size, pixel_density));
 
-        shader.set_uniform("borderColor", self.border_color.to_normalised_rgba_tuple());
-        shader.set_uniform("borderBounds", border_bounds);
+        shader.set_uniform("borderColor", self.border.color.to_normalised_rgba_tuple());
+        shader.set_uniform("borderBounds", border_bounds.for_fragment_shader(&window_size, pixel_density));
 
         unsafe {
             gl::DrawElements(gl::TRIANGLES, self.ebo.data_size as i32, gl::UNSIGNED_INT, core::ptr::null());
@@ -114,11 +110,15 @@ impl Rectangle {
     }
 
     pub fn set_border_size(&mut self, border_size: f32) {
-        self.border_size = border_size;
+        self.border.size.set_universal(border_size);
+    }
+
+    pub fn set_border_sizes(&mut self, top: f32, right: f32, bottom: f32, left: f32) {
+        self.border.size.set_individual(top, right, bottom, left);
     }
 
     pub fn set_border_color(&mut self, border_color: Color) {
-        self.border_color = border_color;
+        self.border.color = border_color;
     }
 
     fn create_vertices(size: &Vec2) -> [Vertex; 4] {
@@ -167,8 +167,7 @@ pub struct RectangleBuilder {
     scale: Vec2,
     hidden: bool,
     texture: Option<RectangleTexture>,
-    border_size: f32,
-    border_color: Color,
+    border: Border,
 }
 
 impl RectangleBuilder {
@@ -182,8 +181,10 @@ impl RectangleBuilder {
             scale: Vec2::ONE,
             hidden: false,
             texture: None,
-            border_size: 0.0,
-            border_color: Color::rgb_black(),
+            border: Border {
+                color: Color::rgb_black(),
+                size: BorderSize::zero(),
+            },
         }
     }
 
@@ -237,8 +238,7 @@ impl RectangleBuilder {
             material_id,
             color: self.color.clone(),
             world_data,
-            border_size: self.border_size,
-            border_color: self.border_color.clone(),
+            border: self.border.clone(),
         })
     }
 
@@ -310,12 +310,17 @@ impl RectangleBuilder {
     }
 
     pub fn with_border_size(mut self, border_size: f32) -> Self {
-        self.border_size = border_size;
+        self.border.size.set_universal(border_size);
+        self
+    }
+
+    pub fn with_border_sizes(mut self, top: f32, right: f32, bottom: f32, left: f32) -> Self {
+        self.border.size.set_individual(top, right, bottom, left);
         self
     }
 
     pub fn with_border_color(mut self, border_color: Color) -> Self {
-        self.border_color = border_color;
+        self.border.color = border_color;
         self
     }
 }

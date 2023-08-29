@@ -2,7 +2,7 @@ use std::any::TypeId;
 
 use glam::Vec2;
 
-use crate::{asset_manager::AssetManager, input::{Input, MouseButton, InputAction}, graphics::{font::Font, ui::{element::{ui_element::UiElement, AnchorElementData, world_element_data::WorldElementData}, Text, TextBuilder, shapes::{RectangleBuilder, Rectangle}, Position, draw_bounds::DrawBounds, UiElementId}, Color}, log, ResourceId};
+use crate::{asset_manager::AssetManager, input::{Input, MouseButton, InputAction}, graphics::{font::Font, ui::{element::{ui_element::UiElement, AnchorElementData, world_element_data::WorldElementData}, Text, TextBuilder, shapes::{RectangleBuilder, Rectangle}, Position, bounds_2d::Bounds2d, UiElementId}, Color}, log, ResourceId};
 
 use super::{interface, element_list::{ElementList, OrderedElementsItem, self}, anchor_tree::{AnchorTree, AnchorElementIdentifier}};
 
@@ -304,7 +304,7 @@ impl ElementRegistry {
         }
     }
 
-    pub fn set_element_draw_bounds(&mut self, element_id: &ResourceId<UiElementId>, draw_bounds: DrawBounds) -> Result<(), String> {
+    pub fn set_element_draw_bounds(&mut self, element_id: &ResourceId<UiElementId>, draw_bounds: Bounds2d) -> Result<(), String> {
         match self.get_mut_ui_element_by_id(element_id) {
             Some(element) => {
                 Ok(element.mut_world_data().draw_bounds = draw_bounds)
@@ -510,6 +510,9 @@ impl ElementRegistry {
     }
     pub fn set_rectangle_border_size(&mut self, rectangle_id: &ResourceId<UiElementId>, border_size: f32) {
         self.rectangle_elements.get_mut_by_id(rectangle_id).unwrap().set_border_size(border_size);
+    }
+    pub fn set_rectangle_border_sizes(&mut self, rectangle_id: &ResourceId<UiElementId>, top: f32, right: f32, bottom: f32, left: f32) {
+        self.rectangle_elements.get_mut_by_id(rectangle_id).unwrap().set_border_sizes(top, right, bottom, left);
     }
     pub fn set_rectangle_border_color(&mut self, rectangle_id: &ResourceId<UiElementId>, border_color: Color) {
         self.rectangle_elements.get_mut_by_id(rectangle_id).unwrap().set_border_color(border_color);

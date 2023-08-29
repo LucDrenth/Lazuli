@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{event::{EventReader, WindowResizeEvent, EventSystem, PixelDensityChangeEvent}, asset_manager::AssetManager, input::Input, graphics::{ui::{widget::{SliderBuilder, SliderUpdateResult, ButtonBuilder, DropdownBuilder}, Position, draw_bounds::DrawBounds, UiWidgetId, UiElementId}, font::{Font, PlainBitmapBuilder}, Color}, ResourceId};
+use crate::{event::{EventReader, WindowResizeEvent, EventSystem, PixelDensityChangeEvent}, asset_manager::AssetManager, input::Input, graphics::{ui::{widget::{SliderBuilder, SliderUpdateResult, ButtonBuilder, DropdownBuilder}, Position, bounds_2d::Bounds2d, UiWidgetId, UiElementId}, font::{Font, PlainBitmapBuilder}, Color}, ResourceId};
 
 use super::{ElementRegistry, widget_registry::WidgetRegistry};
 
@@ -81,7 +81,7 @@ impl Interface {
     pub fn set_widget_z_index(&mut self, widget_id: &ResourceId<UiWidgetId>, z_index: f32) {
         self.widget_registry.get_mut_widget_by_id(widget_id).unwrap().set_z_index(z_index, &mut self.element_registry);
     }
-    pub fn set_widget_draw_bounds(&mut self, widget_id: &ResourceId<UiWidgetId>, draw_bounds: DrawBounds) {
+    pub fn set_widget_draw_bounds(&mut self, widget_id: &ResourceId<UiWidgetId>, draw_bounds: Bounds2d) {
         self.widget_registry.get_mut_widget_by_id(widget_id).unwrap().set_draw_bounds(draw_bounds, &mut self.element_registry);
     }
     pub fn set_widget_width(&mut self, widget_id: &ResourceId<UiWidgetId>, width: f32) {

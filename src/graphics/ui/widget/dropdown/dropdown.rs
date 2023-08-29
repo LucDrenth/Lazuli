@@ -59,7 +59,7 @@ impl <T: Debug + Clone> UiWidget for Dropdown<T> {
         }
     }
 
-    fn set_draw_bounds(&self, draw_bounds: crate::graphics::ui::draw_bounds::DrawBounds, element_registry: &mut ElementRegistry) {
+    fn set_draw_bounds(&self, draw_bounds: crate::graphics::ui::bounds_2d::Bounds2d, element_registry: &mut ElementRegistry) {
         _ = self.button.set_draw_bounds(draw_bounds, element_registry);
 
         if self.option_buttons_respect_draw_bounds {

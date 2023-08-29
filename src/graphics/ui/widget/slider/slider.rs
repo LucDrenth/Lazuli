@@ -75,7 +75,7 @@ impl UiWidget for Slider {
         ));
     }
 
-    fn set_draw_bounds(&self, draw_bounds: crate::graphics::ui::draw_bounds::DrawBounds, element_registry: &mut ElementRegistry) {
+    fn set_draw_bounds(&self, draw_bounds: crate::graphics::ui::bounds_2d::Bounds2d, element_registry: &mut ElementRegistry) {
         _ = element_registry.set_element_draw_bounds(&self.background_element_id, draw_bounds);
         _ = element_registry.set_element_draw_bounds(&self.text_element_id, draw_bounds);
         _ = element_registry.set_element_draw_bounds(&self.progress_element_id, draw_bounds);

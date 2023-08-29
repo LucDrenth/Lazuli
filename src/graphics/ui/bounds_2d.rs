@@ -1,7 +1,7 @@
 use glam::Vec2;
 
 #[derive(Clone, Copy, Debug)]
-pub struct DrawBounds {
+pub struct Bounds2d {
     pub top: Option<f32>,
     pub right: Option<f32>,
     pub bottom: Option<f32>,
@@ -9,10 +9,10 @@ pub struct DrawBounds {
 }
 
 /// glsl parameters can not be optional, so instead we will use an arbitratily high number so the element
-/// will get drawn at a given bound
+/// will always be within the unspecified (None) bound
 const SHADER_VALUE_FOR_NONE: f32 = 100_000.0;
 
-impl DrawBounds {
+impl Bounds2d {
     /// Parameters are screen coordinates where (0, 0) is at the center of the screen.
     /// * +y goes up
     /// * -y goes down
@@ -56,7 +56,12 @@ impl DrawBounds {
             None => -SHADER_VALUE_FOR_NONE,
         };
 
-        (top * pixel_density, right * pixel_density, bottom * pixel_density, left * pixel_density)
+        (
+            top * pixel_density, 
+            right * pixel_density, 
+            bottom * pixel_density, 
+            left * pixel_density
+        )
     }
 
     // Check if the given position is within this world element
