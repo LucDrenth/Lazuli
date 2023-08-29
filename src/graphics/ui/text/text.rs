@@ -30,7 +30,7 @@ impl UiElement for Text {
         shader.set_uniform("scale", (self.world_data.scale().x, self.world_data.scale().y));
         shader.set_uniform("zIndex", map_z_index_for_shader(self.world_data.z_index));
         shader.set_uniform("worldPosition", self.world_data.shader_position());
-        shader.set_uniform("drawBounds", self.world_data.draw_bounds.for_shader(window_size, pixel_density));
+        shader.set_uniform("drawBounds", self.world_data.draw_bounds.for_fragment_shader(window_size, pixel_density));
 
         for glyph in &self.glyphs {
             glyph.draw();

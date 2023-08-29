@@ -1,15 +1,17 @@
 use glam::Vec2;
 
-use crate::{event::{EventReader, WindowResizeEvent, EventSystem}, asset_manager::AssetManager, input::Input, graphics::{ui::{widget::{SliderBuilder, SliderUpdateResult, ButtonBuilder, DropdownBuilder}, Position, draw_bounds::DrawBounds, UiWidgetId, UiElementId}, font::{Font, PlainBitmapBuilder}, Color}, ResourceId};
+use crate::{event::{EventReader, WindowResizeEvent, EventSystem, PixelDensityChangeEvent}, asset_manager::AssetManager, input::Input, graphics::{ui::{widget::{SliderBuilder, SliderUpdateResult, ButtonBuilder, DropdownBuilder}, Position, draw_bounds::DrawBounds, UiWidgetId, UiElementId}, font::{Font, PlainBitmapBuilder}, Color}, ResourceId};
 
 use super::{ElementRegistry, widget_registry::WidgetRegistry};
 
 pub struct Interface {
     element_registry: ElementRegistry,
-    window_resize_listener: EventReader<WindowResizeEvent>,
     widget_registry: WidgetRegistry,
     size: Vec2,
     scroll_speed: f32,
+
+    window_resize_listener: EventReader<WindowResizeEvent>,
+    pixel_density_change_event: EventReader<PixelDensityChangeEvent>,
 }
 
 impl Interface {
@@ -17,9 +19,11 @@ impl Interface {
         Self {
             element_registry: ElementRegistry::new(window_size, pixel_density),
             widget_registry: WidgetRegistry::new(),
-            window_resize_listener: event_system.register::<WindowResizeEvent>(),
             size: window_size,
             scroll_speed: 0.2,
+
+            window_resize_listener: event_system.register(),
+            pixel_density_change_event: event_system.register(),
         }
     }
 
@@ -32,6 +36,10 @@ impl Interface {
         self.window_resize_listener.read().last().map(|e| {
             let window_size = Vec2::new(e.width as f32, e.height as f32);
             self.element_registry.handle_window_resize(window_size, asset_manager);
+        });
+
+        self.pixel_density_change_event.read().last().map(|e| {
+            self.element_registry.set_pixel_density(e.pixel_density);
         });
     }
 

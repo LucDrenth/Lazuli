@@ -46,6 +46,10 @@ impl ElementRegistry {
             self.dragged_element_id = None;
         }
     }
+    
+    pub fn set_pixel_density(&mut self, pixel_density: f32) {
+        self.pixel_density = pixel_density;
+    }
 
     pub fn draw(&self, asset_manager: &mut AssetManager) {
         for ordered_item in self.ordered_elements.iter() {
@@ -503,6 +507,12 @@ impl ElementRegistry {
             },
             None => Err(format!("failed to set rectangle size because rectanglei with id {:?} was not found", rectangle_id)),
         }
+    }
+    pub fn set_rectangle_border_size(&mut self, rectangle_id: &ResourceId<UiElementId>, border_size: f32) {
+        self.rectangle_elements.get_mut_by_id(rectangle_id).unwrap().set_border_size(border_size);
+    }
+    pub fn set_rectangle_border_color(&mut self, rectangle_id: &ResourceId<UiElementId>, border_color: Color) {
+        self.rectangle_elements.get_mut_by_id(rectangle_id).unwrap().set_border_color(border_color);
     }
 
     pub fn show_element(&mut self, element_id: &ResourceId<UiElementId>) -> Result<(), String> {

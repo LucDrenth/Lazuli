@@ -2,7 +2,7 @@ use std::time::Instant;
 use glam::Vec2;
 use glutin::{event_loop::{EventLoop, ControlFlow}, window::WindowBuilder, GlRequest, ContextBuilder, Api, event::{Event, WindowEvent}, ContextWrapper, PossiblyCurrent, GlProfile, dpi::{PhysicalPosition, LogicalSize, LogicalPosition}};
 
-use crate::{event::{EventSystem, WindowResizeEvent}, input::Input, time, graphics::{renderer::Renderer, window::window_listeners::WindowListeners, Window}, asset_manager::AssetManager, log};
+use crate::{event::{EventSystem, WindowResizeEvent, PixelDensityChangeEvent}, input::Input, time, graphics::{renderer::Renderer, window::window_listeners::WindowListeners, Window}, asset_manager::AssetManager, log::{self}};
 
 use super::event_mapper;
 
@@ -51,6 +51,7 @@ impl Window for GlutinWindow {
                             width: logical_size.width, 
                             height: logical_size.height 
                         });
+                        event_system.send(PixelDensityChangeEvent{ pixel_density: scale_factor as f32 });
                     },
                     WindowEvent::KeyboardInput { device_id: _, input, is_synthetic: _ } => {
                         if let Some(key) = input.virtual_keycode {
@@ -70,7 +71,7 @@ impl Window for GlutinWindow {
                         match delta {
                             glutin::event::MouseScrollDelta::LineDelta(x, y) => {
                                 // TODO how is this triggered? Can we register it the same as the other type?
-                                log::engine_warn(format!("Unchecked MouseWheel event delta type: {:?}", delta));
+                                log::engine_warn(format!("TODO Untested MouseWheel event delta type: {:?}", delta));
                                 lz_input.register_scroll_x_event(x as f64);
                                 lz_input.register_scroll_y_event(y as f64);
                             },

@@ -38,7 +38,7 @@ impl DrawBounds {
 
     /// Convert coordinates to a tuple of (top, right, bottom, left) so that
     /// the coordinate (0, 0) is at the bottom left of the screen.
-    pub fn for_shader(&self, screen_size: &Vec2, pixel_density: f32) -> (f32, f32, f32, f32) {        
+    pub fn for_fragment_shader(&self, screen_size: &Vec2, pixel_density: f32) -> (f32, f32, f32, f32) {        
         let top = match self.top {
             Some(amount) => amount + screen_size.y / 2.0,
             None => SHADER_VALUE_FOR_NONE,

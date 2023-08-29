@@ -17,6 +17,8 @@ impl Scene for HelloIcon {
             .with_texture(RectangleTexture::Path("./assets/images/lazuli-rock.png".to_string()))
             .with_width(700.0)
             .with_height(500.0)
+            .with_border_size(10.0)
+            .with_border_color(Color::rgba_red())
         , asset_manager)?;
 
         Ok(Self { 

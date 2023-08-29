@@ -36,11 +36,8 @@ impl WorldElementData {
         result
     }
 
-    pub fn shader_position(&self) -> (f32, f32) {
-        (
-            self.position.x + self.position_transform.x, 
-            self.position.y + self.position_transform.y
-        )
+    pub fn shader_position(&self) -> Vec2 {
+        self.position + self.position_transform
     }
     pub fn calculate_position(&mut self, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) {
         self.position = self.position_type.to_coordinates(self.size * self.scale, window_size, anchor_element_data);

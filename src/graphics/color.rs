@@ -41,6 +41,7 @@ impl Color {
         }
     }
 
+    /// Can be used in shaders (vec4)
     pub fn to_normalised_rgba_tuple(&self) -> (f32, f32, f32, f32) {
         let tuple = self.to_rgba_tuple();
 
@@ -84,6 +85,9 @@ impl Color {
     pub fn rgba_gray() -> Self { Self::Rgba(122, 122, 122, 1.0) }
     pub fn rgb_gray() -> Self { Self::Rgb(122, 122, 122) }
     pub fn hex_gray() -> Self { Self::hex("#888888") }
+    pub fn rgb_red() -> Self { Self::Rgb(255, 0, 0) }
+    pub fn rgba_red() -> Self { Self::Rgba(255, 0, 0, 1.0) }
+    pub fn hex_red() -> Self { Self::hex("#FF0000") }
     pub fn rgb_yellow() -> Self { Self::Rgb(255, 255, 0) }
     pub fn rgba_yellow() -> Self { Self::Rgba(255, 255, 0, 1.0) }
     pub fn hex_yellow() -> Self { Self::hex("#FFFF00") }
