@@ -33,6 +33,16 @@ impl BorderSize {
         self.bottom = bottom;
         self.left = left;
     }
+
+    /// Return a tuple with the values in clockwise order
+    pub fn tuple(&self) -> (f32, f32, f32, f32) {
+        (self.top, self.right, self.bottom, self.left)
+    }
+
+    /// Return a vec4 with the values in clockwise order
+    pub fn vec4(&self) -> Vec4 {
+        Vec4::new(self.top, self.right, self.bottom, self.left)
+    }
 }
 
 #[derive(Clone, Copy, Debug)]

@@ -9,7 +9,7 @@ uniform sampler2D texture0;
 uniform vec4 drawBounds;
 
 uniform vec4 borderColor;
-uniform float borderSize;
+uniform vec4 borderSize;
 uniform vec4 borderBounds;
 
 uniform vec4 elementBounds;
@@ -43,23 +43,39 @@ void main() {
 
     if (gl_FragCoord.x < borderRadiusCenterTopLeft.x && gl_FragCoord.y > borderRadiusCenterTopLeft.y) {
         // top left corner
-        if (distance(vec2(borderRadiusCenterTopLeft), gl_FragCoord.xy) > borderRadius.x) {
+        float dist = distance(vec2(borderRadiusCenterTopLeft), gl_FragCoord.xy);
+        if (dist > borderRadius.x) {
             discard;
+        } else if (dist > borderRadius.x - min(borderSize.x, borderSize.w)) {
+            FragColor = borderColor;
+            return;
         }
     } else if (gl_FragCoord.x > borderRadiusCenterTopRight.x && gl_FragCoord.y > borderRadiusCenterTopRight.y) {
         // top right corner
-        if (distance(vec2(borderRadiusCenterTopRight), gl_FragCoord.xy) > borderRadius.y) {
+        float dist = distance(vec2(borderRadiusCenterTopRight), gl_FragCoord.xy);
+        if (dist > borderRadius.y) {
             discard;
+        } else if (dist > borderRadius.y - min(borderSize.y, borderSize.x)) {
+            FragColor = borderColor;
+            return;
         }
     } else if (gl_FragCoord.x > borderRadiusCenterBottomRight.x && gl_FragCoord.y < borderRadiusCenterBottomRight.y) {
         // bottom right corner
-        if (distance(vec2(borderRadiusCenterBottomRight), gl_FragCoord.xy) > borderRadius.z) {
+        float dist = distance(vec2(borderRadiusCenterBottomRight), gl_FragCoord.xy);
+        if (dist > borderRadius.z) {
             discard;
+        } else if (dist > borderRadius.z - min(borderSize.y, borderSize.z)) {
+            FragColor = borderColor;
+            return;
         }
     } else if (gl_FragCoord.x < borderRadiusCenterBottomLeft.x && gl_FragCoord.y < borderRadiusCenterBottomLeft.y) {
         // bottom left corner
-        if (distance(vec2(borderRadiusCenterBottomLeft), gl_FragCoord.xy) > borderRadius.w) {
+        float dist = distance(vec2(borderRadiusCenterBottomLeft), gl_FragCoord.xy);
+        if (dist > borderRadius.w) {
             discard;
+        } else if (dist > borderRadius.w - min(borderSize.z, borderSize.w)) {
+            FragColor = borderColor;
+            return;
         }
     }
 

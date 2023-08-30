@@ -61,6 +61,7 @@ impl UiElement for Rectangle {
 
         shader.set_uniform("borderColor", self.border.color.to_normalised_rgba_tuple());
         shader.set_uniform("borderBounds", border_bounds.for_fragment_shader(&window_size, pixel_density));
+        shader.set_uniform("borderSize", self.border.size.vec4() * pixel_density);
 
         unsafe {
             gl::DrawElements(gl::TRIANGLES, self.ebo.data_size as i32, gl::UNSIGNED_INT, core::ptr::null());
