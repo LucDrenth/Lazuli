@@ -128,6 +128,10 @@ impl AssetManager {
     }
 
     pub fn activate_material(&mut self, material_id: &ResourceId<Material>) {
+        // apply shader
+        self.get_material_shader(material_id).unwrap().apply();
+
+        // activate textures
         let texture_ids = self.get_material_by_id(material_id).unwrap().texture_ids_copy();
 
         for (index, texture_id) in texture_ids.iter().enumerate() {

@@ -27,12 +27,10 @@ impl UiElement for Rectangle {
             return
         }
 
-        let shader_id = asset_manager.get_material_by_id(&self.material_id).unwrap().shader_id.duplicate();
-        let shader = asset_manager.get_shader_by_id(&shader_id).unwrap();
+        self.activate(asset_manager);
 
-        shader.apply();
-        self.vao.bind();
-
+        let shader = asset_manager.get_material_shader(&self.material_id).unwrap();
+        
         let fragment_shader_size = self.world_data.size() * self.world_data.scale();
         let shader_position = self.world_data.shader_position();
 
@@ -134,6 +132,12 @@ impl Rectangle {
             Vertex([size.x / 2.0,   size.y / 2.0],  vertex_coordinates::FULL_TOP_RIGHT), // top right
             Vertex([-size.x / 2.0,  size.y / 2.0],  vertex_coordinates::FULL_TOP_LEFT),  // top left
         ]
+    }
+
+    /// bind and activate resources
+    fn activate(&self, asset_manager: &mut AssetManager) {
+        asset_manager.activate_material(&self.material_id);
+        self.vao.bind();
     }
 }
 
