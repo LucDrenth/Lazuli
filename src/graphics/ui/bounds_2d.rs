@@ -38,6 +38,8 @@ impl Bounds2d {
 
     /// Convert coordinates to a tuple of (top, right, bottom, left) so that
     /// the coordinate (0, 0) is at the bottom left of the screen.
+    /// 
+    /// In the shader, it will be a vec4: x=top, y=right, z=bottom, w=left
     pub fn for_fragment_shader(&self, screen_size: &Vec2, pixel_density: f32) -> (f32, f32, f32, f32) {        
         let top = match self.top {
             Some(amount) => amount + screen_size.y / 2.0,

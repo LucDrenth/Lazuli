@@ -508,14 +508,11 @@ impl ElementRegistry {
             None => Err(format!("failed to set rectangle size because rectanglei with id {:?} was not found", rectangle_id)),
         }
     }
-    pub fn set_rectangle_border_size(&mut self, rectangle_id: &ResourceId<UiElementId>, border_size: f32) {
-        self.rectangle_elements.get_mut_by_id(rectangle_id).unwrap().set_border_size(border_size);
+    pub fn get_rectangle_border(&mut self, rectangle_id: &ResourceId<UiElementId>) -> &super::super::shapes::RectangleBorder {
+        self.rectangle_elements.get_by_id(rectangle_id).unwrap().get_border()
     }
-    pub fn set_rectangle_border_sizes(&mut self, rectangle_id: &ResourceId<UiElementId>, top: f32, right: f32, bottom: f32, left: f32) {
-        self.rectangle_elements.get_mut_by_id(rectangle_id).unwrap().set_border_sizes(top, right, bottom, left);
-    }
-    pub fn set_rectangle_border_color(&mut self, rectangle_id: &ResourceId<UiElementId>, border_color: Color) {
-        self.rectangle_elements.get_mut_by_id(rectangle_id).unwrap().set_border_color(border_color);
+    pub fn get_mut_rectangle_border(&mut self, rectangle_id: &ResourceId<UiElementId>) -> &mut super::super::shapes::RectangleBorder {
+        self.rectangle_elements.get_mut_by_id(rectangle_id).unwrap().get_mut_border()
     }
 
     pub fn show_element(&mut self, element_id: &ResourceId<UiElementId>) -> Result<(), String> {
