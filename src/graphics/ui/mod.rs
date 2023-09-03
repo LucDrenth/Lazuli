@@ -27,3 +27,6 @@ mod bounds_2d;
 
 mod ui_resource_id;
 pub use ui_resource_id::*;
+
+mod ui_texture;
+pub use ui_texture::UiTexture;

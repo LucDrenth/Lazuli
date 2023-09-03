@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, ui::{Interface, shapes::{RectangleBuilder, RectangleTexture}, UiElementId}, Color}, event::EventSystem, input::Input, asset_manager::AssetManager, ResourceId};
+use crate::{graphics::{scene::Scene, ui::{Interface, shapes::RectangleBuilder, UiElementId, UiTexture}, Color}, event::EventSystem, input::Input, asset_manager::AssetManager, ResourceId};
 
 pub struct HelloIcon {
     interface: Interface,
@@ -13,8 +13,8 @@ impl Scene for HelloIcon {
 
         let rectangle_id = interface.mut_element_registry().create_rectangle(&RectangleBuilder::new()
             .without_color()
-            .with_color(Color::Rgba(255, 255, 0, 0.75))
-            .with_texture(RectangleTexture::Path("./assets/images/lazuli-rock.png".to_string()))
+            .with_color(Color::Rgba(255, 255, 0, 1.))
+            .with_texture(UiTexture::Path("./assets/images/lazuli-rock.png".to_string()))
             .with_width(700.0)
             .with_height(500.0)
             .with_border_size(10.0)

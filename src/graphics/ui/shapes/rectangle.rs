@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, Position, ElementRegistry, bounds_2d::Bounds2d}, material::Material, Color, texture::{vertex_coordinates, Texture}}, set_attribute, error::opengl, asset_manager::AssetManager, log, ResourceId};
+use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, Position, ElementRegistry, bounds_2d::Bounds2d, UiTexture}, material::Material, Color, texture::vertex_coordinates}, set_attribute, error::opengl, asset_manager::AssetManager, log, ResourceId};
 use crate::graphics::shapes::RECTANGLE_INDICES;
 
 use super::rectangle_border::{Border, BorderSize, BorderRadius};
@@ -141,33 +141,6 @@ impl Rectangle {
     }
 }
 
-pub enum RectangleTexture {
-    Id(ResourceId<Texture>),
-    Path(String),
-}
-
-impl RectangleTexture {
-    fn upload(&self, material_id: &ResourceId<Material>, asset_manager: &mut AssetManager) -> Result<ResourceId<Texture>, String> {
-        match self {
-            RectangleTexture::Id(texture_id) => {
-                asset_manager.add_material_texture(&material_id, &texture_id);
-                Ok(texture_id.duplicate())
-            },
-            RectangleTexture::Path(texture_path) => {
-                match asset_manager.load_texture(texture_path) {
-                    Ok(texture_id) => {
-                        asset_manager.add_material_texture(&material_id, &texture_id);
-                        Ok(texture_id)
-                    },
-                    Err(err) => {
-                        Err(err)
-                    },
-                }
-            },
-        }
-    }
-}
-
 pub struct RectangleBuilder {
     color: Color,
     position: Position,
@@ -176,7 +149,7 @@ pub struct RectangleBuilder {
     z_index: f32,
     scale: Vec2,
     hidden: bool,
-    texture: Option<RectangleTexture>,
+    texture: Option<UiTexture>,
     border: Border,
 }
 
@@ -315,7 +288,7 @@ impl RectangleBuilder {
         self
     }
 
-    pub fn with_texture(mut self, texture: RectangleTexture) -> Self {
+    pub fn with_texture(mut self, texture: UiTexture) -> Self {
         self.texture = Some(texture);
         self
     }
