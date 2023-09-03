@@ -76,27 +76,13 @@ impl Color {
     }
 
     pub fn transparent() -> Self { Self::Rgba(255, 255, 255, 0.0) }
-    pub fn rgba_white() -> Self { Self::Rgba(255, 255, 255, 1.0) }
-    pub fn rgb_white() -> Self { Self::Rgb(255, 255, 255) }
-    pub fn hex_white() -> Self { Self::hex("#FFFFFF") }
-    pub fn rgba_black() -> Self { Self::Rgba(0, 0, 0, 1.0) }
-    pub fn rgb_black() -> Self { Self::Rgb(0, 0, 0) }
-    pub fn hex_black() -> Self { Self::hex("#000000") }
-    pub fn rgba_gray() -> Self { Self::Rgba(127, 127, 127, 1.0) }
-    pub fn rgb_gray() -> Self { Self::Rgb(127, 127, 127) }
-    pub fn hex_gray() -> Self { Self::hex("#888888") }
-    pub fn rgb_red() -> Self { Self::Rgb(255, 0, 0) }
-    pub fn rgba_red() -> Self { Self::Rgba(255, 0, 0, 1.0) }
-    pub fn hex_red() -> Self { Self::hex("#FF0000") }
-    pub fn rgb_green() -> Self { Self::Rgb(0, 255, 0) }
-    pub fn rgba_green() -> Self { Self::Rgba(0, 255, 0, 1.0) }
-    pub fn hex_green() -> Self { Self::hex("#00FF00") }
-    pub fn rgb_blue() -> Self { Self::Rgb(0, 0, 255) }
-    pub fn rgba_blue() -> Self { Self::Rgba(0, 0, 255, 1.0) }
-    pub fn hex_blue() -> Self { Self::hex("#0000ff") }
-    pub fn rgb_yellow() -> Self { Self::Rgb(255, 255, 0) }
-    pub fn rgba_yellow() -> Self { Self::Rgba(255, 255, 0, 1.0) }
-    pub fn hex_yellow() -> Self { Self::hex("#FFFF00") }
+    pub fn white() -> Self { Self::Rgba(255, 255, 255, 1.0) }
+    pub fn black() -> Self { Self::Rgba(0, 0, 0, 1.0) }
+    pub fn gray() -> Self { Self::Rgba(127, 127, 127, 1.0) }
+    pub fn red() -> Self { Self::Rgba(255, 0, 0, 1.0) }
+    pub fn green() -> Self { Self::Rgba(0, 255, 0, 1.0) }
+    pub fn blue() -> Self { Self::Rgba(0, 0, 255, 1.0) }
+    pub fn yellow() -> Self { Self::Rgba(255, 255, 0, 1.0) }
 }
 
 pub fn hex_to_rgb(hex: &String) -> (u8, u8, u8) {

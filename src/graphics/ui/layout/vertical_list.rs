@@ -125,7 +125,7 @@ impl VerticalListBuilder {
         Self {
             widget_ids: vec![],
             gap_size: default_gap_size,
-            background_color: Color::rgba_black(),
+            background_color: Color::black(),
             max_height: 300.0,
             position: Position::ScreenAnchor(AnchorPoint::Center),
             padding: Padding::Universal(default_gap_size),

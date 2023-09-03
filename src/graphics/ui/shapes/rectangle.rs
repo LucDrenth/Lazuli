@@ -156,7 +156,7 @@ pub struct RectangleBuilder {
 impl RectangleBuilder {
     pub fn new() -> Self {
         Self {
-            color: Color::rgba_gray(),
+            color: Color::gray(),
             shader_builder: None,
             position: Position::ScreenAnchor(AnchorPoint::Center),
             size: Vec2::new(100.0, 40.0),
@@ -165,7 +165,7 @@ impl RectangleBuilder {
             hidden: false,
             texture: None,
             border: Border {
-                color: Color::rgb_black(),
+                color: Color::black(),
                 size: BorderSize::zero(),
                 radius: BorderRadius::zero(),
             },
