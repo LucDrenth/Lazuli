@@ -1,9 +1,16 @@
 use std::marker::PhantomData;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Copy)] // also Clone, which is defined with an impl<T> down below
 pub struct ResourceId<T> {
     id: u32,
     _phantom: PhantomData<T>,
+}
+
+// TODO do this for all types instead of only for Texture
+impl<T> Clone for ResourceId<T> {
+    fn clone(&self) -> Self {
+        self.duplicate()
+    }
 }
 
 impl<T> ResourceId<T> {

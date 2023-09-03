@@ -82,8 +82,8 @@ impl Color {
     pub fn rgba_black() -> Self { Self::Rgba(0, 0, 0, 1.0) }
     pub fn rgb_black() -> Self { Self::Rgb(0, 0, 0) }
     pub fn hex_black() -> Self { Self::hex("#000000") }
-    pub fn rgba_gray() -> Self { Self::Rgba(122, 122, 122, 1.0) }
-    pub fn rgb_gray() -> Self { Self::Rgb(122, 122, 122) }
+    pub fn rgba_gray() -> Self { Self::Rgba(127, 127, 127, 1.0) }
+    pub fn rgb_gray() -> Self { Self::Rgb(127, 127, 127) }
     pub fn hex_gray() -> Self { Self::hex("#888888") }
     pub fn rgb_red() -> Self { Self::Rgb(255, 0, 0) }
     pub fn rgba_red() -> Self { Self::Rgba(255, 0, 0, 1.0) }

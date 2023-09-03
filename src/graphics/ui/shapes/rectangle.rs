@@ -156,7 +156,7 @@ pub struct RectangleBuilder {
 impl RectangleBuilder {
     pub fn new() -> Self {
         Self {
-            color: Color::Rgb(126, 126, 126), // gray
+            color: Color::rgba_gray(),
             shader_builder: None,
             position: Position::ScreenAnchor(AnchorPoint::Center),
             size: Vec2::new(100.0, 40.0),
@@ -237,7 +237,6 @@ impl RectangleBuilder {
         self.color = color;
         self
     }
-
     pub fn without_color(mut self) -> Self {
         self.color = Color::transparent();
         self
@@ -257,12 +256,10 @@ impl RectangleBuilder {
         self.size.x = width;
         self
     }
-
     pub fn with_height(mut self, height: f32) -> Self {
         self.size.y = height;
         self
     }
-
     pub fn with_size(mut self, size: Vec2) -> Self {
         self.size = size;
         self

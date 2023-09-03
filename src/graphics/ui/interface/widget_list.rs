@@ -30,8 +30,8 @@ impl <T: UiWidget, U: Debug + Clone> WidgetList<T, U> {
         Self { entries: vec![], default_update_result }
     }
 
-    pub fn push(&mut self, widget: T, default_update_result: U) -> ResourceId<UiWidgetId> {
-        self.entries.push(WidgetEntry::new(widget, default_update_result));
+    pub fn push(&mut self, widget: T) -> ResourceId<UiWidgetId> {
+        self.entries.push(WidgetEntry::new(widget, self.default_update_result.clone()));
         let id = self.entries.last().unwrap().id.duplicate();
 
         self.sort();

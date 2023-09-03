@@ -1,4 +1,4 @@
-use crate::{graphics::{ui::{widget::{Slider, SliderBuilder, SliderUpdateResult, Button, ButtonBuilder, UiWidget, Dropdown, DropdownBuilder}, UiWidgetId}, Color}, asset_manager::AssetManager, input::Input, log, ResourceId};
+use crate::{graphics::{ui::{widget::{Slider, SliderBuilder, SliderUpdateResult, Button, ButtonBuilder, UiWidget, Dropdown, DropdownBuilder, Icon, IconBuilder}, UiWidgetId}, Color}, asset_manager::AssetManager, input::Input, log, ResourceId};
 
 use super::{ElementRegistry, widget_list::WidgetList};
 
@@ -6,6 +6,7 @@ pub struct WidgetRegistry {
     buttons: WidgetList<Button, bool>,
     sliders: WidgetList<Slider, Option<SliderUpdateResult>>,
     dropdowns: WidgetList<Dropdown<u32>, Option<u32>>, // TODO support more types than Dropdown<u32>
+    icons: WidgetList<Icon, ()>,
 }
 
 impl WidgetRegistry {
@@ -14,6 +15,7 @@ impl WidgetRegistry {
             buttons: WidgetList::new(false),
             sliders: WidgetList::new(None),
             dropdowns: WidgetList::new(None),
+            icons: WidgetList::new(()),
         }
     }
 
@@ -48,15 +50,19 @@ impl WidgetRegistry {
 
     pub fn add_slider(&mut self, builder: &SliderBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
         let slider = builder.build(element_registry, asset_manager)?;
-        Ok(self.sliders.push(slider, None))
+        Ok(self.sliders.push(slider))
     }
     pub fn add_button(&mut self, label: impl Into<String>, builder: &ButtonBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
         let button = builder.build(label, element_registry, asset_manager)?;
-        Ok(self.buttons.push(button, false))
+        Ok(self.buttons.push(button))
     }
     pub fn add_dropdown(&mut self, builder: &DropdownBuilder<u32>, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
         let dropdown = builder.build(element_registry, asset_manager)?;
-        Ok(self.dropdowns.push(dropdown, None))
+        Ok(self.dropdowns.push(dropdown))
+    }
+    pub fn add_icon(&mut self, builder: &IconBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
+        let icon = builder.build(element_registry, asset_manager)?;
+        Ok(self.icons.push(icon))
     }
 
     pub fn slider_update_result(&self, slider_id: &ResourceId<UiWidgetId>) -> Option<SliderUpdateResult> {
@@ -123,10 +129,15 @@ impl WidgetRegistry {
     }
     fn get_dropdown(&self, dropdown_id: &ResourceId<UiWidgetId>) -> Option<&Dropdown<u32>> {
         self.dropdowns.get_widget(dropdown_id)
-
     }
     fn get_mut_dropdown(&mut self, dropdown_id: &ResourceId<UiWidgetId>) -> Option<&mut Dropdown<u32>> {
         self.dropdowns.get_mut_widget(dropdown_id)
+    }
+    fn get_icon(&self, icon_id: &ResourceId<UiWidgetId>) -> Option<&Icon> {
+        self.icons.get_widget(icon_id)
+    }
+    fn get_mut_icon(&mut self, icon_id: &ResourceId<UiWidgetId>) -> Option<&mut Icon> {
+        self.icons.get_mut_widget(icon_id)
     }
 
     // =================================================== \\

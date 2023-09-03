@@ -15,6 +15,12 @@ pub enum Position {
     ElementAnchor(AnchorPoint, ResourceId<UiElementId>),
 }
 
+impl Default for Position {
+    fn default() -> Self {
+        return Self::ScreenAnchor(AnchorPoint::Center)
+    }
+}
+
 impl Position {
     // Convert to world coordinates where (0, 0) is at the center of the screen
     pub fn to_coordinates(&self, element_size: Vec2, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) -> Vec2 {

@@ -33,7 +33,7 @@ impl AssetManager {
             None => (),
         }
 
-        let texture = Texture::new();
+        let mut texture = Texture::new();
         match texture.load_from_path(path_string) {
             Ok(_) => (),
             Err(err) => {

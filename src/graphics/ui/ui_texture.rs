@@ -1,5 +1,6 @@
 use crate::{graphics::{texture::Texture, material::Material}, ResourceId, asset_manager::AssetManager};
 
+#[derive(Clone)]
 pub enum UiTexture {
     Id(ResourceId<Texture>),
     Path(String),
@@ -24,5 +25,9 @@ impl UiTexture {
                 }
             },
         }
+    }
+
+    pub fn path(texture_path: impl Into<String>) -> Self {
+        Self::Path(texture_path.into())
     }
 }

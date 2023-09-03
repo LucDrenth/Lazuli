@@ -1,4 +1,5 @@
 use gl::types::{GLuint, GLenum};
+use glam::Vec2;
 
 use crate::{error::opengl, log};
 
@@ -6,6 +7,7 @@ use super::TextureImage;
 
 pub struct Texture {
     pub id: GLuint,
+    original_size: Vec2,
 }
 
 impl Texture {
@@ -17,7 +19,7 @@ impl Texture {
         }
 
         opengl::gl_check_errors();
-        Self { id }
+        Self { id, original_size: Vec2::ZERO }
     }
 
     pub fn activate(&self, unit: usize) {
@@ -36,13 +38,19 @@ impl Texture {
         opengl::gl_check_errors();
     }
 
-    pub fn load_from_path(&self, path: impl Into<String>) -> Result<(), String> {
+    pub fn load_from_path(&mut self, path: impl Into<String>) -> Result<(), String> {
         let path_string = path.into();
 
         match image::open(path_string.clone()) {
             Ok(img) => {
+                let width = img.width() as f32;
+                let height = img.height() as f32;
+
                 self.bind();
                 Self::upload(&img.into_rgba8());
+
+                self.original_size = Vec2::new(width, height);
+
                 Ok(())
             }
             Err(err) => {
@@ -80,6 +88,10 @@ impl Texture {
             
         opengl::gl_check_errors();
     }
+
+    pub fn size(&self) -> Vec2 { self.original_size }
+    pub fn width(&self) -> f32 { self.size().x }
+    pub fn height(&self) -> f32 { self.size().y }
 }
 
 fn to_gl_texture_unit(unit: u32) -> GLenum {

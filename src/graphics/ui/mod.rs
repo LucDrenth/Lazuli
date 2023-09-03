@@ -14,6 +14,10 @@ pub use element::AnchorPoint;
 mod interface;
 pub use interface::ElementRegistry;
 pub use interface::Interface;
+pub use interface::default_element_background_color;
+pub use interface::default_font;
+pub use interface::default_font_size;
+pub use interface::default_text_color;
 
 mod layout;
 pub use layout::Layout;
