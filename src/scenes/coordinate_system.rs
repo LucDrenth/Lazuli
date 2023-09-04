@@ -3,7 +3,7 @@ use std::f32::consts::{PI, TAU};
 use glam::{Vec3, Vec2};
 use rand::{Rng, rngs::ThreadRng};
 
-use crate::{graphics::{scene::Scene, Cube, shader::{PATH_COLORED_FRAG, ShaderBuilder}, Transform, Camera, Shape, material::Material}, event::{EventSystem, self}, input::{Input, Key}, time, asset_manager::AssetManager, ResourceId};
+use crate::{graphics::{scene::Scene, Cube, shader::{PATH_COLORED_FRAG, ShaderBuilder}, Transform, Camera, Shape, material::Material, ui::Interface}, event::{EventSystem, self}, input::{Input, Key}, time, asset_manager::AssetManager, ResourceId};
 
 pub struct CoordinateSystem {
     material_id: ResourceId<Material>,
@@ -17,7 +17,7 @@ pub struct CoordinateSystem {
 }
 
 impl Scene for CoordinateSystem {
-    fn new(event_system: &mut EventSystem, window_size: Vec2, _pixel_density: f32, asset_manager: &mut AssetManager) -> Result<Self, String> {
+    fn new(event_system: &mut EventSystem, window_size: Vec2, _pixel_density: f32, asset_manager: &mut AssetManager, _: &mut Interface) -> Result<Self, String> {
         event_system.send(event::LockCursor{});
         event_system.send(event::HideCursor{});
 
@@ -76,7 +76,7 @@ impl Scene for CoordinateSystem {
         Ok(result)
     }
 
-    fn update(&mut self, _: &mut EventSystem, input: &Input, asset_manager: &mut AssetManager) {
+    fn update(&mut self, _: &mut EventSystem, input: &Input, asset_manager: &mut AssetManager, _: &mut Interface) {
         for i in 0..self.cubes.len() {
             self.transforms[i].rotate(&self.rotations[i]);
         }

@@ -3,15 +3,11 @@ use glam::Vec2;
 use crate::{graphics::{scene::Scene, font::PlainBitmapBuilder, ui::{TextBuilder, Interface}, Color}, event::EventSystem, input::Input, asset_manager::AssetManager};
 
 pub struct HelloText {
-    interface: Interface,
 }
 
 impl Scene for HelloText {
-    fn new(event_system: &mut EventSystem, window_size: Vec2, pixel_density: f32, asset_manager: &mut AssetManager) -> Result<Self, String> 
+    fn new(_: &mut EventSystem, _: Vec2, _: f32, asset_manager: &mut AssetManager, interface: &mut Interface) -> Result<Self, String> 
     {
-        let mut interface = Interface::new(event_system, window_size, pixel_density);
-
-
         let plain_font_id = asset_manager.load_font(PlainBitmapBuilder::new()
             .with_font_size(50.0)
         , None)?;
@@ -42,18 +38,14 @@ impl Scene for HelloText {
         // element_registry.add_element(sdf_text);
         
 
-        let result = Self { 
-            interface,
-        };
+        let result = Self { };
 
         Ok(result)
     }
 
-    fn update(&mut self, _: &mut EventSystem, input: &Input, asset_manager: &mut AssetManager) {
-        self.interface.update(asset_manager, input);
+    fn update(&mut self, _: &mut EventSystem, _: &Input, _: &mut AssetManager, _: &mut Interface) {
     }
 
-    unsafe fn draw(&self, asset_manager: &mut AssetManager) {
-        self.interface.draw(asset_manager);
+    unsafe fn draw(&self, _: &mut AssetManager) {
     }
 }

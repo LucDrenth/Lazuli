@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, Triangle, shader::{PATH_MOVING_TRIANGLE_VERT, PATH_MOVING_TRIANGLE_FRAG, ShaderBuilder}, Shape, material::Material}, event::EventSystem, input::Input, asset_manager::AssetManager, ResourceId};
+use crate::{graphics::{scene::Scene, Triangle, shader::{PATH_MOVING_TRIANGLE_VERT, PATH_MOVING_TRIANGLE_FRAG, ShaderBuilder}, Shape, material::Material, ui::Interface}, event::EventSystem, input::Input, asset_manager::AssetManager, ResourceId};
 
 pub struct MovingTriangle {
     material_id: ResourceId<Material>,
@@ -10,7 +10,7 @@ pub struct MovingTriangle {
 }
 
 impl Scene for MovingTriangle {
-    fn new(_event_system: &mut EventSystem, _window_size: Vec2, _pixel_density: f32, asset_manager: &mut AssetManager) -> Result<Self, String> {
+    fn new(_event_system: &mut EventSystem, _window_size: Vec2, _pixel_density: f32, asset_manager: &mut AssetManager, _: &mut Interface) -> Result<Self, String> {
         let shader_id = asset_manager.load_shader(ShaderBuilder::new()
             .with_vertex_shader_path(PATH_MOVING_TRIANGLE_VERT.to_string())
             .with_fragment_shader_path(PATH_MOVING_TRIANGLE_FRAG.to_string())
@@ -28,7 +28,7 @@ impl Scene for MovingTriangle {
         })
     }
 
-    fn update(&mut self, _: &mut EventSystem, _: &Input, asset_manager: &mut AssetManager) {
+    fn update(&mut self, _: &mut EventSystem, _: &Input, asset_manager: &mut AssetManager, _: &mut Interface) {
         self.triangle_offset_x += self.triangle_movement_velocity;
 
         if self.triangle_offset_x > 0.5 {

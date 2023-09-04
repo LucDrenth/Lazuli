@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, shader::{PATH_TEXTURED_VERT, PATH_TEXTURED_FRAG, ShaderBuilder}, Rectangle, Shape, material::Material}, event::EventSystem, input::Input, asset_manager::AssetManager, ResourceId};
+use crate::{graphics::{scene::Scene, shader::{PATH_TEXTURED_VERT, PATH_TEXTURED_FRAG, ShaderBuilder}, Rectangle, Shape, material::Material, ui::Interface}, event::EventSystem, input::Input, asset_manager::AssetManager, ResourceId};
 
 pub struct HelloTexture {
     material_id: ResourceId<Material>,
@@ -8,7 +8,7 @@ pub struct HelloTexture {
 }
 
 impl Scene for HelloTexture {
-    fn new(_event_system: &mut EventSystem, _window_size: Vec2, _pixel_density: f32, asset_manager: &mut AssetManager) -> Result<Self, String> {
+    fn new(_event_system: &mut EventSystem, _window_size: Vec2, _pixel_density: f32, asset_manager: &mut AssetManager, _: &mut Interface) -> Result<Self, String> {
         let shader_id = asset_manager.load_shader(ShaderBuilder::new()
             .with_vertex_shader_path(PATH_TEXTURED_VERT.to_string())
             .with_fragment_shader_path(PATH_TEXTURED_FRAG.to_string())
@@ -27,7 +27,7 @@ impl Scene for HelloTexture {
         Ok(result)
     }
 
-    fn update(&mut self, _: &mut EventSystem, _: &Input, _: &mut AssetManager) {}
+    fn update(&mut self, _: &mut EventSystem, _: &Input, _: &mut AssetManager, _: &mut Interface) {}
 
     unsafe fn draw(&self, asset_manager: &mut AssetManager) {
         self.shape.draw(asset_manager.get_material_shader(&self.material_id).unwrap());

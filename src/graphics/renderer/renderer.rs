@@ -1,5 +1,5 @@
 use crate::{
-    graphics::scene::Scene, 
+    graphics::{scene::Scene, ui::Interface}, 
     error::opengl, asset_manager::AssetManager
 };
 
@@ -24,12 +24,13 @@ impl Renderer {
         })
     }
 
-    pub fn draw(&mut self, asset_manager: &mut AssetManager) {
+    pub fn draw(&mut self, asset_manager: &mut AssetManager, interface: &Interface) {
         unsafe {
             gl::ClearColor(0.45, 0.4, 0.6, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
             self.scene.draw(asset_manager);
+            interface.draw(asset_manager);
             self.fps.update_fps_count();
 
             opengl::gl_check_errors();
