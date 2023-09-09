@@ -37,8 +37,8 @@ impl Interface {
             let window_size = Vec2::new(e.width as f32, e.height as f32);
             self.element_registry.handle_window_resize(window_size, asset_manager);
 
-            // TODO update elements their draw bounds. See HelloUi scene after window resize, where the
-            // layout gets buggy.
+            // TODO update layout elements their draw bounds. See HelloUi scene, where the
+            // layout elements get buggy after window resize.
         });
 
         self.pixel_density_change_event.read().last().map(|e| {
