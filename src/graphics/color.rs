@@ -83,6 +83,7 @@ impl Color {
     pub fn green() -> Self { Self::Rgba(0, 255, 0, 1.0) }
     pub fn blue() -> Self { Self::Rgba(0, 0, 255, 1.0) }
     pub fn yellow() -> Self { Self::Rgba(255, 255, 0, 1.0) }
+    pub fn orange() -> Self { Self::Rgba(255, 127, 0, 1.0) }
 }
 
 pub fn hex_to_rgb(hex: &String) -> (u8, u8, u8) {
