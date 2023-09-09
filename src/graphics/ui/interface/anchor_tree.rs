@@ -311,4 +311,14 @@ impl AnchorTree {
             None => Err(format!("parent with id {} was not found", parent_id.id())),
         }
     }
+
+    pub fn root_screen_tree_elements(&self) -> Vec<AnchorElementIdentifier> {
+        let mut result = vec![];
+
+        for root_element in &self.screen_tree {
+            result.push(root_element.identifier.clone());
+        }
+
+        result
+    }
 }

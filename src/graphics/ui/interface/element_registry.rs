@@ -250,6 +250,23 @@ impl ElementRegistry {
                 },
             }
         }
+
+        // update positions of screen-anchored elements
+        for screen_tree_root_element in self.anchor_tree.root_screen_tree_elements() {
+            match self.get_mut_ui_element_by_id(&screen_tree_root_element.element_id) {
+                Some(element) => {
+                    // since we only deal with root elements here, we can pass None as anchor_element_data since root elements
+                    // are never anchored to another element
+                    element.mut_world_data().calculate_position(window_size, None);
+
+                    // update positions of the children of our current root element
+                    self.update_anchor_tree(&screen_tree_root_element.element_id);
+                },
+                None => log::engine_err(
+                    format!("failed to handle window resize for screen anchored root element with id {:?}", screen_tree_root_element.element_id)
+                ),
+            }
+        }
     }
 
     pub fn generate_element_id(&mut self) -> u32 {
@@ -328,7 +345,7 @@ impl ElementRegistry {
         self.register_in_anchor_tree(self.get_type_id(element_id).unwrap(), element_id.clone(), &position);
 
         if let Some(mut anchored_element) = removed_element {
-            _ = self.anchor_tree.add_children(element_id, anchored_element.take_children());
+            self.anchor_tree.add_children(element_id, anchored_element.take_children()).unwrap();
         }
     }
 
