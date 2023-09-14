@@ -130,13 +130,23 @@ impl Interface {
         self.widget_registry.dropdown_update_result(dropdown_id)
     }
 
-    pub fn scroll_speed(&self) -> f32 {
-        self.scroll_speed
-    }
-
     // icon specific functions
     pub fn add_icon(&mut self, builder: &IconBuilder, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
         self.widget_registry.add_icon(builder, &mut self.element_registry, asset_manager)
+    }
+    pub fn set_icon_padding(&mut self, padding: f32, icon_id: &ResourceId<UiWidgetId>) -> Result<(), String> {
+        match self.widget_registry.get_widget_by_id(&icon_id) {
+            Some(ui_widget) => self.element_registry.set_rectangle_texture_padding(
+                &ui_widget.get_main_element_id(), 
+                padding,
+            ),
+            None => Err(format!("Icon with id {:?} not found", icon_id)),
+        }
+    }
+
+
+    pub fn scroll_speed(&self) -> f32 {
+        self.scroll_speed
     }
 }
 

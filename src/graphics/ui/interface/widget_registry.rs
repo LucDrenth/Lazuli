@@ -91,6 +91,10 @@ impl WidgetRegistry {
             if widget_entry.id.equals(&widget_id) { return Some(Box::new(&widget_entry.widget)) }
         }
 
+        for widget_entry in self.icons.entries.iter() {
+            if widget_entry.id.equals(&widget_id) { return Some(Box::new(&widget_entry.widget)) }
+        }
+
         None
     }
 
@@ -104,6 +108,10 @@ impl WidgetRegistry {
         }
 
         for widget_entry in self.dropdowns.entries.iter_mut() {
+            if widget_entry.id.equals(&widget_id) { return Some(Box::new(&mut widget_entry.widget)) }
+        }
+
+        for widget_entry in self.icons.entries.iter_mut() {
             if widget_entry.id.equals(&widget_id) { return Some(Box::new(&mut widget_entry.widget)) }
         }
 

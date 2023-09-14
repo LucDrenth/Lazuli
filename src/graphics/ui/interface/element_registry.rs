@@ -531,6 +531,12 @@ impl ElementRegistry {
     pub fn get_mut_rectangle_border(&mut self, rectangle_id: &ResourceId<UiElementId>) -> &mut super::super::shapes::RectangleBorder {
         self.rectangle_elements.get_mut_by_id(rectangle_id).unwrap().get_mut_border()
     }
+    pub fn set_rectangle_texture_padding(&mut self, rectangle_id: &ResourceId<UiElementId>, texture_padding: f32) -> Result<(), String> {
+        match self.rectangle_elements.get_mut_by_id(rectangle_id) {
+            Some(rectangle) => { Ok(rectangle.set_texture_padding(texture_padding)) },
+            None => Err(format!("failed to set rectangle texture padding because rectanglei with id {:?} was not found", rectangle_id)),
+        }
+    }
 
     pub fn show_element(&mut self, element_id: &ResourceId<UiElementId>) -> Result<(), String> {
         match self.get_mut_ui_element_by_id(element_id) {

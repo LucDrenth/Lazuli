@@ -78,6 +78,7 @@ pub struct IconBuilder {
     z_index: f32,
     position: Position,
     shader_builder: Option<ShaderBuilder>,
+    padding: f32,
 }
 
 impl IconBuilder {
@@ -90,6 +91,7 @@ impl IconBuilder {
             z_index: 10.0,
             position: Default::default(),
             shader_builder: None,
+            padding: 0.0,
         }
     }
 
@@ -109,6 +111,7 @@ impl IconBuilder {
         let rectangle_element_id = element_registry.create_rectangle(&RectangleBuilder::new()
             .with_color(self.background_color.clone())
             .with_texture(UiTexture::Id(texture_id))
+            .with_texture_padding(self.padding)
             .with_size(size)
             .with_z_index(self.z_index)
         , asset_manager)?;
@@ -183,6 +186,11 @@ impl IconBuilder {
     /// Default to custom shader
     pub fn without_shader_builder(mut self) -> Self {
         self.shader_builder = None;
+        self
+    }
+
+    pub fn with_padding(mut self, padding: f32) -> Self {
+        self.padding = padding;
         self
     }
 }

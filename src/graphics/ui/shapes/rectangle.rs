@@ -126,7 +126,15 @@ impl Rectangle {
         &mut self.border
     }
 
+    pub fn set_texture_padding(&mut self, texture_padding: f32) {
+        self.texture_padding = texture_padding;
+
+        self.vao.bind();
+        self._vbo.update_data(&Self::create_vertices(&self.world_data.size(), self.texture_padding));
+    }
+
     // TODO padding per side
+    // TODO higher padding than the size makes the texture it's x/y inverted. Limit this.
     fn create_vertices(size: &Vec2, texture_padding: f32) -> [Vertex; 4] {
         // A texture over the full size of the rectangle has a range of 1 (from 0.0 to 1.0).
         // If this range goes up, the texture gets smaller. To calculate the size of the image,
