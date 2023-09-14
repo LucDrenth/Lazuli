@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, Position, ElementRegistry, bounds_2d::Bounds2d, UiTexture, Padding}, material::Material, Color, texture::vertex_coordinates}, set_attribute, error::opengl, asset_manager::AssetManager, log, ResourceId};
+use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, Position, ElementRegistry, bounds_2d::Bounds2d, UiTexture}, material::Material, Color}, set_attribute, error::opengl, asset_manager::AssetManager, log, ResourceId};
 use crate::graphics::shapes::RECTANGLE_INDICES;
 
 use super::rectangle_border::{Border, BorderSize, BorderRadius};
@@ -19,7 +19,7 @@ pub struct Rectangle {
 
     color: Color,
     border: Border,
-    texture_padding: Padding,
+    texture_padding: f32,
 }
 
 impl UiElement for Rectangle {
@@ -114,7 +114,7 @@ impl Rectangle {
 
     pub fn set_size(&mut self, size: Vec2, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) {
         self.vao.bind();
-        self._vbo.update_data(&Self::create_vertices(&size, &self.texture_padding));
+        self._vbo.update_data(&Self::create_vertices(&size, self.texture_padding));
 
         self.world_data.set_size(size, window_size, anchor_element_data);
     }
@@ -126,20 +126,13 @@ impl Rectangle {
         &mut self.border
     }
 
-    fn create_vertices(size: &Vec2, texture_padding: &Padding) -> [Vertex; 4] {
-        // TODO padding left and right are averaged and then used for both sides. So are padding top and bottom.
-        // We want to use them individually
-
-        let normalised_padding_left = texture_padding.left() / size.x;
-        let normalised_padding_right = texture_padding.right() / size.x;
-        let normalised_padding_top = texture_padding.top() / size.y;
-        let normalised_padding_bottom = texture_padding.bottom() / size.y;
-
+    // TODO padding per side
+    fn create_vertices(size: &Vec2, texture_padding: f32) -> [Vertex; 4] {
         // A texture over the full size of the rectangle has a range of 1 (from 0.0 to 1.0).
         // If this range goes up, the texture gets smaller. To calculate the size of the image,
         // we can use 100% / range. For example, if the range is 2, the texture its size is 50%.
-        let range_x = 1.0 / (1.0 - (normalised_padding_left + normalised_padding_right));
-        let range_y = 1.0 / (1.0 - (normalised_padding_top + normalised_padding_bottom));
+        let range_x = 1.0 / (1.0 - (texture_padding * 2.0 / size.x));
+        let range_y = 1.0 / (1.0 - (texture_padding * 2.0 / size.y));
 
         let range_x_min = (-range_x + 1.0) / 2.0;
         let range_x_max = 1.0 + (range_x - 1.0) / 2.0;
@@ -176,7 +169,7 @@ pub struct RectangleBuilder {
     hidden: bool,
     texture: Option<UiTexture>,
     border: Border,
-    texture_padding: Padding,
+    texture_padding: f32,
 }
 
 impl RectangleBuilder {
@@ -195,7 +188,7 @@ impl RectangleBuilder {
                 size: BorderSize::zero(),
                 radius: BorderRadius::zero(),
             },
-            texture_padding: Padding::None,
+            texture_padding: 0.0,
         }
     }
 
@@ -218,7 +211,7 @@ impl RectangleBuilder {
         vao.bind();
         
         let mut vbo = Buffer::new_vbo();
-        vbo.set_data(&Rectangle::create_vertices(&self.size, &self.texture_padding), gl::STATIC_DRAW);
+        vbo.set_data(&Rectangle::create_vertices(&self.size, self.texture_padding), gl::STATIC_DRAW);
 
         let mut ebo = Buffer::new_ebo();
         ebo.set_data(&RECTANGLE_INDICES, gl::STATIC_DRAW);
@@ -343,7 +336,7 @@ impl RectangleBuilder {
         self
     }
 
-    pub fn with_texture_padding(mut self, texture_padding: Padding) -> Self {
+    pub fn with_texture_padding(mut self, texture_padding: f32) -> Self {
         self.texture_padding = texture_padding;
         self
     }

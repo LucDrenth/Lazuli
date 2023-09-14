@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, ui::{Interface, UiWidgetId, widget::IconBuilder, TextBuilder, Position, shapes::RectangleBuilder, AnchorPoint, UiTexture, Padding}, Color}, event::EventSystem, input::Input, asset_manager::AssetManager, ResourceId};
+use crate::{graphics::{scene::Scene, ui::{Interface, UiWidgetId, widget::IconBuilder, TextBuilder, Position, shapes::RectangleBuilder, AnchorPoint, UiTexture}, Color}, event::EventSystem, input::Input, asset_manager::AssetManager, ResourceId};
 
 pub struct HelloIcon {
     icon_id: ResourceId<UiWidgetId>,
@@ -18,7 +18,7 @@ impl Scene for HelloIcon {
             .with_width(100.0)
             .with_height(100.0)
             .with_texture(UiTexture::path("./assets/images/pattern-inner.png"))
-            .with_texture_padding(Padding::Universal(25.0))
+            .with_texture_padding(10.)
         , asset_manager);
 
         interface.mut_element_registry().create_text("Hello icon", None, &TextBuilder::new()
