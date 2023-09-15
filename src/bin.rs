@@ -5,5 +5,5 @@ fn main() {
         .with_name("Lazuli app")
     ;
 
-    lazuli::run_scene::<HelloIcon>(window_builder);
+    lazuli::run_scene::<HelloUi>(window_builder);
 }

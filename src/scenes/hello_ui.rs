@@ -49,12 +49,12 @@ impl Scene for HelloUi {
         let dropdown_id = interface.add_dropdown(&DropdownBuilder::new()
             .with_placeholder_text("--- selected a color ---")
             .with_options(vec![
-                DropdownOption::new("Red", 1 ),
-                DropdownOption::new("Green", 2 ),
-                DropdownOption::new("Blue", 3 ),
-                DropdownOption::new("Yellow", 4 ),
-                DropdownOption::new("Pink", 5 ),
-                DropdownOption::new("Cyan", 6 ),
+                DropdownOption::new("Red", 1),
+                DropdownOption::new("Green", 2),
+                DropdownOption::new("Blue", 3),
+                DropdownOption::new("Yellow", 4),
+                DropdownOption::new("Pink", 5),
+                DropdownOption::new("Cyan", 6),
             ])
             .with_position(Position::ScreenAnchor(AnchorPoint::TopLeftInside(10.0, 10.0)))
         , asset_manager)?;
