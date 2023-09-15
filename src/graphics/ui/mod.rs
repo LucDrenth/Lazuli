@@ -23,6 +23,7 @@ mod layout;
 pub use layout::Layout;
 pub use layout::VerticalList;
 pub use layout::VerticalListBuilder;
+pub use layout::Width;
 
 mod padding;
 pub use padding::Padding;

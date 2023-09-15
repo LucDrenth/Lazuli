@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, ui::{shapes::RectangleBuilder, widget::{ButtonBuilder, SliderBuilder, DropdownBuilder, DropdownOption}, Position, AnchorPoint, TextBuilder, Interface, VerticalListBuilder, Padding, VerticalList, Layout, UiWidgetId, UiElementId}, Color}, event::EventSystem, input::{Input, Key}, asset_manager::AssetManager, log, ResourceId};
+use crate::{graphics::{scene::Scene, ui::{shapes::RectangleBuilder, widget::{ButtonBuilder, SliderBuilder, DropdownBuilder, DropdownOption}, Position, AnchorPoint, TextBuilder, Interface, VerticalListBuilder, Padding, VerticalList, Layout, UiWidgetId, UiElementId, Width}, Color}, event::EventSystem, input::{Input, Key}, asset_manager::AssetManager, log, ResourceId};
 
 pub struct HelloUi {
     width_slider_id: ResourceId<UiWidgetId>,
@@ -70,7 +70,7 @@ impl Scene for HelloUi {
             .with_position(Position::ScreenAnchor(AnchorPoint::LeftInside(10.0)))
             .with_padding(Padding::Universal(10.0))
             .with_max_height(230.0)
-            .with_max_width(100.0)
+            .with_width(Width::Fixed(175.0))
             .add_widget(&dropdown_id)
             .add_widget(&reset_button_id)
             .add_widget(&width_slider_id)

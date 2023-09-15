@@ -107,12 +107,21 @@ impl VerticalList {
     }
 }
 
+pub enum Width {
+    /// Fixed width
+    Fixed(f32),
+    /// Size of the bigest element + horizontal padding, but never higher than the given amount.
+    MaxWidth(f32),
+    /// Size of the bigest element + horizontal padding
+    Auto(),
+}
+
 pub struct VerticalListBuilder {
     widget_ids: Vec<ResourceId<UiWidgetId>>,
     gap_size: f32, // the amount of space between elements
     background_color: Color,
     max_height: f32,
-    max_width: Option<f32>,
+    width: Width,
     position: Position,
     padding: Padding,
     z_index: f32,
@@ -132,16 +141,15 @@ impl VerticalListBuilder {
             padding: Padding::Universal(default_gap_size),
             z_index: 100.0,
             resize_widgets: true,
-            max_width: None,
+            width: Width::Auto(),
         }
     }
 
     pub fn build(self, interface: &mut Interface, asset_manager: &mut AssetManager) -> Result<VerticalList, String> {
-        let background_width = match self.max_width {
-            Some(max_width) => {
-                calculate_background_width(&self.widget_ids, &self.padding, interface).min(max_width)
-            },
-            None => calculate_background_width(&self.widget_ids, &self.padding, interface),
+        let background_width = match self.width {
+            Width::Fixed(width) => width,
+            Width::MaxWidth(max_width) => { calculate_background_width(&self.widget_ids, &self.padding, interface).min(max_width) },
+            Width::Auto() => { calculate_background_width(&self.widget_ids, &self.padding, interface) },
         }; 
         let background_height = calculate_background_height(&self.widget_ids, self.gap_size, &self.padding, interface).min(self.max_height);
 
@@ -269,17 +277,8 @@ impl VerticalListBuilder {
         self
     }
 
-    /// Width will be the smallest of: 
-    ///     - max_width
-    ///     - horizontal padding + the size of the widest element
-    pub fn with_max_width(mut self, max_width: f32) -> Self {
-        self.max_width = Some(max_width);
-        self
-    }
-
-    /// Default behaviour. Width will be the horizontal padding + the size of the widest element
-    pub fn without_max_width(mut self) -> Self {
-        self.max_width = None;
+    pub fn with_width(mut self, width: Width) -> Self {
+        self.width = width;
         self
     }
 }
