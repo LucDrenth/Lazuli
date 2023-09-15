@@ -47,7 +47,7 @@ impl Scene for HelloUi {
         , asset_manager)?;
 
         let dropdown_id = interface.add_dropdown(&DropdownBuilder::new()
-            .with_placeholder_text("--- selected a color ---")
+            .with_placeholder_text("--- select a color ---")
             .with_options(vec![
                 DropdownOption::new("Red", 1),
                 DropdownOption::new("Green", 2),
@@ -70,6 +70,7 @@ impl Scene for HelloUi {
             .with_position(Position::ScreenAnchor(AnchorPoint::LeftInside(10.0)))
             .with_padding(Padding::Universal(10.0))
             .with_max_height(230.0)
+            .with_max_width(100.0)
             .add_widget(&dropdown_id)
             .add_widget(&reset_button_id)
             .add_widget(&width_slider_id)
