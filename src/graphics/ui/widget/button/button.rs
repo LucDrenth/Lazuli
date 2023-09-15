@@ -85,6 +85,7 @@ impl Button {
     pub fn width(&self) -> f32 { self.width }
     pub fn height(&self) -> f32 { self.height }
     pub fn text_element_id(&self) -> ResourceId<UiElementId> { self.text_element_id.clone() }
+    pub fn padding(&self) -> &Padding { &self.padding }
 
     pub fn set_background_color(&self, color: Color, element_registry: &mut ElementRegistry) -> Result<(), String> {
         element_registry.set_element_color(&self.background_element_id, color)

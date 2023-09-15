@@ -4,7 +4,7 @@ use crate::{graphics::{ui::{ElementRegistry, UiElementId, shapes::{RectangleBuil
 
 pub struct Icon {
     rectangle_element_id: ResourceId<UiElementId>,
-    color: Option<Color>,
+    color: Option<Color>, // TODO create a custom shader for the rectangle and upload this to that shader
     z_index: f32,
 }
 
@@ -114,6 +114,7 @@ impl IconBuilder {
             .with_texture_padding(self.padding)
             .with_size(size)
             .with_z_index(self.z_index)
+            .with_position(self.position)
         , asset_manager)?;
 
         let icon = Icon{

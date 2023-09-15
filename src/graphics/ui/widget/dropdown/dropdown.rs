@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use glam::Vec2;
 
-use crate::{asset_manager::AssetManager, graphics::ui::{ElementRegistry, widget::{Button, ButtonBuilder, UiWidget}, interface::{is_valid_z_index, MAX_Z_INDEX}, Position, AnchorPoint, UiElementId, TextAlign}, log, input::{Input, InputAction}, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{ui::{ElementRegistry, widget::{Button, ButtonBuilder, UiWidget, IconBuilder, Icon}, interface::{is_valid_z_index, MAX_Z_INDEX, self}, Position, AnchorPoint, UiElementId, TextAlign}, Color}, log, input::{Input, InputAction}, ResourceId};
 
 struct DropdownOptionButton<T: Debug + Clone> {
     button: Button,
@@ -13,6 +13,7 @@ struct DropdownOptionButton<T: Debug + Clone> {
 pub struct Dropdown<T: Debug + Clone> {
     z_index: f32,
     button: Button,
+    icon_widget: Icon,
     options: Vec<DropdownOptionButton<T>>,
     is_open: bool,
     selected: Option<T>,
@@ -24,6 +25,7 @@ pub struct Dropdown<T: Debug + Clone> {
 impl <T: Debug + Clone> UiWidget for Dropdown<T> {
     fn show(&self, element_registry: &mut ElementRegistry) {
         self.button.show(element_registry);
+        self.icon_widget.show(element_registry);
 
         for option in self.options.iter() {
             option.button.show(element_registry);
@@ -32,6 +34,7 @@ impl <T: Debug + Clone> UiWidget for Dropdown<T> {
 
     fn hide(&self, element_registry: &mut ElementRegistry) {
         self.button.hide(element_registry);
+        self.icon_widget.hide(element_registry);
         
         for option in self.options.iter() {
             option.button.hide(element_registry);
@@ -53,6 +56,7 @@ impl <T: Debug + Clone> UiWidget for Dropdown<T> {
     fn set_z_index(&mut self, z_index: f32, element_registry: &mut ElementRegistry) {
         self.z_index = z_index;
         self.button.set_z_index(z_index, element_registry);
+        self.icon_widget.set_z_index(z_index + 0.01, element_registry);
 
         for option in self.options.iter_mut() {
             option.button.set_z_index(Self::option_button_z_index(z_index), element_registry);
@@ -61,6 +65,7 @@ impl <T: Debug + Clone> UiWidget for Dropdown<T> {
 
     fn set_draw_bounds(&self, draw_bounds: crate::graphics::ui::bounds_2d::Bounds2d, element_registry: &mut ElementRegistry) {
         _ = self.button.set_draw_bounds(draw_bounds, element_registry);
+        _ = self.icon_widget.set_draw_bounds(draw_bounds, element_registry);
 
         if self.option_buttons_respect_draw_bounds {
             for option in self.options.iter() {
@@ -128,7 +133,7 @@ impl<T: Debug + Clone> Dropdown<T> {
         None
     }
 
-    pub fn handle_state(&mut self, element_registry: &mut ElementRegistry) {
+    fn handle_state(&mut self, element_registry: &mut ElementRegistry) {
         if self.is_open {
             for opt in self.options.iter() {
                 opt.button.show(element_registry);
@@ -160,6 +165,7 @@ pub struct DropdownBuilder<T: Debug + Clone> {
     position: Position,
     option_buttons_respect_draw_bounds: bool,
     text_align: TextAlign,
+    text_color: Color,
 }
 
 impl<T: Debug + Clone> DropdownBuilder<T> {
@@ -172,6 +178,7 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
             position: Position::ScreenAnchor(AnchorPoint::Center),
             option_buttons_respect_draw_bounds: false,
             text_align: TextAlign::Left,
+            text_color: interface::default_text_color(),
         }
     }
 
@@ -197,7 +204,9 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
             .with_position(self.position)
             .with_z_index(self.z_index)
             .with_text_align(self.text_align)
-            .build(label, element_registry, asset_manager)?;
+            .with_text_color(self.text_color.clone())
+            .build(label, element_registry, asset_manager)
+        ?;
 
         // TODO add background for options
 
@@ -213,7 +222,9 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
             .with_mouse_action_to_activate(InputAction::UpOrDown)
             .with_hidden(true)
             .with_z_index(Dropdown::<T>::option_button_z_index(self.z_index))
-            .with_text_align(self.text_align);
+            .with_text_align(self.text_align)
+            .with_text_color(self.text_color.clone())
+        ;
 
         for option in &self.options {
             option_button_builder = option_button_builder.with_position(Position::ElementAnchor(AnchorPoint::BottomOutside(5.0), anchor_element_id));
@@ -222,9 +233,20 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
             options.push(DropdownOptionButton{ button: option_button, value: option.value.clone(), label: option.label.clone() });
         }
 
+        // TODO replace 5.0 with some padding value. Probably needs to be the same as button text padding.
+        let icon_right = button.padding().right();
+        let icon_widget = IconBuilder::new()
+            .with_position(Position::ElementAnchor(AnchorPoint::RightInside(icon_right), button.get_main_element_id()))
+            .with_color(self.text_color.clone())
+            .with_z_index(self.z_index + 0.01)
+            .with_height(8.0)
+            .build(element_registry, asset_manager)
+        ?;
+
         Ok(Dropdown {
             z_index: self.z_index,
             button,
+            icon_widget,
             options,
             is_open: false,
             selected: selected_value,
