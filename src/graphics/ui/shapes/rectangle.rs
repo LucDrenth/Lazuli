@@ -1,8 +1,6 @@
-use std::collections::HashMap;
+use glam::{Vec2, Vec4, Vec3};
 
-use glam::{Vec2, Vec4};
-
-use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, Position, ElementRegistry, bounds_2d::Bounds2d, UiTexture}, material::Material, Color}, set_attribute, error::opengl, asset_manager::AssetManager, log, ResourceId};
+use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::{ShaderBuilder, CustomShaderValues}, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, Position, ElementRegistry, bounds_2d::Bounds2d, UiTexture}, material::Material, Color}, set_attribute, error::opengl, asset_manager::AssetManager, log, ResourceId};
 use crate::graphics::shapes::RECTANGLE_INDICES;
 
 use super::rectangle_border::{Border, BorderSize, BorderRadius};
@@ -23,7 +21,7 @@ pub struct Rectangle {
     border: Border,
     texture_padding: f32,
 
-    custom_shader_uniforms_vec4: HashMap<String, Vec4>,
+    custom_shader_values: CustomShaderValues,
 }
 
 impl UiElement for Rectangle {
@@ -66,9 +64,7 @@ impl UiElement for Rectangle {
         shader.set_uniform("borderBounds", border_bounds.for_fragment_shader(&window_size, pixel_density));
         shader.set_uniform("borderSize", self.border.size.vec4() * pixel_density);
 
-        for (name, value) in self.custom_shader_uniforms_vec4.iter() {
-            shader.set_uniform(name, *value);
-        }
+        self.custom_shader_values.upload(shader);
 
         unsafe {
             gl::DrawElements(gl::TRIANGLES, self.ebo.data_size as i32, gl::UNSIGNED_INT, core::ptr::null());
@@ -87,6 +83,8 @@ impl UiElement for Rectangle {
 
     fn world_data(&self) -> &WorldElementData { &self.world_data }
     fn mut_world_data(&mut self) -> &mut WorldElementData { &mut self.world_data }
+    
+    fn mut_custom_shader_values(&mut self) -> &mut CustomShaderValues { &mut self.custom_shader_values }
 
     fn handle_window_resize(&mut self, new_window_size: &Vec2) {
         self.world_data.handle_window_resize(new_window_size);
@@ -175,10 +173,6 @@ impl Rectangle {
         asset_manager.activate_material(&self.material_id);
         self.vao.bind();
     }
-
-    fn mut_custom_shader_uniforms_vec4(&mut self) -> &HashMap<String, Vec4> {
-        &mut self.custom_shader_uniforms_vec4
-    }
 }
 
 pub struct RectangleBuilder {
@@ -192,7 +186,7 @@ pub struct RectangleBuilder {
     texture: Option<UiTexture>,
     border: Border,
     texture_padding: f32,
-    custom_shader_uniforms_vec4: HashMap<String, Vec4>,
+    custom_shader_values: CustomShaderValues,
 }
 
 impl RectangleBuilder {
@@ -212,7 +206,7 @@ impl RectangleBuilder {
                 radius: BorderRadius::zero(),
             },
             texture_padding: 0.0,
-            custom_shader_uniforms_vec4: Default::default(),
+            custom_shader_values: Default::default(),
         }
     }
 
@@ -268,7 +262,7 @@ impl RectangleBuilder {
             world_data,
             border: self.border.clone(),
             texture_padding: self.texture_padding.clone(),
-            custom_shader_uniforms_vec4: self.custom_shader_uniforms_vec4.clone(),
+            custom_shader_values: self.custom_shader_values.clone()
         })
     }
 
@@ -366,8 +360,20 @@ impl RectangleBuilder {
         self
     }
 
-    pub fn with_custom_shader_uniform_vec4(mut self, name: impl Into<String>, value: Vec4) -> Self {
-        self.custom_shader_uniforms_vec4.insert(name.into(), value);
+    pub fn with_custom_shader_value_vec2(mut self, name: impl Into<String>, value: Vec2) -> Self {
+        self.custom_shader_values.set_vec2(name, value);
+        self
+    }
+    pub fn with_custom_shader_value_vec3(mut self, name: impl Into<String>, value: Vec3) -> Self {
+        self.custom_shader_values.set_vec3(name, value);
+        self
+    }
+    pub fn with_custom_shader_value_vec4(mut self, name: impl Into<String>, value: Vec4) -> Self {
+        self.custom_shader_values.set_vec4(name, value);
+        self
+    }
+    pub fn with_custom_shader_value_f32(mut self, name: impl Into<String>, value: f32) -> Self {
+        self.custom_shader_values.set_f32(name, value);
         self
     }
 }

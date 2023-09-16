@@ -9,7 +9,8 @@ uniform float zIndex;
 uniform vec2 view;
 uniform vec2 worldPosition;
 uniform vec2 scale;
-uniform float rotation; // Angle in radians
+
+uniform float rotation;
 
 void main() {
     mat2 rotationMatrix = mat2(cos(rotation), -sin(rotation), sin(rotation), cos(rotation));

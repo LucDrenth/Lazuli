@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, f32::consts::PI};
 
 use glam::Vec2;
 
@@ -137,10 +137,12 @@ impl<T: Debug + Clone> Dropdown<T> {
         if self.is_open {
             for opt in self.options.iter() {
                 opt.button.show(element_registry);
+                element_registry.get_mut_element_custom_shader_values(&self.icon_widget.get_main_element_id()).unwrap().set_f32("rotation", PI)
             }
         } else {
             for opt in self.options.iter() {
                 opt.button.hide(element_registry);
+                element_registry.get_mut_element_custom_shader_values(&self.icon_widget.get_main_element_id()).unwrap().set_f32("rotation", 0.)
             }
         }
     }

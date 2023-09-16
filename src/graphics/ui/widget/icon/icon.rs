@@ -115,13 +115,14 @@ impl IconBuilder {
             .with_size(size)
             .with_z_index(self.z_index)
             .with_position(self.position)
+            .with_custom_shader_value_f32("rotation", 0.)
         ;
 
         match &self.color {
             Some(color) => {
                 rectangle_builder = rectangle_builder
-                    .with_shader_builder(ShaderBuilder::new("./assets/shaders/ui/rectangle-textured.vert", "./assets/shaders/ui/rectangle-icon.frag"))
-                    .with_custom_shader_uniform_vec4("iconColor", color.to_normalised_rgba_vec4())
+                    .with_shader_builder(ShaderBuilder::new("./assets/shaders/ui/rectangle-icon.vert", "./assets/shaders/ui/rectangle-icon.frag"))
+                    .with_custom_shader_value_vec4("iconColor", color.to_normalised_rgba_vec4())
             },
             None => (),
         }

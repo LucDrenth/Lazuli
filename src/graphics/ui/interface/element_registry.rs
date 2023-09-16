@@ -2,7 +2,7 @@ use std::any::TypeId;
 
 use glam::Vec2;
 
-use crate::{asset_manager::AssetManager, input::{Input, MouseButton, InputAction}, graphics::{font::Font, ui::{element::{ui_element::UiElement, AnchorElementData, world_element_data::WorldElementData}, Text, TextBuilder, shapes::{RectangleBuilder, Rectangle}, Position, bounds_2d::Bounds2d, UiElementId}, Color}, log, ResourceId};
+use crate::{asset_manager::AssetManager, input::{Input, MouseButton, InputAction}, graphics::{font::Font, ui::{element::{ui_element::UiElement, AnchorElementData, world_element_data::WorldElementData}, Text, TextBuilder, shapes::{RectangleBuilder, Rectangle}, Position, bounds_2d::Bounds2d, UiElementId}, Color, shader::CustomShaderValues}, log, ResourceId};
 
 use super::{interface, element_list::{ElementList, OrderedElementsItem, self}, anchor_tree::{AnchorTree, AnchorElementIdentifier}};
 
@@ -298,6 +298,15 @@ impl ElementRegistry {
         match self.get_ui_element_by_id(element_id) {
             Some(element) => Ok(element.world_data().scale()),
             None => Err(format!("failed to get scale because element with id {:?} was not found", element_id)),
+        }
+    }
+
+    pub fn get_mut_element_custom_shader_values(&mut self, element_id: &ResourceId<UiElementId>) -> Result<&mut CustomShaderValues, String> {
+        match self.get_mut_ui_element_by_id(element_id) {
+            Some(element) => {
+                Ok(element.mut_custom_shader_values())
+            },
+            None => Err(format!("element with id {:?} was not found", element_id)),
         }
     }
 

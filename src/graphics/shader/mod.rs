@@ -2,10 +2,12 @@ mod program;
 mod shader;
 mod uniform;
 mod shader_builder;
+mod custom_shader_values;
 
 pub use shader::Shader;
 pub use program::ShaderProgram;
 pub use shader_builder::ShaderBuilder;
+pub use custom_shader_values::CustomShaderValues;
 
 pub use shader::PATH_COLORED_VERT;
 pub use shader::PATH_COLORED_FRAG;
