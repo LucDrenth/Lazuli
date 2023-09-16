@@ -56,9 +56,7 @@ impl BitmapBuilder for SdfBitmapBuilder {
     }
 
     fn default_shader_builder(&self) -> ShaderBuilder {
-        ShaderBuilder::new()
-            .with_vertex_shader_path("./assets/shaders/ui/text.vert".to_string())
-            .with_fragment_shader_path("./assets/shaders/ui/text-sdf.frag".to_string())
+        ShaderBuilder::new("./assets/shaders/ui/text.vert", "./assets/shaders/ui/text-sdf.frag")
     }
 
     fn font_file_path(&self) -> &String {

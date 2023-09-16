@@ -4,7 +4,7 @@ use crate::{graphics::{ui::{ElementRegistry, UiElementId, shapes::{RectangleBuil
 
 pub struct Icon {
     rectangle_element_id: ResourceId<UiElementId>,
-    color: Option<Color>, // TODO create a custom shader for the rectangle and upload this to that shader
+    color: Option<Color>,
     z_index: f32,
 }
 
@@ -108,14 +108,25 @@ impl IconBuilder {
 
         let size = self.size.to_fixed(asset_manager.get_texture_by_id(&texture_id).unwrap());
 
-        let rectangle_element_id = element_registry.create_rectangle(&RectangleBuilder::new()
+        let mut rectangle_builder = RectangleBuilder::new()
             .with_color(self.background_color.clone())
             .with_texture(UiTexture::Id(texture_id))
             .with_texture_padding(self.padding)
             .with_size(size)
             .with_z_index(self.z_index)
             .with_position(self.position)
-        , asset_manager)?;
+        ;
+
+        match &self.color {
+            Some(color) => {
+                rectangle_builder = rectangle_builder
+                    .with_shader_builder(ShaderBuilder::new("./assets/shaders/ui/rectangle-textured.vert", "./assets/shaders/ui/rectangle-icon.frag"))
+                    .with_custom_shader_uniform_vec4("iconColor", color.to_normalised_rgba_vec4())
+            },
+            None => (),
+        }
+
+        let rectangle_element_id = element_registry.create_rectangle(&rectangle_builder, asset_manager)?;
 
         let icon = Icon{
             rectangle_element_id,

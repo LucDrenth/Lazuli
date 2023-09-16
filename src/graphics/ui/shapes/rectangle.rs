@@ -1,4 +1,6 @@
-use glam::Vec2;
+use std::collections::HashMap;
+
+use glam::{Vec2, Vec4};
 
 use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::ShaderBuilder, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, Position, ElementRegistry, bounds_2d::Bounds2d, UiTexture}, material::Material, Color}, set_attribute, error::opengl, asset_manager::AssetManager, log, ResourceId};
 use crate::graphics::shapes::RECTANGLE_INDICES;
@@ -20,6 +22,8 @@ pub struct Rectangle {
     color: Color,
     border: Border,
     texture_padding: f32,
+
+    custom_shader_uniforms_vec4: HashMap<String, Vec4>,
 }
 
 impl UiElement for Rectangle {
@@ -62,6 +66,10 @@ impl UiElement for Rectangle {
         shader.set_uniform("borderBounds", border_bounds.for_fragment_shader(&window_size, pixel_density));
         shader.set_uniform("borderSize", self.border.size.vec4() * pixel_density);
 
+        for (name, value) in self.custom_shader_uniforms_vec4.iter() {
+            shader.set_uniform(name, *value);
+        }
+
         unsafe {
             gl::DrawElements(gl::TRIANGLES, self.ebo.data_size as i32, gl::UNSIGNED_INT, core::ptr::null());
         }
@@ -91,15 +99,17 @@ impl UiElement for Rectangle {
 
 impl Rectangle {
     pub fn default_shader_builder() -> ShaderBuilder {
-        ShaderBuilder::new()
-            .with_vertex_shader_path("./assets/shaders/ui/rectangle.vert".to_string())
-            .with_fragment_shader_path("./assets/shaders/ui/rectangle.frag".to_string())
+        ShaderBuilder::new(
+            "./assets/shaders/ui/rectangle.vert", 
+            "./assets/shaders/ui/rectangle.frag"
+        )
     }
 
     pub fn default_textured_shader_builder() -> ShaderBuilder {
-        ShaderBuilder::new()
-            .with_vertex_shader_path("./assets/shaders/ui/rectangle-textured.vert".to_string())
-            .with_fragment_shader_path("./assets/shaders/ui/rectangle-textured.frag".to_string())
+        ShaderBuilder::new(
+            "./assets/shaders/ui/rectangle-textured.vert", 
+            "./assets/shaders/ui/rectangle-textured.frag"
+        )
     }
 
     pub fn set_width(&mut self, width: f32, window_size: Vec2, anchor_element_data: Option<AnchorElementData>) {
@@ -165,6 +175,10 @@ impl Rectangle {
         asset_manager.activate_material(&self.material_id);
         self.vao.bind();
     }
+
+    fn mut_custom_shader_uniforms_vec4(&mut self) -> &HashMap<String, Vec4> {
+        &mut self.custom_shader_uniforms_vec4
+    }
 }
 
 pub struct RectangleBuilder {
@@ -178,6 +192,7 @@ pub struct RectangleBuilder {
     texture: Option<UiTexture>,
     border: Border,
     texture_padding: f32,
+    custom_shader_uniforms_vec4: HashMap<String, Vec4>,
 }
 
 impl RectangleBuilder {
@@ -197,6 +212,7 @@ impl RectangleBuilder {
                 radius: BorderRadius::zero(),
             },
             texture_padding: 0.0,
+            custom_shader_uniforms_vec4: Default::default(),
         }
     }
 
@@ -252,6 +268,7 @@ impl RectangleBuilder {
             world_data,
             border: self.border.clone(),
             texture_padding: self.texture_padding.clone(),
+            custom_shader_uniforms_vec4: self.custom_shader_uniforms_vec4.clone(),
         })
     }
 
@@ -346,6 +363,11 @@ impl RectangleBuilder {
 
     pub fn with_texture_padding(mut self, texture_padding: f32) -> Self {
         self.texture_padding = texture_padding;
+        self
+    }
+
+    pub fn with_custom_shader_uniform_vec4(mut self, name: impl Into<String>, value: Vec4) -> Self {
+        self.custom_shader_uniforms_vec4.insert(name.into(), value);
         self
     }
 }

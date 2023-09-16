@@ -80,11 +80,11 @@ impl Drop for Shader {
 /// TODO cache result for if we reuse the shader source
 fn load_shader_source(path: &String) -> Result<CString, String> {
     let source_code = fs::read_to_string(path).map_err(|err| {
-        format!("failed to read file [{}]: {}", path, err.to_string())
+        format!("failed to read shader file with path '{}': {}", path, err.to_string())
     })?;
 
     CString::new(source_code).map_err(|err| {
-        format!("failed to creating CString from file [{}]: {}", path, err.to_string())
+        format!("failed to create shader CString from file '{}': {}", path, err.to_string())
     })
 }
 

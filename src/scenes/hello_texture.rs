@@ -9,9 +9,8 @@ pub struct HelloTexture {
 
 impl Scene for HelloTexture {
     fn new(_event_system: &mut EventSystem, _window_size: Vec2, _pixel_density: f32, asset_manager: &mut AssetManager, _: &mut Interface) -> Result<Self, String> {
-        let shader_id = asset_manager.load_shader(ShaderBuilder::new()
-            .with_vertex_shader_path(PATH_TEXTURED_VERT.to_string())
-            .with_fragment_shader_path(PATH_TEXTURED_FRAG.to_string())
+        let shader_id = asset_manager.load_shader(
+            ShaderBuilder::new(PATH_TEXTURED_VERT, PATH_TEXTURED_FRAG)
         )?;
         let material_id = asset_manager.load_material(&shader_id)?;
         let texture_id = asset_manager.load_texture("./assets/images/pattern.png")?;

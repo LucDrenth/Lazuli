@@ -11,10 +11,9 @@ pub struct MovingTriangle {
 
 impl Scene for MovingTriangle {
     fn new(_event_system: &mut EventSystem, _window_size: Vec2, _pixel_density: f32, asset_manager: &mut AssetManager, _: &mut Interface) -> Result<Self, String> {
-        let shader_id = asset_manager.load_shader(ShaderBuilder::new()
-            .with_vertex_shader_path(PATH_MOVING_TRIANGLE_VERT.to_string())
-            .with_fragment_shader_path(PATH_MOVING_TRIANGLE_FRAG.to_string())
-        ).unwrap();
+        let shader_id = asset_manager.load_shader(
+            ShaderBuilder::new(PATH_MOVING_TRIANGLE_VERT, PATH_MOVING_TRIANGLE_FRAG)
+        )?;
         let material_id = asset_manager.load_material(&shader_id).unwrap();
 
 

@@ -43,7 +43,7 @@ impl WidgetRegistry {
             entry.update_result = entry.widget.update(input, element_registry, asset_manager);
         }
     }
-
+    
 
     // =============================================================================== \\
     // =========== Functions for adding widgets and getting update result ============ \\
@@ -78,6 +78,7 @@ impl WidgetRegistry {
 
     // =================================================== \\
     // =========== Functions to get a UiWidget ============ \\
+
     pub fn get_widget_by_id(&self, widget_id: &ResourceId<UiWidgetId>) -> Option<Box<&dyn UiWidget>> {
         for widget_entry in self.sliders.entries.iter() {
             if widget_entry.id.equals(&widget_id) { return Some(Box::new(&widget_entry.widget)) }
@@ -147,6 +148,7 @@ impl WidgetRegistry {
     fn get_mut_icon(&mut self, icon_id: &ResourceId<UiWidgetId>) -> Option<&mut Icon> {
         self.icons.get_mut_widget(icon_id)
     }
+
 
     // =================================================== \\
     // ============ Widget specific functions ============ \\

@@ -1,3 +1,5 @@
+use glam::Vec4;
+
 use crate::log;
 
 #[derive(Debug, Clone)]
@@ -51,6 +53,11 @@ impl Color {
             tuple.2 as f32 / 255.0,
             tuple.3,
         );
+    }
+
+    /// Can be used in shaders (vec4)
+    pub fn to_normalised_rgba_vec4(&self) -> Vec4 {
+        Vec4::from(self.to_normalised_rgba_tuple())
     }
 
     pub fn set_opacity(&self, opacity: f32) -> Self {

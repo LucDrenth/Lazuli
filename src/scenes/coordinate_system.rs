@@ -21,9 +21,8 @@ impl Scene for CoordinateSystem {
         event_system.send(event::LockCursor{});
         event_system.send(event::HideCursor{});
 
-        let shader_id = asset_manager.load_shader(ShaderBuilder::new()
-            .with_vertex_shader_path("./assets/shaders/with-camera.vert".to_string())
-            .with_fragment_shader_path(PATH_COLORED_FRAG.to_string())
+        let shader_id = asset_manager.load_shader(
+            ShaderBuilder::new("./assets/shaders/with-camera.vert", PATH_COLORED_FRAG.to_string())
         ).unwrap();
         let material_id = asset_manager.load_material(&shader_id).unwrap();
 

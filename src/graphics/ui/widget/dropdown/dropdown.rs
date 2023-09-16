@@ -166,6 +166,7 @@ pub struct DropdownBuilder<T: Debug + Clone> {
     option_buttons_respect_draw_bounds: bool,
     text_align: TextAlign,
     text_color: Color,
+    gap_size: f32, // space between options
 }
 
 impl<T: Debug + Clone> DropdownBuilder<T> {
@@ -179,6 +180,7 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
             option_buttons_respect_draw_bounds: false,
             text_align: TextAlign::Left,
             text_color: interface::default_text_color(),
+            gap_size: 5.0,
         }
     }
 
@@ -213,10 +215,8 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
         let mut options = vec![];
         let mut anchor_element_id = button.get_main_element_id();
 
-        // TODO replace hardcoded 5.0 with a 'gap' property
-
         let mut option_button_builder = ButtonBuilder::new()
-            .with_position(Position::ElementAnchor(AnchorPoint::BottomOutside(5.0), anchor_element_id))
+            .with_position(Position::ElementAnchor(AnchorPoint::BottomOutside(self.gap_size), anchor_element_id))
             .with_width(button.width())
             .with_height(button.height())
             .with_mouse_action_to_activate(InputAction::UpOrDown)
@@ -233,13 +233,12 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
             options.push(DropdownOptionButton{ button: option_button, value: option.value.clone(), label: option.label.clone() });
         }
 
-        // TODO replace 5.0 with some padding value. Probably needs to be the same as button text padding.
         let icon_right = button.padding().right();
         let icon_widget = IconBuilder::new()
             .with_position(Position::ElementAnchor(AnchorPoint::RightInside(icon_right), button.get_main_element_id()))
             .with_color(self.text_color.clone())
             .with_z_index(self.z_index + 0.01)
-            .with_height(8.0)
+            .with_height(6.0)
             .build(element_registry, asset_manager)
         ?;
 
@@ -305,6 +304,11 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
 
     pub fn with_text_align(mut self, text_align: TextAlign) -> Self {
         self.text_align = text_align;
+        self
+    }
+
+    pub fn with_gap_size(mut self, gap_size: f32) -> Self {
+        self.gap_size = gap_size;
         self
     }
 }

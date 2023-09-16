@@ -56,9 +56,7 @@ impl BitmapBuilder for PlainBitmapBuilder {
     }
 
     fn default_shader_builder(&self) -> ShaderBuilder {
-        ShaderBuilder::new()
-            .with_vertex_shader_path("./assets/shaders/ui/text.vert".to_string())
-            .with_fragment_shader_path("./assets/shaders/ui/text-plain.frag".to_string())
+        ShaderBuilder::new("./assets/shaders/ui/text.vert", "./assets/shaders/ui/text-plain.frag")
     }
 
     fn font_file_path(&self) -> &String {

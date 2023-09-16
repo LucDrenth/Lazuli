@@ -9,9 +9,8 @@ pub struct HelloTriangle {
 
 impl Scene for HelloTriangle {
     fn new(_event_system: &mut EventSystem, _window_size: Vec2, _pixel_density: f32, asset_manager: &mut AssetManager, _: &mut Interface) -> Result<Self, String> {
-        let shader_id = asset_manager.load_shader(ShaderBuilder::new()
-            .with_vertex_shader_path(PATH_MOVING_TRIANGLE_VERT.to_string())
-            .with_fragment_shader_path(PATH_MOVING_TRIANGLE_FRAG.to_string())
+        let shader_id = asset_manager.load_shader(
+            ShaderBuilder::new(PATH_MOVING_TRIANGLE_VERT, PATH_MOVING_TRIANGLE_FRAG)
         )?;
 
         let triangle = Triangle::new(asset_manager.get_shader_by_id(&shader_id).unwrap());

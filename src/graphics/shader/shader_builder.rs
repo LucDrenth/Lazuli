@@ -9,25 +9,15 @@ pub struct ShaderBuilder {
 }
 
 impl ShaderBuilder {
-    pub fn new() -> Self {
+    pub fn new(vertex_shader_path: impl Into<String>, fragment_shader_path: impl Into<String>) -> Self {
         ShaderBuilder {
-            vertex_shader_path: "".to_string(),
-            fragment_shader_path: "".to_string(),
+            vertex_shader_path: vertex_shader_path.into(),
+            fragment_shader_path: fragment_shader_path.into(),
         }
     }
 
     pub fn build(&self) -> Result<ShaderProgram, String> {
         ShaderProgram::new(&self.vertex_shader_path, &self.fragment_shader_path)
-    }
-
-    pub fn with_vertex_shader_path(mut self, path: String) -> Self {
-        self.vertex_shader_path = path;
-        self
-    }
-
-    pub fn with_fragment_shader_path(mut self, path: String) -> Self {
-        self.fragment_shader_path = path;
-        self
     }
 
     pub fn hash(&self) -> Result<u64, String> {
