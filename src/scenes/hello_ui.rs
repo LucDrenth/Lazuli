@@ -22,7 +22,7 @@ impl Scene for HelloUi {
 
         let mut slider_size_builder = SliderBuilder::new()
             .with_initial_value(1.0);
-        let width_slider_id = interface.add_slider(&slider_size_builder, asset_manager)?;
+        let width_slider_id = interface.create_slider(&slider_size_builder, asset_manager)?;
 
         let anchor = interface.get_widget_main_element_id(&width_slider_id).unwrap();
         let _width_slider_label_id = interface.mut_element_registry().create_text("Rectangle width".to_string(), None, &TextBuilder::new()
@@ -34,7 +34,7 @@ impl Scene for HelloUi {
             .with_z_index(500.0)
             .with_initial_value(1.0)
             .with_position(Position::ScreenAnchor(AnchorPoint::BottomLeftInside(10.0, 10.0)));
-        let height_slider_id = interface.add_slider(&slider_size_builder, asset_manager)?;
+        let height_slider_id = interface.create_slider(&slider_size_builder, asset_manager)?;
 
         let anchor = interface.get_widget_main_element_id(&height_slider_id).unwrap();
         let _height_slider_label_id = interface.mut_element_registry().create_text("Rectangle height".to_string(), None, &TextBuilder::new()
@@ -43,10 +43,10 @@ impl Scene for HelloUi {
         , asset_manager)?;
 
 
-        let reset_button_id = interface.add_button("Reset", &ButtonBuilder::new()
+        let reset_button_id = interface.create_button("Reset", &ButtonBuilder::new()
         , asset_manager)?;
 
-        let dropdown_id = interface.add_dropdown(&DropdownBuilder::new()
+        let dropdown_id = interface.create_dropdown(&DropdownBuilder::new()
             .with_placeholder_text("--- select a color ---")
             .with_options(vec![
                 DropdownOption::new("Red", 1),
@@ -60,11 +60,11 @@ impl Scene for HelloUi {
         , asset_manager)?;
 
         let layout_button_builder = ButtonBuilder::new();
-        let layout_button_1 = interface.add_button("Button 1", &layout_button_builder, asset_manager)?;
-        let layout_button_2 = interface.add_button("Button 2", &layout_button_builder, asset_manager)?;
-        let layout_button_3 = interface.add_button("Button 3", &layout_button_builder, asset_manager)?;
-        let layout_button_4 = interface.add_button("Button 4", &layout_button_builder, asset_manager)?;
-        let layout_button_5 = interface.add_button("Button 5", &layout_button_builder, asset_manager)?;
+        let layout_button_1 = interface.create_button("Button 1", &layout_button_builder, asset_manager)?;
+        let layout_button_2 = interface.create_button("Button 2", &layout_button_builder, asset_manager)?;
+        let layout_button_3 = interface.create_button("Button 3", &layout_button_builder, asset_manager)?;
+        let layout_button_4 = interface.create_button("Button 4", &layout_button_builder, asset_manager)?;
+        let layout_button_5 = interface.create_button("Button 5", &layout_button_builder, asset_manager)?;
 
         let layout = VerticalListBuilder::new()
             .with_position(Position::ScreenAnchor(AnchorPoint::LeftInside(10.0)))
@@ -102,7 +102,7 @@ impl Scene for HelloUi {
             }).unwrap();
 
             if result.did_start_drag {
-                log::engine_info("start drag".to_string());
+                log::info("start drag".to_string());
             }
         });
 

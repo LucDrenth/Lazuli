@@ -98,8 +98,8 @@ impl Interface {
     }
 
     // button specific functions
-    pub fn add_button(&mut self, label: impl Into<String>, builder: &ButtonBuilder, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
-        self.widget_registry.add_button(label, builder, &mut self.element_registry, asset_manager)
+    pub fn create_button(&mut self, label: impl Into<String>, builder: &ButtonBuilder, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
+        self.widget_registry.create_button(label, builder, &mut self.element_registry, asset_manager)
     }
     pub fn is_button_clicked(&self, button_id: &ResourceId<UiWidgetId>) -> bool {
         self.widget_registry.is_button_clicked(button_id)
@@ -112,8 +112,8 @@ impl Interface {
     }
 
     // slider specific functions
-    pub fn add_slider(&mut self, builder: &SliderBuilder, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
-        self.widget_registry.add_slider(builder, &mut self.element_registry, asset_manager)
+    pub fn create_slider(&mut self, builder: &SliderBuilder, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
+        self.widget_registry.create_slider(builder, &mut self.element_registry, asset_manager)
     }
     pub fn slider_update_result(&self, slider_id: &ResourceId<UiWidgetId>) -> Option<SliderUpdateResult> {
         self.widget_registry.slider_update_result(slider_id)
@@ -123,16 +123,16 @@ impl Interface {
     }
 
     // dropdown specific functions
-    pub fn add_dropdown(&mut self, builder: &DropdownBuilder<u32>, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
-        self.widget_registry.add_dropdown(builder, &mut self.element_registry, asset_manager)
+    pub fn create_dropdown(&mut self, builder: &DropdownBuilder<u32>, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
+        self.widget_registry.create_dropdown(builder, &mut self.element_registry, asset_manager)
     }
     pub fn dropdown_update_result(&self, dropdown_id: &ResourceId<UiWidgetId>) -> Option<u32> {
         self.widget_registry.dropdown_update_result(dropdown_id)
     }
 
     // icon specific functions
-    pub fn add_icon(&mut self, builder: &IconBuilder, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
-        self.widget_registry.add_icon(builder, &mut self.element_registry, asset_manager)
+    pub fn create_icon(&mut self, builder: &IconBuilder, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
+        self.widget_registry.create_icon(builder, &mut self.element_registry, asset_manager)
     }
     pub fn set_icon_padding(&mut self, padding: f32, icon_id: &ResourceId<UiWidgetId>) -> Result<(), String> {
         match self.widget_registry.get_widget_by_id(&icon_id) {

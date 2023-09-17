@@ -48,19 +48,19 @@ impl WidgetRegistry {
     // =============================================================================== \\
     // =========== Functions for adding widgets and getting update result ============ \\
 
-    pub fn add_slider(&mut self, builder: &SliderBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
+    pub fn create_slider(&mut self, builder: &SliderBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
         let slider = builder.build(element_registry, asset_manager)?;
         Ok(self.sliders.push(slider))
     }
-    pub fn add_button(&mut self, label: impl Into<String>, builder: &ButtonBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
+    pub fn create_button(&mut self, label: impl Into<String>, builder: &ButtonBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
         let button = builder.build(label, element_registry, asset_manager)?;
         Ok(self.buttons.push(button))
     }
-    pub fn add_dropdown(&mut self, builder: &DropdownBuilder<u32>, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
+    pub fn create_dropdown(&mut self, builder: &DropdownBuilder<u32>, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
         let dropdown = builder.build(element_registry, asset_manager)?;
         Ok(self.dropdowns.push(dropdown))
     }
-    pub fn add_icon(&mut self, builder: &IconBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
+    pub fn create_icon(&mut self, builder: &IconBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
         let icon = builder.build(element_registry, asset_manager)?;
         Ok(self.icons.push(icon))
     }
