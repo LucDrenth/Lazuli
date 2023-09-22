@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{ElementRegistry, UiElementId, shapes::{RectangleBuilder, Rectangle}, UiTexture, Position, interface::{is_valid_z_index, self}, widget::UiWidget}, Color, shader::ShaderBuilder, texture::Texture}, asset_manager::AssetManager, ResourceId, log};
+use crate::{graphics::{ui::{ElementRegistry, UiElementId, shapes::{RectangleBuilder, Rectangle}, UiTexture, Position, interface::{is_valid_z_index, self, WidgetRegistry}, widget::{UiWidget, widget_update_target::WidgetUpdateTarget}, bounds_2d::Bounds2d}, Color, shader::ShaderBuilder, texture::Texture}, asset_manager::AssetManager, ResourceId, log};
 
 pub struct Icon {
     rectangle_element_id: ResourceId<UiElementId>,
@@ -9,12 +9,8 @@ pub struct Icon {
 }
 
 impl UiWidget for Icon {
-    fn show(&self, element_registry: &mut ElementRegistry) {
-        _ = element_registry.show_element(&self.rectangle_element_id);
-    }
-
-    fn hide(&self, element_registry: &mut ElementRegistry) {
-        _ = element_registry.hide_element(&self.rectangle_element_id);
+    fn get_all_element_ids(&self, _widget_registry: &WidgetRegistry) -> Vec<ResourceId<UiElementId>> {
+        vec![self.rectangle_element_id]
     }
 
     fn get_main_element_id(&self) -> ResourceId<UiElementId> {
@@ -24,28 +20,37 @@ impl UiWidget for Icon {
     fn z_index(&self) -> f32 {
         self.z_index
     }
-    fn set_z_index(&mut self, z_index: f32, element_registry: &mut ElementRegistry) {
+    fn set_z_index(&mut self, z_index: f32, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<f32>> {
         self.z_index = z_index;
         _ = element_registry.set_element_z_index(&self.rectangle_element_id, z_index);
+
+        vec![]
     }
 
     fn set_position(&self, position: Position, element_registry: &mut ElementRegistry) {
         _ = element_registry.set_element_position(&self.rectangle_element_id, position);
     }
 
-    fn set_draw_bounds(&self, draw_bounds: crate::graphics::ui::bounds_2d::Bounds2d, element_registry: &mut ElementRegistry) {
+    fn set_draw_bounds(&self, draw_bounds: Bounds2d, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<Bounds2d>> {
         _ = element_registry.set_element_draw_bounds(&self.rectangle_element_id, draw_bounds);
+        vec![]
     }
 
-    fn set_width(&self, width: f32, element_registry: &mut ElementRegistry) {
+    fn set_width(&self, width: f32, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<f32>> {
         _ = element_registry.set_rectangle_width(&self.rectangle_element_id, width);
+        vec![]
     }
-    fn set_height(&self, height: f32, element_registry: &mut ElementRegistry) {
+    fn set_height(&self, height: f32, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<f32>> {
         _ = element_registry.set_rectangle_height(&self.rectangle_element_id, height);
+        vec![]
     }
-    fn set_size(&self, size: Vec2, element_registry: &mut ElementRegistry) {
+    fn set_size(&self, size: Vec2, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<Vec2>> {
         _ = element_registry.set_rectangle_size(&self.rectangle_element_id, size);
+        vec![]
     }
+
+    fn on_show(&mut self) {}
+    fn on_hide(&mut self) {}
 }
 
 enum IconSize {

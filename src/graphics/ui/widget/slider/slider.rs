@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{ElementRegistry, interface::{is_valid_z_index, self}, TextBuilder, Position, element::AnchorPoint, widget::UiWidget, UiElementId, self}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, log, input::{Input, MouseButton}, ResourceId};
+use crate::{graphics::{ui::{ElementRegistry, interface::{is_valid_z_index, self, WidgetRegistry}, TextBuilder, Position, element::AnchorPoint, widget::{UiWidget, widget_update_target::WidgetUpdateTarget}, UiElementId, self, bounds_2d::Bounds2d}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, log, input::{Input, MouseButton}, ResourceId};
 
 #[derive(Clone, Copy, Debug)]
 pub enum SliderProgressBarAlignment {
@@ -39,31 +39,30 @@ pub struct SliderUpdateResult {
 }
 
 impl UiWidget for Slider {
+    fn get_all_element_ids(&self, _widget_registry: &WidgetRegistry) -> Vec<ResourceId<UiElementId>> {
+        vec![
+            self.background_element_id,
+            self.text_element_id,
+            self.progress_element_id,
+        ]
+    }
+
     /// Background is the main element. It defines the position and size of the slider
     fn get_main_element_id(&self) -> ResourceId<UiElementId> {
         self.background_element_id.clone()
-    }
-
-    fn show(&self, element_registry: &mut ElementRegistry) {
-        _ = element_registry.show_element(&self.background_element_id);
-        _ = element_registry.show_element(&self.text_element_id);
-        _ = element_registry.show_element(&self.progress_element_id);
-    }
-    fn hide(&self, element_registry: &mut ElementRegistry) {
-        _ = element_registry.hide_element(&self.background_element_id);
-        _ = element_registry.hide_element(&self.text_element_id);
-        _ = element_registry.hide_element(&self.progress_element_id);
     }
 
     fn z_index(&self) -> f32 {
         self.z_index
     }
 
-    fn set_z_index(&mut self, z_index: f32, element_registry: &mut ElementRegistry) {
+    fn set_z_index(&mut self, z_index: f32, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<f32>> {
         self.z_index = z_index;
         _ = element_registry.set_element_z_index(&self.background_element_id, z_index);
         _ = element_registry.set_element_z_index(&self.text_element_id, z_index + 0.02);
         _ = element_registry.set_element_z_index(&self.progress_element_id, z_index + 0.01);
+
+        vec![]
     }
 
     fn set_position(&self, position: Position, element_registry: &mut ElementRegistry) {
@@ -75,24 +74,31 @@ impl UiWidget for Slider {
         ));
     }
 
-    fn set_draw_bounds(&self, draw_bounds: crate::graphics::ui::bounds_2d::Bounds2d, element_registry: &mut ElementRegistry) {
+    fn set_draw_bounds(&self, draw_bounds: Bounds2d, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<Bounds2d>> {
         _ = element_registry.set_element_draw_bounds(&self.background_element_id, draw_bounds);
         _ = element_registry.set_element_draw_bounds(&self.text_element_id, draw_bounds);
         _ = element_registry.set_element_draw_bounds(&self.progress_element_id, draw_bounds);
+        vec![]
     }
 
-    fn set_width(&self, width: f32, element_registry: &mut ElementRegistry) {
+    fn set_width(&self, width: f32, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<f32>> {
         _ = element_registry.set_rectangle_width(&self.background_element_id, width);
         _ = element_registry.set_rectangle_width(&self.progress_element_id, width);
+        vec![]
     }
-    fn set_height(&self, height: f32, element_registry: &mut ElementRegistry) {
+    fn set_height(&self, height: f32, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<f32>> {
         _ = element_registry.set_rectangle_height(&self.background_element_id, height);
         _ = element_registry.set_rectangle_height(&self.progress_element_id, height);
+        vec![]
     }
-    fn set_size(&self, size: Vec2, element_registry: &mut ElementRegistry) {
+    fn set_size(&self, size: Vec2, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<Vec2>> {
         _ = element_registry.set_rectangle_size(&self.background_element_id, size);
         _ = element_registry.set_rectangle_size(&self.progress_element_id, size);
+        vec![]
     }
+
+    fn on_show(&mut self) {}
+    fn on_hide(&mut self) {}
 }
 
 impl Slider {

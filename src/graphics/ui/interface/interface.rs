@@ -2,7 +2,7 @@ use glam::Vec2;
 
 use crate::{event::{EventReader, WindowResizeEvent, EventSystem, PixelDensityChangeEvent}, asset_manager::AssetManager, input::Input, graphics::{ui::{widget::{SliderBuilder, SliderUpdateResult, ButtonBuilder, DropdownBuilder, IconBuilder}, Position, bounds_2d::Bounds2d, UiWidgetId, UiElementId}, font::{Font, PlainBitmapBuilder}, Color}, ResourceId};
 
-use super::{ElementRegistry, widget_registry::WidgetRegistry};
+use super::{ElementRegistry, widget_registry::{WidgetRegistry, WidgetRegistryUdpateResult}};
 
 pub struct Interface {
     element_registry: ElementRegistry,
@@ -30,7 +30,8 @@ impl Interface {
     pub fn update(&mut self, asset_manager: &mut AssetManager, input: &Input) {
         // We update widget_registry before element_registry so that we won't activate any mouse_up
         // events while we were still dragging an element (which gets reset by element_registry.update)
-        self.widget_registry.update(input, &mut self.element_registry, asset_manager);
+        let widget_registry_update_result = &self.widget_registry.update(input, &mut self.element_registry, asset_manager);
+        self.handle_widget_registry_update_result(&widget_registry_update_result);
         self.element_registry.update(asset_manager, input);
         
         self.window_resize_listener.read().last().map(|e| {
@@ -44,6 +45,16 @@ impl Interface {
         self.pixel_density_change_event.read().last().map(|e| {
             self.element_registry.set_pixel_density(e.pixel_density);
         });
+    }
+
+    pub fn handle_widget_registry_update_result(&mut self, update_result: &WidgetRegistryUdpateResult) {
+        for id in &update_result.widgets_to_show {
+            self.show_widget(&id);
+        }
+
+        for id in &update_result.widgets_to_hide {
+            self.hide_widget(&id);
+        }
     }
 
     pub fn draw(&self, asset_manager: &mut AssetManager) {
@@ -61,10 +72,18 @@ impl Interface {
         }
     }
     pub fn show_widget(&mut self, widget_id: &ResourceId<UiWidgetId>) {
-        self.widget_registry.get_widget_by_id(widget_id).unwrap().show(&mut self.element_registry);
+        for element in self.widget_registry.get_widget_by_id(widget_id).unwrap().get_all_element_ids(&self.widget_registry) {
+            _ = self.element_registry.show_element(&element);
+        }
+
+        self.widget_registry.get_mut_widget_by_id(widget_id).unwrap().on_show();
     }
     pub fn hide_widget(&mut self, widget_id: &ResourceId<UiWidgetId>) {
-        self.widget_registry.get_widget_by_id(widget_id).unwrap().hide(&mut self.element_registry);
+        for element in self.widget_registry.get_widget_by_id(widget_id).unwrap().get_all_element_ids(&self.widget_registry) {
+            _ = self.element_registry.hide_element(&element);
+        }
+        
+        self.widget_registry.get_mut_widget_by_id(widget_id).unwrap().on_hide();
     }
     pub fn get_widget_size(&self, widget_id: &ResourceId<UiWidgetId>) -> Result<Vec2, String> {
         let main_element_id = self.get_widget_main_element_id(widget_id).unwrap();
@@ -82,19 +101,19 @@ impl Interface {
         self.widget_registry.get_widget_by_id(widget_id).unwrap().set_position(position, &mut self.element_registry)
     }
     pub fn set_widget_z_index(&mut self, widget_id: &ResourceId<UiWidgetId>, z_index: f32) {
-        self.widget_registry.get_mut_widget_by_id(widget_id).unwrap().set_z_index(z_index, &mut self.element_registry);
+        self.widget_registry.set_widget_z_index( widget_id, z_index, &mut self.element_registry);
     }
     pub fn set_widget_draw_bounds(&mut self, widget_id: &ResourceId<UiWidgetId>, draw_bounds: Bounds2d) {
-        self.widget_registry.get_mut_widget_by_id(widget_id).unwrap().set_draw_bounds(draw_bounds, &mut self.element_registry);
+        self.widget_registry.set_widget_draw_bounds(widget_id, draw_bounds, &mut self.element_registry);
     }
     pub fn set_widget_width(&mut self, widget_id: &ResourceId<UiWidgetId>, width: f32) {
-        self.widget_registry.get_widget_by_id(widget_id).unwrap().set_width(width, &mut self.element_registry);
+        self.widget_registry.set_widget_width(widget_id, width, &mut self.element_registry);
     }
     pub fn set_widget_height(&mut self, widget_id: &ResourceId<UiWidgetId>, height: f32) {
-        self.widget_registry.get_widget_by_id(widget_id).unwrap().set_height(height, &mut self.element_registry);
+        self.widget_registry.set_widget_height(widget_id, height, &mut self.element_registry);
     }
     pub fn set_widget_size(&mut self, widget_id: &ResourceId<UiWidgetId>, size: Vec2) {
-        self.widget_registry.get_widget_by_id(widget_id).unwrap().set_size(size, &mut self.element_registry);
+        self.widget_registry.set_widget_size(widget_id, size, &mut self.element_registry);
     }
 
     // button specific functions

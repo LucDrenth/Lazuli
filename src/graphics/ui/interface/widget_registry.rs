@@ -1,6 +1,18 @@
-use crate::{graphics::{ui::{widget::{Slider, SliderBuilder, SliderUpdateResult, Button, ButtonBuilder, UiWidget, Dropdown, DropdownBuilder, Icon, IconBuilder}, UiWidgetId}, Color}, asset_manager::AssetManager, input::Input, log, ResourceId};
+use glam::Vec2;
+
+use crate::{graphics::{ui::{widget::{Slider, SliderBuilder, SliderUpdateResult, Button, ButtonBuilder, UiWidget, Dropdown, DropdownBuilder, Icon, IconBuilder}, UiWidgetId, bounds_2d::Bounds2d}, Color}, asset_manager::AssetManager, input::Input, log, ResourceId};
 
 use super::{ElementRegistry, widget_list::WidgetList};
+
+pub struct WidgetRegistryUdpateResult {
+    pub widgets_to_show: Vec<ResourceId<UiWidgetId>>,
+    pub widgets_to_hide: Vec<ResourceId<UiWidgetId>>,
+}
+impl Default for WidgetRegistryUdpateResult {
+    fn default() -> Self {
+        Self { widgets_to_show: vec![], widgets_to_hide: vec![] }
+    }
+}
 
 pub struct WidgetRegistry {
     buttons: WidgetList<Button, bool>,
@@ -19,8 +31,11 @@ impl WidgetRegistry {
         }
     }
 
-    pub fn update(&mut self, input: &Input, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) {
-        // TODO update based on z-index of both buttons and sliders together
+    pub fn update(&mut self, input: &Input, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> WidgetRegistryUdpateResult {
+        let mut result: WidgetRegistryUdpateResult = Default::default();
+
+        // TODO update based on z-index of the widget and make it so that if two widgets lay on top of each other, do not
+        // handle input on them both.
 
         // update sliders
         for entry in self.sliders.entries.iter_mut() {
@@ -28,19 +43,53 @@ impl WidgetRegistry {
         }
 
         // update buttons
-        let mut is_any_button_clicked = false;
+        let mut clicked_button_id: Option<ResourceId<UiWidgetId>> = None;
         for entry in self.buttons.entries.iter_mut() {
-            if is_any_button_clicked {
+            if clicked_button_id.is_some() {
                 entry.update_result = false;
             } else {
                 entry.update_result = entry.widget.is_clicked(input, element_registry);
-                is_any_button_clicked = entry.update_result;
+                if entry.update_result {
+                    clicked_button_id = Some(entry.id);
+                }
             }
         }
 
         // update dropdowns
         for entry in self.dropdowns.entries.iter_mut() {
-            entry.update_result = entry.widget.update(input, element_registry, asset_manager);
+            entry.update_result = entry.widget.update(input, element_registry, asset_manager, &clicked_button_id, &mut result);
+        }
+
+        result
+    }
+
+
+    // =============================================================================== \\
+    // ========= Functions for updating a widget (and its connected widgets) ========= \\
+
+    pub fn set_widget_z_index(&mut self, widget_id: &ResourceId<UiWidgetId>, z_index: f32, element_registry: &mut ElementRegistry) {
+        for target in self.get_mut_widget_by_id(widget_id).unwrap().set_z_index(z_index, element_registry) {
+            self.set_widget_z_index(&target.widget_id, target.data, element_registry);
+        }
+    }
+    pub fn set_widget_width(&mut self, widget_id: &ResourceId<UiWidgetId>, width: f32, element_registry: &mut ElementRegistry) {
+        for target in self.get_mut_widget_by_id(widget_id).unwrap().set_width(width, element_registry) {
+            self.set_widget_width(&target.widget_id, target.data, element_registry);
+        }
+    }
+    pub fn set_widget_height(&mut self, widget_id: &ResourceId<UiWidgetId>, height: f32, element_registry: &mut ElementRegistry) {
+        for target in self.get_mut_widget_by_id(widget_id).unwrap().set_height(height, element_registry) {
+            self.set_widget_height(&target.widget_id, target.data, element_registry);
+        }
+    }
+    pub fn set_widget_size(&mut self, widget_id: &ResourceId<UiWidgetId>, size: Vec2, element_registry: &mut ElementRegistry) {
+        for target in self.get_mut_widget_by_id(widget_id).unwrap().set_size(size, element_registry) {
+            self.set_widget_size(&target.widget_id, target.data, element_registry);
+        }
+    }
+    pub fn set_widget_draw_bounds(&mut self, widget_id: &ResourceId<UiWidgetId>, draw_bounds: Bounds2d, element_registry: &mut ElementRegistry) {
+        for target in self.get_mut_widget_by_id(widget_id).unwrap().set_draw_bounds(draw_bounds, element_registry) {
+            self.set_widget_draw_bounds(&target.widget_id, target.data, element_registry);
         }
     }
     
@@ -68,7 +117,7 @@ impl WidgetRegistry {
         self.dropdowns.push(dropdown)
     }
     pub fn create_dropdown(&mut self, builder: &DropdownBuilder<u32>, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
-        let dropdown = builder.build(element_registry, asset_manager)?;
+        let dropdown = builder.build(element_registry, self, asset_manager)?;
         Ok(self.dropdowns.push(dropdown))
     }
 

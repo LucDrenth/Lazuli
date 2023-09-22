@@ -12,3 +12,5 @@ pub use icon::*;
 
 mod ui_widget;
 pub use ui_widget::UiWidget;
+
+mod widget_update_target;

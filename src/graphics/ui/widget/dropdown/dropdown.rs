@@ -1,19 +1,20 @@
 use std::{fmt::Debug, f32::consts::PI};
 
 use glam::Vec2;
+use interface::WidgetRegistryUdpateResult;
 
-use crate::{asset_manager::AssetManager, graphics::{ui::{ElementRegistry, widget::{Button, ButtonBuilder, UiWidget, IconBuilder, Icon}, interface::{is_valid_z_index, MAX_Z_INDEX, self}, Position, AnchorPoint, UiElementId, TextAlign}, Color}, log, input::{Input, InputAction}, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{ui::{ElementRegistry, widget::{Button, ButtonBuilder, UiWidget, IconBuilder, Icon, widget_update_target::WidgetUpdateTarget}, interface::{is_valid_z_index, MAX_Z_INDEX, self, WidgetRegistry}, Position, AnchorPoint, UiElementId, TextAlign, UiWidgetId, bounds_2d::Bounds2d}, Color}, log, input::{Input, InputAction}, ResourceId};
 
 struct DropdownOptionButton<T: Debug + Clone> {
-    button: Button,
+    button_id: ResourceId<UiWidgetId>,
     value: T,
     label: String,
 }
 
 pub struct Dropdown<T: Debug + Clone> {
     z_index: f32,
-    button: Button,
-    icon_widget: Icon,
+    button: Button, // TODO move to widget registry
+    icon_widget: Icon, // TODO move to widget registry
     options: Vec<DropdownOptionButton<T>>,
     is_open: bool,
     selected: Option<T>,
@@ -21,24 +22,18 @@ pub struct Dropdown<T: Debug + Clone> {
     option_buttons_respect_draw_bounds: bool,
 }
 
-// TODO implement for all types instead of only for u32
 impl <T: Debug + Clone> UiWidget for Dropdown<T> {
-    fn show(&self, element_registry: &mut ElementRegistry) {
-        self.button.show(element_registry);
-        self.icon_widget.show(element_registry);
+    fn get_all_element_ids(&self, widget_registry: &WidgetRegistry) -> Vec<ResourceId<UiElementId>> {
+        let mut element_ids = vec![];
 
-        for option in self.options.iter() {
-            option.button.show(element_registry);
+        for option in &self.options {
+            element_ids.append(&mut widget_registry.get_widget_by_id(&option.button_id).unwrap().get_all_element_ids(widget_registry))
         }
-    }
 
-    fn hide(&self, element_registry: &mut ElementRegistry) {
-        self.button.hide(element_registry);
-        self.icon_widget.hide(element_registry);
-        
-        for option in self.options.iter() {
-            option.button.hide(element_registry);
-        }
+        element_ids.append(&mut self.button.get_all_element_ids(widget_registry));
+        element_ids.append(&mut self.icon_widget.get_all_element_ids(widget_registry));
+
+        return element_ids
     }
 
     fn get_main_element_id(&self) -> ResourceId<UiElementId> {
@@ -53,48 +48,85 @@ impl <T: Debug + Clone> UiWidget for Dropdown<T> {
         self.button.set_position(position, element_registry);
     }
 
-    fn set_z_index(&mut self, z_index: f32, element_registry: &mut ElementRegistry) {
+    fn set_z_index(&mut self, z_index: f32, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<f32>> {
         self.z_index = z_index;
         self.button.set_z_index(z_index, element_registry);
         self.icon_widget.set_z_index(z_index + 0.01, element_registry);
 
+        let mut targets = vec![];
         for option in self.options.iter_mut() {
-            option.button.set_z_index(Self::option_button_z_index(z_index), element_registry);
+            targets.push(WidgetUpdateTarget{ 
+                widget_id: option.button_id, 
+                data: Self::option_button_z_index(z_index) 
+            });
         }
+
+        targets
     }
 
-    fn set_draw_bounds(&self, draw_bounds: crate::graphics::ui::bounds_2d::Bounds2d, element_registry: &mut ElementRegistry) {
+    fn set_draw_bounds(&self, draw_bounds: Bounds2d, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<Bounds2d>> {
         _ = self.button.set_draw_bounds(draw_bounds, element_registry);
         _ = self.icon_widget.set_draw_bounds(draw_bounds, element_registry);
 
+        let mut targets = vec![];
+
         if self.option_buttons_respect_draw_bounds {
             for option in self.options.iter() {
-                option.button.set_draw_bounds(draw_bounds, element_registry);
+                targets.push(WidgetUpdateTarget { 
+                    widget_id: option.button_id,
+                    data: draw_bounds,
+                })
             }
         }
+
+        targets
     }
 
-    fn set_width(&self, width: f32, element_registry: &mut ElementRegistry) {
+    fn set_width(&self, width: f32, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<f32>> {
         self.button.set_width(width, element_registry);
+
+        let mut targets = vec![];
         
         for option in &self.options {
-            option.button.set_width(width, element_registry);
+            targets.push(WidgetUpdateTarget { 
+                widget_id: option.button_id, 
+                data: width,
+            })
         }
+
+        targets
     }
-    fn set_height(&self, height: f32, element_registry: &mut ElementRegistry) {
+    fn set_height(&self, height: f32, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<f32>> {
         self.button.set_height(height, element_registry);
 
-        for option in &self.options {
-            option.button.set_height(height, element_registry);
-        }
-    }
-    fn set_size(&self, size: Vec2, element_registry: &mut ElementRegistry) {
-        self.button.set_size(size, element_registry);
+        let mut targets = vec![];
 
         for option in &self.options {
-            option.button.set_size(size, element_registry);
+            targets.push(WidgetUpdateTarget { 
+                widget_id: option.button_id, 
+                data: height,
+            })
         }
+
+        targets
     }
+    fn set_size(&self, size: Vec2, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<Vec2>> {
+        self.button.set_size(size, element_registry);
+
+        let mut targets = vec![];
+
+        for option in &self.options {
+            targets.push(WidgetUpdateTarget { 
+                widget_id: option.button_id, 
+                data: size,
+            })
+        }
+
+        targets
+    }
+
+    fn on_show(&mut self) {}
+    fn on_hide(&mut self) {}
 }
 
 impl<T: Debug + Clone> Dropdown<T> {
@@ -103,49 +135,60 @@ impl<T: Debug + Clone> Dropdown<T> {
     }
 
     /// Returns the newly selected value, or None if nothing has changed
-    pub fn update(&mut self, input: &Input, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Option<T> {
+    pub fn update(&mut self, input: &Input, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager, clicked_button_id: &Option<ResourceId<UiWidgetId>>, widget_registry_update_result: &mut WidgetRegistryUdpateResult) -> Option<T> {
         if self.is_open {
-            for option in self.options.iter() {
-                if option.button.is_clicked(input, element_registry) {
-                    let value = option.value.clone();
+            if let Some(clicked_button) = clicked_button_id {
+                for option in self.options.iter() {
+                    if clicked_button.equals(&option.button_id) {
+                        let value = option.value.clone();
 
-                    match element_registry.set_text(&self.button.text_element_id(), &option.label, asset_manager) {
-                        Ok(_) => (),
-                        Err(err) => {
-                            log::engine_err(format!("failed to set selected dropdown value {:?}: {}", value, err));
-                            return None;
-                        },
+                        match element_registry.set_text(&self.button.text_element_id(), &option.label, asset_manager) {
+                            Ok(_) => (),
+                            Err(err) => {
+                                log::engine_err(format!("failed to set selected dropdown value {:?}: {}", value, err));
+                                return None;
+                            },
+                        }
+                        
+                        self.set_open(false, element_registry);
+                        widget_registry_update_result.widgets_to_hide.append(&mut self.get_option_button_ids());
+                        return Some(value);
                     }
-                    
-                    self.is_open = false;
-                    self.handle_state(element_registry);
-
-                    return Some(value);
                 }
             }
         }
 
         if self.button.is_clicked(input, element_registry) {
-            self.is_open = !self.is_open;
-            self.handle_state(element_registry);
+            self.set_open(!self.is_open, element_registry);
+
+            if self.is_open {
+                widget_registry_update_result.widgets_to_show.append(&mut self.get_option_button_ids());
+            } else {
+                widget_registry_update_result.widgets_to_hide.append(&mut self.get_option_button_ids());
+            }
         }
 
         None
     }
 
-    fn handle_state(&mut self, element_registry: &mut ElementRegistry) {
+    fn get_option_button_ids(&self) -> Vec<ResourceId<UiWidgetId>> {
+        let mut ids = vec![];
+        for button in self.options.iter() {
+            ids.push(button.button_id);
+        }
+        ids
+    }
+
+    fn set_open(&mut self, open: bool, element_registry: &mut ElementRegistry) {
+        self.is_open = open;
         if self.is_open {
-            for opt in self.options.iter() {
-                opt.button.show(element_registry);
-                element_registry.get_mut_element_custom_shader_values(&self.icon_widget.get_main_element_id()).unwrap().set_f32("rotation", PI)
-            }
+            element_registry.get_mut_element_custom_shader_values(&self.icon_widget.get_main_element_id()).unwrap().set_f32("rotation", PI);
         } else {
-            for opt in self.options.iter() {
-                opt.button.hide(element_registry);
-                element_registry.get_mut_element_custom_shader_values(&self.icon_widget.get_main_element_id()).unwrap().set_f32("rotation", 0.)
-            }
+            element_registry.get_mut_element_custom_shader_values(&self.icon_widget.get_main_element_id()).unwrap().set_f32("rotation", 0.)
         }
     }
+
+    pub fn is_open(&self) -> bool { self.is_open }
 }
 
 pub struct DropdownOption<T: Debug + Clone> {
@@ -186,7 +229,7 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
         }
     }
 
-    pub fn build(&self, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<Dropdown<T>, String> {
+    pub fn build(&self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, asset_manager: &mut AssetManager) -> Result<Dropdown<T>, String> {
         self.validate()?;
 
         let selected_value: Option<T>;
@@ -232,7 +275,9 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
             option_button_builder = option_button_builder.with_position(Position::ElementAnchor(AnchorPoint::BottomOutside(5.0), anchor_element_id));
             let option_button = option_button_builder.build(option.label.clone(), element_registry, asset_manager)?;
             anchor_element_id = option_button.get_main_element_id();
-            options.push(DropdownOptionButton{ button: option_button, value: option.value.clone(), label: option.label.clone() });
+
+            let option_button_id = widget_registry.add_button(option_button);
+            options.push(DropdownOptionButton{ button_id: option_button_id, value: option.value.clone(), label: option.label.clone() });
         }
 
         let icon_right = button.padding().right();

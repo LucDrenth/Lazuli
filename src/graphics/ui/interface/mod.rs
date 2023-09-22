@@ -3,6 +3,7 @@ pub use element_registry::*;
 
 mod widget_registry;
 pub use widget_registry::WidgetRegistry;
+pub use widget_registry::WidgetRegistryUdpateResult;
 
 mod interface;
 pub use interface::*;
