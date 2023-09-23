@@ -1,16 +1,21 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{widget::{Slider, SliderBuilder, SliderUpdateResult, Button, ButtonBuilder, UiWidget, Dropdown, DropdownBuilder, Icon, IconBuilder}, UiWidgetId, bounds_2d::Bounds2d}, Color}, asset_manager::AssetManager, input::Input, log, ResourceId};
+use crate::{graphics::{ui::{widget::{Slider, SliderBuilder, SliderUpdateResult, Button, ButtonBuilder, UiWidget, Dropdown, DropdownBuilder, Icon, IconBuilder, WidgetUpdateTarget}, UiWidgetId, bounds_2d::Bounds2d, Position}, Color}, asset_manager::AssetManager, input::Input, log, ResourceId};
 
 use super::{ElementRegistry, widget_list::WidgetList};
 
 pub struct WidgetRegistryUdpateResult {
     pub widgets_to_show: Vec<ResourceId<UiWidgetId>>,
     pub widgets_to_hide: Vec<ResourceId<UiWidgetId>>,
+    pub buttons_to_change_text: Vec<WidgetUpdateTarget<String>>,
 }
 impl Default for WidgetRegistryUdpateResult {
     fn default() -> Self {
-        Self { widgets_to_show: vec![], widgets_to_hide: vec![] }
+        Self { 
+            widgets_to_show: vec![], 
+            widgets_to_hide: vec![],
+            buttons_to_change_text: vec![],
+        }
     }
 }
 
@@ -57,7 +62,7 @@ impl WidgetRegistry {
 
         // update dropdowns
         for entry in self.dropdowns.entries.iter_mut() {
-            entry.update_result = entry.widget.update(input, element_registry, asset_manager, &clicked_button_id, &mut result);
+            entry.update_result = entry.widget.update(element_registry, &clicked_button_id, &mut result);
         }
 
         result
@@ -90,6 +95,11 @@ impl WidgetRegistry {
     pub fn set_widget_draw_bounds(&mut self, widget_id: &ResourceId<UiWidgetId>, draw_bounds: Bounds2d, element_registry: &mut ElementRegistry) {
         for target in self.get_mut_widget_by_id(widget_id).unwrap().set_draw_bounds(draw_bounds, element_registry) {
             self.set_widget_draw_bounds(&target.widget_id, target.data, element_registry);
+        }
+    }
+    pub fn set_widget_position(&mut self, widget_id: &ResourceId<UiWidgetId>, position: Position, element_registry: &mut ElementRegistry) {
+        for target in self.get_mut_widget_by_id(widget_id).unwrap().set_position(position, element_registry) {
+            self.set_widget_position(&target.widget_id, target.data, element_registry);
         }
     }
     
@@ -188,29 +198,29 @@ impl WidgetRegistry {
     // =================================================== \\
     // ======= Functions to get individual widgets ======= \\
 
-    fn get_slider(&self, slider_id: &ResourceId<UiWidgetId>) -> Option<&Slider> {
+    pub fn get_slider(&self, slider_id: &ResourceId<UiWidgetId>) -> Option<&Slider> {
         self.sliders.get_widget(slider_id)
     }
-    fn get_mut_slider(&mut self, slider_id: &ResourceId<UiWidgetId>) -> Option<&mut Slider> {
+    pub fn get_mut_slider(&mut self, slider_id: &ResourceId<UiWidgetId>) -> Option<&mut Slider> {
         self.sliders.get_mut_widget(slider_id)
 
     }
-    fn get_button(&self, button_id: &ResourceId<UiWidgetId>) -> Option<&Button> {
+    pub fn get_button(&self, button_id: &ResourceId<UiWidgetId>) -> Option<&Button> {
         self.buttons.get_widget(button_id)
     }
-    fn get_mut_button(&mut self, button_id: &ResourceId<UiWidgetId>) -> Option<&mut Button> {
+    pub fn get_mut_button(&mut self, button_id: &ResourceId<UiWidgetId>) -> Option<&mut Button> {
         self.buttons.get_mut_widget(button_id)
     }
-    fn get_dropdown(&self, dropdown_id: &ResourceId<UiWidgetId>) -> Option<&Dropdown<u32>> {
+    pub fn get_dropdown(&self, dropdown_id: &ResourceId<UiWidgetId>) -> Option<&Dropdown<u32>> {
         self.dropdowns.get_widget(dropdown_id)
     }
-    fn get_mut_dropdown(&mut self, dropdown_id: &ResourceId<UiWidgetId>) -> Option<&mut Dropdown<u32>> {
+    pub fn get_mut_dropdown(&mut self, dropdown_id: &ResourceId<UiWidgetId>) -> Option<&mut Dropdown<u32>> {
         self.dropdowns.get_mut_widget(dropdown_id)
     }
-    fn get_icon(&self, icon_id: &ResourceId<UiWidgetId>) -> Option<&Icon> {
+    pub fn get_icon(&self, icon_id: &ResourceId<UiWidgetId>) -> Option<&Icon> {
         self.icons.get_widget(icon_id)
     }
-    fn get_mut_icon(&mut self, icon_id: &ResourceId<UiWidgetId>) -> Option<&mut Icon> {
+    pub fn get_mut_icon(&mut self, icon_id: &ResourceId<UiWidgetId>) -> Option<&mut Icon> {
         self.icons.get_mut_widget(icon_id)
     }
 

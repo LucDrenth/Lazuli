@@ -23,16 +23,18 @@ impl UiWidget for Button {
     }
 
     /// Background is the main element. It defines the position and size of the slider
-    fn get_main_element_id(&self) -> ResourceId<UiElementId> {
+    fn get_main_element_id(&self, _widget_registry: &WidgetRegistry) -> ResourceId<UiElementId> {
         self.background_element_id.clone()
     }
 
-    fn set_position(&self, position: Position, element_registry: &mut ElementRegistry) {
+    fn set_position(&self, position: Position, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<Position>>{
         _ = element_registry.set_element_position(&self.background_element_id, position);
         _ = element_registry.set_element_position(&self.text_element_id, Position::ElementAnchor(
             text_align_to_anchor_point(&self.text_align, &self.padding), 
             self.background_element_id)
         );
+
+        vec![]
     }
 
     fn z_index(&self) -> f32 {

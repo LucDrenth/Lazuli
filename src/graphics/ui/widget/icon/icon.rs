@@ -13,7 +13,7 @@ impl UiWidget for Icon {
         vec![self.rectangle_element_id]
     }
 
-    fn get_main_element_id(&self) -> ResourceId<UiElementId> {
+    fn get_main_element_id(&self, _widget_registry: &WidgetRegistry) -> ResourceId<UiElementId> {
         self.rectangle_element_id
     }
 
@@ -27,8 +27,9 @@ impl UiWidget for Icon {
         vec![]
     }
 
-    fn set_position(&self, position: Position, element_registry: &mut ElementRegistry) {
+    fn set_position(&self, position: Position, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<Position>>{
         _ = element_registry.set_element_position(&self.rectangle_element_id, position);
+        vec![]
     }
 
     fn set_draw_bounds(&self, draw_bounds: Bounds2d, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<Bounds2d>> {

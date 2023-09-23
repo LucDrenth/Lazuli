@@ -14,3 +14,9 @@ pub struct WidgetUpdateTarget<T> {
     pub widget_id: ResourceId<UiWidgetId>,
     pub data: T,
 }
+
+impl <T> WidgetUpdateTarget<T> {
+    pub fn new(widget_id: ResourceId<UiWidgetId>, data: T) -> Self {
+        Self { widget_id, data }
+    }
+}

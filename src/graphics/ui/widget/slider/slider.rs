@@ -48,7 +48,7 @@ impl UiWidget for Slider {
     }
 
     /// Background is the main element. It defines the position and size of the slider
-    fn get_main_element_id(&self) -> ResourceId<UiElementId> {
+    fn get_main_element_id(&self, _widget_registry: &WidgetRegistry) -> ResourceId<UiElementId> {
         self.background_element_id.clone()
     }
 
@@ -65,13 +65,15 @@ impl UiWidget for Slider {
         vec![]
     }
 
-    fn set_position(&self, position: Position, element_registry: &mut ElementRegistry) {
+    fn set_position(&self, position: Position, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<Position>>{
         _ = element_registry.set_element_position(&self.background_element_id, position);
         _ = element_registry.set_element_position(&self.text_element_id, Position::ElementAnchor(AnchorPoint::Center, self.background_element_id));
         _ = element_registry.set_element_position(&self.progress_element_id, Position::ElementAnchor(
             progress_bar_alignment_to_anchor_point(&self.progress_bar_alignment, &self.direction)
             , self.background_element_id
         ));
+
+        vec![]
     }
 
     fn set_draw_bounds(&self, draw_bounds: Bounds2d, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<Bounds2d>> {

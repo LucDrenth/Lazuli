@@ -12,11 +12,11 @@ pub trait UiWidget {
 
     /// Get the id of the main element (usually the background), which can be 
     /// used for positioning, anchoring etcetera. It is usually the background element.
-    fn get_main_element_id(&self) -> ResourceId<UiElementId>;
+    fn get_main_element_id(&self, widget_registry: &WidgetRegistry) -> ResourceId<UiElementId>;
 
     fn z_index(&self) -> f32;
     fn set_z_index(&mut self, z_index: f32, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<f32>>;
-    fn set_position(&self, position: Position, element_registry: &mut ElementRegistry);
+    fn set_position(&self, position: Position, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<Position>>;
     fn set_draw_bounds(&self, draw_bounds: Bounds2d, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<Bounds2d>>;
 
     fn set_width(&self, width: f32, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<f32>>;

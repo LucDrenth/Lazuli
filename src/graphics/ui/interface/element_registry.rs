@@ -494,7 +494,7 @@ impl ElementRegistry {
                 text_element.set_text(text, window_size, anchor_data, asset_manager)?;
                 Ok(self.update_anchor_tree(text_element_id))
             },
-            None => Err(format!("failed to set text because element with id {:?} was not found", text_element_id)),
+            None => Err(format!("failed to set text because text element with id {:?} was not found", text_element_id)),
         }
     }
 

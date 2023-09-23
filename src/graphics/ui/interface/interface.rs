@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{event::{EventReader, WindowResizeEvent, EventSystem, PixelDensityChangeEvent}, asset_manager::AssetManager, input::Input, graphics::{ui::{widget::{SliderBuilder, SliderUpdateResult, ButtonBuilder, DropdownBuilder, IconBuilder}, Position, bounds_2d::Bounds2d, UiWidgetId, UiElementId}, font::{Font, PlainBitmapBuilder}, Color}, ResourceId};
+use crate::{event::{EventReader, WindowResizeEvent, EventSystem, PixelDensityChangeEvent}, asset_manager::AssetManager, input::Input, graphics::{ui::{widget::{SliderBuilder, SliderUpdateResult, ButtonBuilder, DropdownBuilder, IconBuilder}, Position, bounds_2d::Bounds2d, UiWidgetId, UiElementId}, font::{Font, PlainBitmapBuilder}, Color}, ResourceId, log};
 
 use super::{ElementRegistry, widget_registry::{WidgetRegistry, WidgetRegistryUdpateResult}};
 
@@ -31,7 +31,7 @@ impl Interface {
         // We update widget_registry before element_registry so that we won't activate any mouse_up
         // events while we were still dragging an element (which gets reset by element_registry.update)
         let widget_registry_update_result = &self.widget_registry.update(input, &mut self.element_registry, asset_manager);
-        self.handle_widget_registry_update_result(&widget_registry_update_result);
+        self.handle_widget_registry_update_result(&widget_registry_update_result, asset_manager);
         self.element_registry.update(asset_manager, input);
         
         self.window_resize_listener.read().last().map(|e| {
@@ -47,13 +47,27 @@ impl Interface {
         });
     }
 
-    pub fn handle_widget_registry_update_result(&mut self, update_result: &WidgetRegistryUdpateResult) {
+    pub fn handle_widget_registry_update_result(&mut self, update_result: &WidgetRegistryUdpateResult, asset_manager: &mut AssetManager) {
         for id in &update_result.widgets_to_show {
             self.show_widget(&id);
         }
 
         for id in &update_result.widgets_to_hide {
             self.hide_widget(&id);
+        }
+
+        for target in &update_result.buttons_to_change_text {
+            let element_id = self.widget_registry.get_button(&target.widget_id).unwrap().text_element_id();
+
+            match self.element_registry.set_text(&element_id, &target.data, asset_manager) {
+                Ok(()) => (),
+                Err(err) => {
+                    log::engine_err(format!(
+                        "interface failed to update text for element {:?} from widget {:?} through widget update result: {}",
+                        element_id, target.widget_id, err
+                    ));
+                },
+            }
         }
     }
 
@@ -67,7 +81,7 @@ impl Interface {
     // UiWidget functions
     pub fn get_widget_main_element_id(&self, widget_id: &ResourceId<UiWidgetId>) -> Option<ResourceId<UiElementId>> {
         match self.widget_registry.get_widget_by_id(widget_id) {
-            Some(widget) => Some(widget.get_main_element_id()),
+            Some(widget) => Some(widget.get_main_element_id(&self.widget_registry)),
             None => None,
         }
     }
@@ -98,10 +112,10 @@ impl Interface {
         self.element_registry.get_element_position_transform(&main_element_id)
     }
     pub fn set_widget_position(&mut self, widget_id: &ResourceId<UiWidgetId>, position: Position) {
-        self.widget_registry.get_widget_by_id(widget_id).unwrap().set_position(position, &mut self.element_registry)
+        self.widget_registry.set_widget_position(widget_id, position, &mut self.element_registry);
     }
     pub fn set_widget_z_index(&mut self, widget_id: &ResourceId<UiWidgetId>, z_index: f32) {
-        self.widget_registry.set_widget_z_index( widget_id, z_index, &mut self.element_registry);
+        self.widget_registry.set_widget_z_index(widget_id, z_index, &mut self.element_registry);
     }
     pub fn set_widget_draw_bounds(&mut self, widget_id: &ResourceId<UiWidgetId>, draw_bounds: Bounds2d) {
         self.widget_registry.set_widget_draw_bounds(widget_id, draw_bounds, &mut self.element_registry);
@@ -156,7 +170,7 @@ impl Interface {
     pub fn set_icon_padding(&mut self, padding: f32, icon_id: &ResourceId<UiWidgetId>) -> Result<(), String> {
         match self.widget_registry.get_widget_by_id(&icon_id) {
             Some(ui_widget) => self.element_registry.set_rectangle_texture_padding(
-                &ui_widget.get_main_element_id(), 
+                &ui_widget.get_main_element_id(&self.widget_registry), 
                 padding,
             ),
             None => Err(format!("Icon with id {:?} not found", icon_id)),
