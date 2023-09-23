@@ -45,11 +45,32 @@ impl LayoutRegistry {
         id.clone()
     }
 
-    pub fn add_widget_to_layout(&mut self, widget_id: &ResourceId<UiWidgetId>, layout_id: &ResourceId<UiLayoutId>, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry) -> Result<(), String> {
+    pub fn add_widget_to_layout(&mut self, 
+        widget_id: &ResourceId<UiWidgetId>, 
+        layout_id: &ResourceId<UiLayoutId>, 
+        element_registry: &mut ElementRegistry, 
+        widget_registry: &mut WidgetRegistry
+    ) -> Result<(), String> {
         match self.get_mut_layout(layout_id) {
             Some(layout) => Ok(layout.add_widget(widget_id, element_registry, widget_registry)),
-            None => Err(format!("Layout with id {:?} not found", layout_id)),
+            None => Err(Self::layout_not_found(layout_id)),
         }
+    }
+
+    pub fn set_layout_z_index(&mut self, 
+        layout_id: &ResourceId<UiLayoutId>, 
+        z_index: f32, 
+        element_registry: &mut ElementRegistry, 
+        widget_registry: &mut WidgetRegistry
+    ) -> Result<(), String> {
+        match self.get_mut_layout(layout_id) {
+            Some(layout) => Ok(layout.set_z_index(z_index, element_registry, widget_registry)),
+            None => Err(Self::layout_not_found(layout_id)),
+        }
+    }
+
+    fn layout_not_found(layout_id: &ResourceId<UiLayoutId>) -> String {
+        format!("Layout with id {:?} not found", layout_id)
     }
 
     pub fn get_layout(&mut self, layout_id: &ResourceId<UiLayoutId>) -> Option<&Box<dyn Layout>> {

@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{Position, AnchorPoint, shapes::RectangleBuilder, Interface, padding::Padding, bounds_2d::Bounds2d, UiWidgetId, UiElementId, interface::WidgetRegistry, ElementRegistry}, Color}, asset_manager::AssetManager, log, input::Input, ResourceId};
+use crate::{graphics::{ui::{Position, AnchorPoint, shapes::RectangleBuilder, padding::Padding, bounds_2d::Bounds2d, UiWidgetId, UiElementId, interface::WidgetRegistry, ElementRegistry}, Color}, asset_manager::AssetManager, log, input::Input, ResourceId};
 
 use super::{Layout, layout::{LAYOUT_ELEMENT_EXTRA_Z_INDEX, LayoutBuilder}};
 
@@ -76,11 +76,11 @@ impl Layout for VerticalList {
         self.set_scroll_amount(new_scroll_amount, element_registry, widget_registry);
     }
 
-    fn set_z_index(&mut self, z_index: f32, interface: &mut Interface) {
+    fn set_z_index(&mut self, z_index: f32, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry) {
         self.z_index = z_index;
 
         for widget_id in self.widget_ids.iter() {
-            interface.set_widget_z_index(widget_id, self.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX);
+            widget_registry.set_widget_z_index(widget_id, self.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX, element_registry);
         }
     }
 }
