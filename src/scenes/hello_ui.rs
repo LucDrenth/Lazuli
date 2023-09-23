@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, ui::{shapes::RectangleBuilder, widget::{ButtonBuilder, SliderBuilder, DropdownBuilder, DropdownOption}, Position, AnchorPoint, TextBuilder, Interface, VerticalListBuilder, Padding, VerticalList, Layout, UiWidgetId, UiElementId, Width}, Color}, event::EventSystem, input::{Input, Key}, asset_manager::AssetManager, log, ResourceId};
+use crate::{graphics::{scene::Scene, ui::{shapes::RectangleBuilder, widget::{ButtonBuilder, SliderBuilder, DropdownBuilder, DropdownOption}, Position, AnchorPoint, TextBuilder, Interface, VerticalListBuilder, Padding, UiWidgetId, UiElementId, Width, UiLayoutId}, Color}, event::EventSystem, input::{Input, Key}, asset_manager::AssetManager, log, ResourceId};
 
 pub struct HelloUi {
     width_slider_id: ResourceId<UiWidgetId>,
@@ -8,7 +8,7 @@ pub struct HelloUi {
     reset_button_id: ResourceId<UiWidgetId>,
     rectangle_id: ResourceId<UiElementId>,
     dropdown_id: ResourceId<UiWidgetId>,
-    layout: VerticalList,
+    layout_id: ResourceId<UiLayoutId>,
 }
 
 impl Scene for HelloUi {
@@ -66,7 +66,7 @@ impl Scene for HelloUi {
         let layout_button_4 = interface.create_button("Button 4", &layout_button_builder, asset_manager)?;
         let layout_button_5 = interface.create_button("Button 5", &layout_button_builder, asset_manager)?;
 
-        let layout = VerticalListBuilder::new()
+        let layout_id = interface.create_layout(&mut VerticalListBuilder::new()
             .with_position(Position::ScreenAnchor(AnchorPoint::LeftInside(10.0)))
             .with_padding(Padding::Universal(10.0))
             .with_max_height(230.0)
@@ -79,7 +79,7 @@ impl Scene for HelloUi {
             .add_widget(&layout_button_3)
             .add_widget(&layout_button_4)
             .add_widget(&layout_button_5)
-            .build(interface, asset_manager)?;
+        , asset_manager)?;
 
         Ok(Self { 
             width_slider_id,
@@ -87,13 +87,11 @@ impl Scene for HelloUi {
             rectangle_id,
             reset_button_id,
             dropdown_id,
-            layout,
+            layout_id,
         })
     }
 
     fn update(&mut self, _: &mut EventSystem, input: &Input, asset_manager: &mut AssetManager, interface: &mut Interface) {
-        self.layout.update(interface, input);
-
         interface.slider_update_result(&self.width_slider_id).map(|result|{
             let y = interface.mut_element_registry().get_element_scale(&self.rectangle_id).unwrap().y;
             interface.mut_element_registry().set_element_scale(&self.rectangle_id, Vec2 { 
@@ -149,7 +147,7 @@ impl Scene for HelloUi {
         }
 
         if input.is_key_down(Key::Space) {
-            self.layout.add_widget(&self.height_slider_id, interface);
+            _ = interface.add_widget_to_layout(&self.height_slider_id, &self.layout_id);
         }
     }
 

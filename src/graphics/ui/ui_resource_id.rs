@@ -12,3 +12,6 @@ pub struct UiWidgetId;
 
 #[derive(Debug, Clone, Copy)]
 pub struct UiElementId;
+
+#[derive(Debug, Clone, Copy)]
+pub struct UiLayoutId;

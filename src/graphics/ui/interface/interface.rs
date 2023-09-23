@@ -1,12 +1,13 @@
 use glam::Vec2;
 
-use crate::{event::{EventReader, WindowResizeEvent, EventSystem, PixelDensityChangeEvent}, asset_manager::AssetManager, input::Input, graphics::{ui::{widget::{SliderBuilder, SliderUpdateResult, ButtonBuilder, DropdownBuilder, IconBuilder}, Position, bounds_2d::Bounds2d, UiWidgetId, UiElementId}, font::{Font, PlainBitmapBuilder}, Color}, ResourceId, log};
+use crate::{event::{EventReader, WindowResizeEvent, EventSystem, PixelDensityChangeEvent}, asset_manager::AssetManager, input::Input, graphics::{ui::{widget::{SliderBuilder, SliderUpdateResult, ButtonBuilder, DropdownBuilder, IconBuilder}, Position, bounds_2d::Bounds2d, UiWidgetId, UiElementId, UiLayoutId, layout::LayoutBuilder, Layout}, font::{Font, PlainBitmapBuilder}, Color}, ResourceId, log};
 
-use super::{ElementRegistry, widget_registry::{WidgetRegistry, WidgetRegistryUdpateResult}};
+use super::{ElementRegistry, widget_registry::{WidgetRegistry, WidgetRegistryUdpateResult}, layout_registry::LayoutRegistry};
 
 pub struct Interface {
     element_registry: ElementRegistry,
     widget_registry: WidgetRegistry,
+    layout_registry: LayoutRegistry,
     size: Vec2,
     scroll_speed: f32,
 
@@ -19,6 +20,7 @@ impl Interface {
         Self {
             element_registry: ElementRegistry::new(window_size, pixel_density),
             widget_registry: WidgetRegistry::new(),
+            layout_registry: LayoutRegistry::new(),
             size: window_size,
             scroll_speed: 0.2,
 
@@ -45,6 +47,8 @@ impl Interface {
         self.pixel_density_change_event.read().last().map(|e| {
             self.element_registry.set_pixel_density(e.pixel_density);
         });
+
+        self.layout_registry.update(&mut self.element_registry, &mut self.widget_registry, input, self.scroll_speed);
     }
 
     pub fn handle_widget_registry_update_result(&mut self, update_result: &WidgetRegistryUdpateResult, asset_manager: &mut AssetManager) {
@@ -85,10 +89,7 @@ impl Interface {
 
     // UiWidget functions
     pub fn get_widget_main_element_id(&self, widget_id: &ResourceId<UiWidgetId>) -> Option<ResourceId<UiElementId>> {
-        match self.widget_registry.get_widget_by_id(widget_id) {
-            Some(widget) => Some(widget.get_main_element_id(&self.widget_registry)),
-            None => None,
-        }
+        self.widget_registry.get_widget_main_element_id(widget_id)
     }
     pub fn show_widget(&mut self, widget_id: &ResourceId<UiWidgetId>) {
         for element in self.widget_registry.get_widget_by_id(widget_id).unwrap().get_all_element_ids(&self.widget_registry) {
@@ -105,16 +106,13 @@ impl Interface {
         self.widget_registry.get_mut_widget_by_id(widget_id).unwrap().on_hide();
     }
     pub fn get_widget_size(&self, widget_id: &ResourceId<UiWidgetId>) -> Result<Vec2, String> {
-        let main_element_id = self.get_widget_main_element_id(widget_id).unwrap();
-        self.element_registry.get_element_size(&main_element_id)
+        self.widget_registry.get_widget_size(widget_id, &self.element_registry)
     }
     pub fn get_widget_screen_position(&self, widget_id: &ResourceId<UiWidgetId>) -> Result<Vec2, String> {
-        let main_element_id = self.get_widget_main_element_id(widget_id).unwrap();
-        self.element_registry.get_element_screen_position(&main_element_id)
+        self.widget_registry.get_widget_screen_position(widget_id, &self.element_registry)
     }
     pub fn get_widget_position_transform(&self, widget_id: &ResourceId<UiWidgetId>) -> Result<Vec2, String> {
-        let main_element_id = self.get_widget_main_element_id(widget_id).unwrap();
-        self.element_registry.get_element_position_transform(&main_element_id)
+        self.widget_registry.get_widget_position_transform(widget_id, &self.element_registry)
     }
     pub fn set_widget_position(&mut self, widget_id: &ResourceId<UiWidgetId>, position: Position) {
         self.widget_registry.set_widget_position(widget_id, position, &mut self.element_registry);
@@ -180,6 +178,18 @@ impl Interface {
             ),
             None => Err(format!("Icon with id {:?} not found", icon_id)),
         }
+    }
+
+
+    // layout specific functions
+    pub fn create_layout(&mut self, builder: &mut impl LayoutBuilder, asset_manager: &mut AssetManager) -> Result<ResourceId<UiLayoutId>, String> {
+        self.layout_registry.create_layout(builder, &mut self.element_registry, &mut self.widget_registry, asset_manager)
+    }
+    pub fn add_layout(&mut self, layout: Box<dyn Layout>) -> ResourceId<UiLayoutId> {
+        self.layout_registry.add_layout(layout)
+    }
+    pub fn add_widget_to_layout(&mut self, widget_id: &ResourceId<UiWidgetId>, layout_id: &ResourceId<UiLayoutId>) -> Result<(), String> {
+        self.layout_registry.add_widget_to_layout(widget_id, layout_id, &mut self.element_registry, &mut self.widget_registry)
     }
 
 

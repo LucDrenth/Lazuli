@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{widget::{Slider, SliderBuilder, SliderUpdateResult, Button, ButtonBuilder, UiWidget, Dropdown, DropdownBuilder, Icon, IconBuilder, WidgetUpdateTarget}, UiWidgetId, bounds_2d::Bounds2d, Position}, Color}, asset_manager::AssetManager, input::Input, log, ResourceId};
+use crate::{graphics::{ui::{widget::{Slider, SliderBuilder, SliderUpdateResult, Button, ButtonBuilder, UiWidget, Dropdown, DropdownBuilder, Icon, IconBuilder, WidgetUpdateTarget}, UiWidgetId, bounds_2d::Bounds2d, Position, UiElementId}, Color}, asset_manager::AssetManager, input::Input, log, ResourceId};
 
 use super::{ElementRegistry, widget_list::WidgetList};
 
@@ -68,6 +68,25 @@ impl WidgetRegistry {
         }
 
         result
+    }
+
+    pub fn get_widget_main_element_id(&self, widget_id: &ResourceId<UiWidgetId>) -> Option<ResourceId<UiElementId>> {
+        match self.get_widget_by_id(widget_id) {
+            Some(widget) => Some(widget.get_main_element_id(&self)),
+            None => None,
+        }
+    }
+    pub fn get_widget_size(&self, widget_id: &ResourceId<UiWidgetId>, element_registry: &ElementRegistry) -> Result<Vec2, String> {
+        let main_element_id = self.get_widget_main_element_id(widget_id).unwrap();
+        element_registry.get_element_size(&main_element_id)
+    }
+    pub fn get_widget_screen_position(&self, widget_id: &ResourceId<UiWidgetId>, element_registry: &ElementRegistry) -> Result<Vec2, String> {
+        let main_element_id = self.get_widget_main_element_id(widget_id).unwrap();
+        element_registry.get_element_screen_position(&main_element_id)
+    }
+    pub fn get_widget_position_transform(&self, widget_id: &ResourceId<UiWidgetId>, element_registry: &ElementRegistry) -> Result<Vec2, String> {
+        let main_element_id = self.get_widget_main_element_id(widget_id).unwrap();
+        element_registry.get_element_position_transform(&main_element_id)
     }
 
 
