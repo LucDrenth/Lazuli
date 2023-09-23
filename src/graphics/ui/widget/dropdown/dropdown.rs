@@ -1,9 +1,9 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, f32::consts::PI};
 
 use glam::Vec2;
 use interface::WidgetRegistryUdpateResult;
 
-use crate::{asset_manager::AssetManager, graphics::{ui::{ElementRegistry, widget::{ButtonBuilder, UiWidget, IconBuilder, Icon, widget_update_target::WidgetUpdateTarget}, interface::{is_valid_z_index, MAX_Z_INDEX, self, WidgetRegistry}, Position, AnchorPoint, UiElementId, TextAlign, UiWidgetId, bounds_2d::Bounds2d}, Color}, log, input::InputAction, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{ui::{ElementRegistry, widget::{ButtonBuilder, UiWidget, IconBuilder, widget_update_target::WidgetUpdateTarget}, interface::{is_valid_z_index, MAX_Z_INDEX, self, WidgetRegistry}, Position, AnchorPoint, UiElementId, TextAlign, UiWidgetId, bounds_2d::Bounds2d}, Color}, log, input::InputAction, ResourceId};
 
 struct DropdownOptionButton<T: Debug + Clone> {
     button_id: ResourceId<UiWidgetId>,
@@ -14,7 +14,7 @@ struct DropdownOptionButton<T: Debug + Clone> {
 pub struct Dropdown<T: Debug + Clone> {
     z_index: f32,
     button_id: ResourceId<UiWidgetId>,
-    icon_widget: Icon, // TODO move to widget registry
+    icon_widget_id: ResourceId<UiWidgetId>,
     options: Vec<DropdownOptionButton<T>>,
     is_open: bool,
     selected: Option<T>,
@@ -31,7 +31,7 @@ impl <T: Debug + Clone> UiWidget for Dropdown<T> {
         }
 
         element_ids.append(&mut widget_registry.get_widget_by_id(&self.button_id).unwrap().get_all_element_ids(widget_registry));
-        element_ids.append(&mut self.icon_widget.get_all_element_ids(widget_registry));
+        element_ids.append(&mut widget_registry.get_widget_by_id(&self.icon_widget_id).unwrap().get_all_element_ids(widget_registry));
 
         return element_ids
     }
@@ -48,14 +48,13 @@ impl <T: Debug + Clone> UiWidget for Dropdown<T> {
         vec![ WidgetUpdateTarget::new(self.button_id, position) ]
     }
 
-    fn set_z_index(&mut self, z_index: f32, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<f32>> {
+    fn set_z_index(&mut self, z_index: f32, _element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<f32>> {
         self.z_index = z_index;
 
         let mut targets = vec![
-            WidgetUpdateTarget::new(self.button_id, z_index)
+            WidgetUpdateTarget::new(self.button_id, z_index),
+            WidgetUpdateTarget::new(self.icon_widget_id, z_index + 0.01),
         ];
-
-        self.icon_widget.set_z_index(z_index + 0.01, element_registry);
 
         for option in self.options.iter_mut() {
             targets.push(WidgetUpdateTarget{ 
@@ -67,11 +66,10 @@ impl <T: Debug + Clone> UiWidget for Dropdown<T> {
         targets
     }
 
-    fn set_draw_bounds(&self, draw_bounds: Bounds2d, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<Bounds2d>> {
-        _ = self.icon_widget.set_draw_bounds(draw_bounds, element_registry);
-
+    fn set_draw_bounds(&self, draw_bounds: Bounds2d, _element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<Bounds2d>> {
         let mut targets = vec![
-            WidgetUpdateTarget::new(self.button_id, draw_bounds)
+            WidgetUpdateTarget::new(self.button_id, draw_bounds),
+            WidgetUpdateTarget::new(self.icon_widget_id, draw_bounds),
         ];
 
         if self.option_buttons_respect_draw_bounds {
@@ -141,7 +139,6 @@ impl<T: Debug + Clone> Dropdown<T> {
     /// Returns the newly selected value, or None if nothing has changed
     pub fn update(
         &mut self, 
-        element_registry: &mut ElementRegistry, 
         clicked_button_id: &Option<ResourceId<UiWidgetId>>, 
         widget_registry_update_result: &mut WidgetRegistryUdpateResult,
     ) -> Option<T> {
@@ -150,7 +147,7 @@ impl<T: Debug + Clone> Dropdown<T> {
                 for option in self.options.iter() {
                     if clicked_button.equals(&option.button_id) {
                         self.is_open = false;
-                        self.handle_state(element_registry);
+                        self.handle_state(widget_registry_update_result);
 
                         widget_registry_update_result.buttons_to_change_text.push(
                             WidgetUpdateTarget::new(self.button_id, option.label.clone())
@@ -163,7 +160,7 @@ impl<T: Debug + Clone> Dropdown<T> {
 
             if clicked_button.equals(&self.button_id) {
                 self.is_open = !self.is_open;
-                self.handle_state(element_registry);
+                self.handle_state(widget_registry_update_result);
 
                 if self.is_open {
                     widget_registry_update_result.widgets_to_show.append(&mut self.get_option_button_ids());
@@ -184,13 +181,18 @@ impl<T: Debug + Clone> Dropdown<T> {
         ids
     }
 
-    fn handle_state(&self, _element_registry: &mut ElementRegistry) {
-        // TODO
-        // if self.is_open {
-        //     element_registry.get_mut_element_custom_shader_values(&self.icon_widget.get_main_element_id(widget_registry)).unwrap().set_f32("rotation", PI);
-        // } else {
-        //     element_registry.get_mut_element_custom_shader_values(&self.icon_widget.get_main_element_id(widget_registry)).unwrap().set_f32("rotation", 0.)
-        // }
+    fn handle_state(&self, widget_registry_update_result: &mut WidgetRegistryUdpateResult) {
+        let rotation: f32;
+        if self.is_open {
+            rotation = PI;
+        } else {
+            rotation = 0.;
+        }
+
+        widget_registry_update_result.widgets_to_set_main_element_custom_shader_value_f32.push(WidgetUpdateTarget::new(
+            self.icon_widget_id, 
+            ("rotation".to_string(), rotation) ,
+        ));
     }
 
     pub fn is_open(&self) -> bool { self.is_open }
@@ -286,20 +288,19 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
         }
 
         let icon_right = button.padding().right();
-        let icon_widget = IconBuilder::new()
+        let icon_widget_id = widget_registry.create_icon(&IconBuilder::new()
             .with_position(Position::ElementAnchor(AnchorPoint::RightInside(icon_right), button.get_main_element_id(&widget_registry)))
             .with_color(self.text_color.clone())
             .with_z_index(self.z_index + 0.01)
             .with_height(6.0)
-            .build(element_registry, asset_manager)
-        ?;
+        , element_registry, asset_manager)?;
 
         let button_id = widget_registry.add_button(button);
 
         Ok(Dropdown {
             z_index: self.z_index,
             button_id,
-            icon_widget,
+            icon_widget_id,
             options,
             is_open: false,
             selected: selected_value,

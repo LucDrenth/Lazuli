@@ -8,6 +8,7 @@ pub struct WidgetRegistryUdpateResult {
     pub widgets_to_show: Vec<ResourceId<UiWidgetId>>,
     pub widgets_to_hide: Vec<ResourceId<UiWidgetId>>,
     pub buttons_to_change_text: Vec<WidgetUpdateTarget<String>>,
+    pub widgets_to_set_main_element_custom_shader_value_f32: Vec<WidgetUpdateTarget<(String, f32)>>,
 }
 impl Default for WidgetRegistryUdpateResult {
     fn default() -> Self {
@@ -15,6 +16,7 @@ impl Default for WidgetRegistryUdpateResult {
             widgets_to_show: vec![], 
             widgets_to_hide: vec![],
             buttons_to_change_text: vec![],
+            widgets_to_set_main_element_custom_shader_value_f32: vec![],
         }
     }
 }
@@ -62,7 +64,7 @@ impl WidgetRegistry {
 
         // update dropdowns
         for entry in self.dropdowns.entries.iter_mut() {
-            entry.update_result = entry.widget.update(element_registry, &clicked_button_id, &mut result);
+            entry.update_result = entry.widget.update(&clicked_button_id, &mut result);
         }
 
         result

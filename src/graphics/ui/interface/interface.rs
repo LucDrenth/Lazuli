@@ -69,6 +69,11 @@ impl Interface {
                 },
             }
         }
+
+        for target in &update_result.widgets_to_set_main_element_custom_shader_value_f32 {
+            let main_element_id = self.get_widget_main_element_id(&target.widget_id).unwrap();
+            self.element_registry.get_mut_element_custom_shader_values(&main_element_id).unwrap().set_f32(target.data.0.clone(), target.data.1);
+        }
     }
 
     pub fn draw(&self, asset_manager: &mut AssetManager) {
