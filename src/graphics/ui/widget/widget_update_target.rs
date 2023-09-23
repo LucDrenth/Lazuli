@@ -6,10 +6,6 @@ use crate::{ResourceId, graphics::ui::UiWidgetId};
 /// We can not pass the WidgetRegistry to these functions because the WidgetRegistry looks up the mutable widget
 /// and then performs on action on it. Then passing the WidgetRegistry would be borrowing the WidgetRegistry as
 /// mutable twice.
-/// 
-/// TODO - Make 1 generic instead of multiple structs
-/// 
-
 pub struct WidgetUpdateTarget<T> {
     pub widget_id: ResourceId<UiWidgetId>,
     pub data: T,
