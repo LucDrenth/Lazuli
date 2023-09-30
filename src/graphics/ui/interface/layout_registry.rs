@@ -1,4 +1,4 @@
-use crate::{graphics::ui::{Layout, layout::LayoutBuilder, UiLayoutId, UiWidgetId}, input::Input, ResourceId, asset_manager::AssetManager};
+use crate::{graphics::ui::{Layout, layout::LayoutBuilder, UiLayoutId, UiWidgetId, widget::UiUpdateTargets}, input::Input, ResourceId, asset_manager::AssetManager};
 
 use super::{WidgetRegistry, ElementRegistry, element_list::generate_id};
 
@@ -61,10 +61,9 @@ impl LayoutRegistry {
         layout_id: &ResourceId<UiLayoutId>, 
         z_index: f32, 
         element_registry: &mut ElementRegistry, 
-        widget_registry: &mut WidgetRegistry
-    ) -> Result<(), String> {
+    ) -> Result<UiUpdateTargets<f32>, String> {
         match self.get_mut_layout(layout_id) {
-            Some(layout) => Ok(layout.set_z_index(z_index, element_registry, widget_registry)),
+            Some(layout) => Ok(layout.set_z_index(z_index, element_registry)),
             None => Err(Self::layout_not_found(layout_id)),
         }
     }

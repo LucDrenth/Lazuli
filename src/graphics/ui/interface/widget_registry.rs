@@ -1,8 +1,8 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{widget::{Slider, SliderBuilder, SliderUpdateResult, Button, ButtonBuilder, UiWidget, Dropdown, DropdownBuilder, Icon, IconBuilder, WidgetUpdateTarget}, UiWidgetId, bounds_2d::Bounds2d, Position, UiElementId}, Color}, asset_manager::AssetManager, input::Input, log, ResourceId};
+use crate::{graphics::{ui::{widget::{Slider, SliderBuilder, SliderUpdateResult, Button, ButtonBuilder, UiWidget, Dropdown, DropdownBuilder, Icon, IconBuilder, WidgetUpdateTarget, UiUpdateTargets}, UiWidgetId, bounds_2d::Bounds2d, Position, UiElementId}, Color}, asset_manager::AssetManager, input::Input, log, ResourceId};
 
-use super::{ElementRegistry, widget_list::WidgetList};
+use super::{ElementRegistry, widget_list::WidgetList, LayoutRegistry};
 
 pub struct WidgetRegistryUdpateResult {
     pub widgets_to_show: Vec<ResourceId<UiWidgetId>>,
@@ -93,35 +93,23 @@ impl WidgetRegistry {
     // =============================================================================== \\
     // ========= Functions for updating a widget (and its connected widgets) ========= \\
 
-    pub fn set_widget_z_index(&mut self, widget_id: &ResourceId<UiWidgetId>, z_index: f32, element_registry: &mut ElementRegistry) {
-        for target in self.get_mut_widget_by_id(widget_id).unwrap().set_z_index(z_index, element_registry) {
-            self.set_widget_z_index(&target.widget_id, target.data, element_registry);
-        }
+    pub fn set_widget_z_index(&mut self, widget_id: &ResourceId<UiWidgetId>, z_index: f32, element_registry: &mut ElementRegistry) -> UiUpdateTargets<f32> {
+        self.get_mut_widget_by_id(widget_id).unwrap().set_z_index(z_index, element_registry)
     }
-    pub fn set_widget_width(&mut self, widget_id: &ResourceId<UiWidgetId>, width: f32, element_registry: &mut ElementRegistry) {
-        for target in self.get_mut_widget_by_id(widget_id).unwrap().set_width(width, element_registry) {
-            self.set_widget_width(&target.widget_id, target.data, element_registry);
-        }
+    pub fn set_widget_width(&mut self, widget_id: &ResourceId<UiWidgetId>, width: f32, element_registry: &mut ElementRegistry) -> UiUpdateTargets<f32> {
+        self.get_mut_widget_by_id(widget_id).unwrap().set_width(width, element_registry)
     }
-    pub fn set_widget_height(&mut self, widget_id: &ResourceId<UiWidgetId>, height: f32, element_registry: &mut ElementRegistry) {
-        for target in self.get_mut_widget_by_id(widget_id).unwrap().set_height(height, element_registry) {
-            self.set_widget_height(&target.widget_id, target.data, element_registry);
-        }
+    pub fn set_widget_height(&mut self, widget_id: &ResourceId<UiWidgetId>, height: f32, element_registry: &mut ElementRegistry) -> UiUpdateTargets<f32> {
+        self.get_mut_widget_by_id(widget_id).unwrap().set_height(height, element_registry)
     }
-    pub fn set_widget_size(&mut self, widget_id: &ResourceId<UiWidgetId>, size: Vec2, element_registry: &mut ElementRegistry) {
-        for target in self.get_mut_widget_by_id(widget_id).unwrap().set_size(size, element_registry) {
-            self.set_widget_size(&target.widget_id, target.data, element_registry);
-        }
+    pub fn set_widget_size(&mut self, widget_id: &ResourceId<UiWidgetId>, size: Vec2, element_registry: &mut ElementRegistry) -> UiUpdateTargets<Vec2> {
+        self.get_mut_widget_by_id(widget_id).unwrap().set_size(size, element_registry)
     }
-    pub fn set_widget_draw_bounds(&mut self, widget_id: &ResourceId<UiWidgetId>, draw_bounds: Bounds2d, element_registry: &mut ElementRegistry) {
-        for target in self.get_mut_widget_by_id(widget_id).unwrap().set_draw_bounds(draw_bounds, element_registry) {
-            self.set_widget_draw_bounds(&target.widget_id, target.data, element_registry);
-        }
+    pub fn set_widget_draw_bounds(&mut self, widget_id: &ResourceId<UiWidgetId>, draw_bounds: Bounds2d, element_registry: &mut ElementRegistry) -> UiUpdateTargets<Bounds2d> {
+        self.get_mut_widget_by_id(widget_id).unwrap().set_draw_bounds(draw_bounds, element_registry)
     }
-    pub fn set_widget_position(&mut self, widget_id: &ResourceId<UiWidgetId>, position: Position, element_registry: &mut ElementRegistry) {
-        for target in self.get_mut_widget_by_id(widget_id).unwrap().set_position(position, element_registry) {
-            self.set_widget_position(&target.widget_id, target.data, element_registry);
-        }
+    pub fn set_widget_position(&mut self, widget_id: &ResourceId<UiWidgetId>, position: Position, element_registry: &mut ElementRegistry) -> UiUpdateTargets<Position> {
+        self.get_mut_widget_by_id(widget_id).unwrap().set_position(position, element_registry)
     }
     
 
@@ -147,8 +135,8 @@ impl WidgetRegistry {
     pub fn add_dropdown(&mut self, dropdown: Dropdown<u32>) -> ResourceId<UiWidgetId> {
         self.dropdowns.push(dropdown)
     }
-    pub fn create_dropdown(&mut self, builder: &DropdownBuilder<u32>, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
-        let dropdown = builder.build(element_registry, self, asset_manager)?;
+    pub fn create_dropdown(&mut self, builder: &DropdownBuilder<u32>, element_registry: &mut ElementRegistry, layout_registry: &mut LayoutRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
+        let dropdown = builder.build(element_registry, self, layout_registry, asset_manager)?;
         Ok(self.dropdowns.push(dropdown))
     }
 

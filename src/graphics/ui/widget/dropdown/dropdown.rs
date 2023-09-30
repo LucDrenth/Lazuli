@@ -3,7 +3,7 @@ use std::{fmt::Debug, f32::consts::PI};
 use glam::Vec2;
 use interface::WidgetRegistryUdpateResult;
 
-use crate::{asset_manager::AssetManager, graphics::{ui::{ElementRegistry, widget::{ButtonBuilder, UiWidget, IconBuilder, widget_update_target::WidgetUpdateTarget}, interface::{is_valid_z_index, MAX_Z_INDEX, self, WidgetRegistry}, Position, AnchorPoint, UiElementId, TextAlign, UiWidgetId, bounds_2d::Bounds2d}, Color}, log, input::InputAction, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{ui::{ElementRegistry, widget::{ButtonBuilder, UiWidget, IconBuilder, ui_update_target::WidgetUpdateTarget, UiUpdateTargets, LayoutUpdateTarget}, interface::{is_valid_z_index, MAX_Z_INDEX, self, WidgetRegistry, LayoutRegistry}, Position, AnchorPoint, UiElementId, TextAlign, UiWidgetId, bounds_2d::Bounds2d, UiLayoutId, VerticalListBuilder}, Color}, log, input::InputAction, ResourceId};
 
 struct DropdownOptionButton<T: Debug + Clone> {
     button_id: ResourceId<UiWidgetId>,
@@ -16,6 +16,7 @@ pub struct Dropdown<T: Debug + Clone> {
     button_id: ResourceId<UiWidgetId>,
     icon_widget_id: ResourceId<UiWidgetId>,
     options: Vec<DropdownOptionButton<T>>,
+    options_layout: ResourceId<UiLayoutId>,
     is_open: bool,
     selected: Option<T>,
     /// If false, option buttons do not use draw bounds
@@ -44,87 +45,72 @@ impl <T: Debug + Clone> UiWidget for Dropdown<T> {
         self.z_index
     }
 
-    fn set_position(&self, position: Position, _element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<Position>> {
-        vec![ WidgetUpdateTarget::new(self.button_id, position) ]
-    }
-
-    fn set_z_index(&mut self, z_index: f32, _element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<f32>> {
+    fn set_z_index(&mut self, z_index: f32, _element_registry: &mut ElementRegistry) -> UiUpdateTargets<f32> {
         self.z_index = z_index;
 
-        let mut targets = vec![
-            WidgetUpdateTarget::new(self.button_id, z_index),
-            WidgetUpdateTarget::new(self.icon_widget_id, z_index + 0.01),
-        ];
-
-        for option in self.options.iter_mut() {
-            targets.push(WidgetUpdateTarget{ 
-                widget_id: option.button_id, 
-                data: Self::option_button_z_index(z_index) 
-            });
+        UiUpdateTargets {
+            widgets: vec![
+                WidgetUpdateTarget::new(self.button_id, z_index),
+                WidgetUpdateTarget::new(self.icon_widget_id, z_index + 0.01),
+            ],
+            layouts: vec![
+                LayoutUpdateTarget::new(self.options_layout, Self::option_button_z_index(z_index)),
+            ],
         }
-
-        targets
     }
 
-    fn set_draw_bounds(&self, draw_bounds: Bounds2d, _element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<Bounds2d>> {
-        let mut targets = vec![
-            WidgetUpdateTarget::new(self.button_id, draw_bounds),
-            WidgetUpdateTarget::new(self.icon_widget_id, draw_bounds),
-        ];
+    fn set_position(&self, position: Position, _element_registry: &mut ElementRegistry) -> UiUpdateTargets<Position> {
+        // Since the layout is anchored to the button, we only have to return the button here.
+        UiUpdateTargets {
+            widgets: vec![ WidgetUpdateTarget::new(self.button_id, position) ],
+            layouts: vec![],
+        }
+        
+    }
+
+    fn set_draw_bounds(&self, draw_bounds: Bounds2d, _element_registry: &mut ElementRegistry) -> UiUpdateTargets<Bounds2d> {
+        let mut targets = UiUpdateTargets{
+            widgets: vec![
+                WidgetUpdateTarget::new(self.button_id, draw_bounds),
+                WidgetUpdateTarget::new(self.icon_widget_id, draw_bounds),
+            ],
+            layouts: vec![],
+        };
 
         if self.option_buttons_respect_draw_bounds {
-            for option in self.options.iter() {
-                targets.push(WidgetUpdateTarget { 
-                    widget_id: option.button_id,
-                    data: draw_bounds,
-                })
-            }
+            targets.layouts.push(LayoutUpdateTarget::new(self.options_layout, draw_bounds));
         }
 
         targets
     }
 
-    fn set_width(&self, width: f32, _element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<f32>> {
-        let mut targets = vec![
-            WidgetUpdateTarget::new(self.button_id, width)
-        ];
-        
-        for option in &self.options {
-            targets.push(WidgetUpdateTarget { 
-                widget_id: option.button_id, 
-                data: width,
-            })
+    fn set_width(&self, width: f32, _element_registry: &mut ElementRegistry) -> UiUpdateTargets<f32> {
+        UiUpdateTargets{
+            widgets: vec![
+                WidgetUpdateTarget::new(self.button_id, width)
+            ],
+            layouts: vec![
+                LayoutUpdateTarget::new(self.options_layout, width),
+            ],
         }
-
-        targets
     }
-    fn set_height(&self, height: f32, _element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<f32>> {
-        let mut targets = vec![
-            WidgetUpdateTarget::new(self.button_id, height)
-        ];
-
-        for option in &self.options {
-            targets.push(WidgetUpdateTarget { 
-                widget_id: option.button_id, 
-                data: height,
-            })
+    fn set_height(&self, height: f32, _element_registry: &mut ElementRegistry) -> UiUpdateTargets<f32> {
+        UiUpdateTargets{
+            widgets: vec![
+                WidgetUpdateTarget::new(self.button_id, height)
+            ],
+            layouts: vec![],
         }
-
-        targets
     }
-    fn set_size(&self, size: Vec2, _element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<Vec2>> {
-        let mut targets = vec![
-            WidgetUpdateTarget::new(self.button_id, size)
-        ];
-
-        for option in &self.options {
-            targets.push(WidgetUpdateTarget { 
-                widget_id: option.button_id, 
-                data: size,
-            })
+    fn set_size(&self, size: Vec2, _element_registry: &mut ElementRegistry) -> UiUpdateTargets<Vec2> {
+        UiUpdateTargets{
+            widgets: vec![
+                WidgetUpdateTarget::new(self.button_id, size)
+            ],
+            layouts: vec![
+                LayoutUpdateTarget::new(self.options_layout, size),
+            ],
         }
-
-        targets
     }
 
     fn on_show(&mut self) {}
@@ -236,7 +222,7 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
         }
     }
 
-    pub fn build(&self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, asset_manager: &mut AssetManager) -> Result<Dropdown<T>, String> {
+    pub fn build(&self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, layout_registry: &mut LayoutRegistry, asset_manager: &mut AssetManager) -> Result<Dropdown<T>, String> {
         self.validate()?;
 
         let selected_value: Option<T>;
@@ -265,36 +251,37 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
         // TODO add background for options
 
         let mut options = vec![];
-        let mut anchor_element_id = button.get_main_element_id(&widget_registry);
+        let button_anchor = button.get_main_element_id(&widget_registry);
 
-        let mut option_button_builder = ButtonBuilder::new()
-            .with_position(Position::ElementAnchor(AnchorPoint::BottomOutside(self.gap_size), anchor_element_id))
-            .with_width(button.width())
+        let option_button_builder = ButtonBuilder::new()
             .with_height(button.height())
             .with_mouse_action_to_activate(InputAction::UpOrDown)
-            .with_hidden(true)
-            .with_z_index(Dropdown::<T>::option_button_z_index(self.z_index))
             .with_text_align(self.text_align)
             .with_text_color(self.text_color.clone())
         ;
 
-        for option in &self.options {
-            option_button_builder = option_button_builder.with_position(Position::ElementAnchor(AnchorPoint::BottomOutside(5.0), anchor_element_id));
-            let option_button = option_button_builder.build(option.label.clone(), element_registry, asset_manager)?;
-            anchor_element_id = option_button.get_main_element_id(&widget_registry);
+        let mut layout_builder = VerticalListBuilder::new()
+            .with_position(Position::ElementAnchor(AnchorPoint::BottomOutside(0.), button_anchor))
+            .with_background_color(Color::orange())
+            .with_hidden(true)
+            .with_z_index(Dropdown::<T>::option_button_z_index(self.z_index))
+        ;
 
-            let option_button_id = widget_registry.add_button(option_button);
+        for option in &self.options {
+            let option_button_id = widget_registry.create_button(option.label.clone(), &option_button_builder, element_registry, asset_manager)?;
+            layout_builder = layout_builder.add_widget(&option_button_id);
             options.push(DropdownOptionButton{ button_id: option_button_id, value: option.value.clone(), label: option.label.clone() });
         }
 
         let icon_right = button.padding().right();
         let icon_widget_id = widget_registry.create_icon(&IconBuilder::new()
-            .with_position(Position::ElementAnchor(AnchorPoint::RightInside(icon_right), button.get_main_element_id(&widget_registry)))
+            .with_position(Position::ElementAnchor(AnchorPoint::RightInside(icon_right), button_anchor))
             .with_color(self.text_color.clone())
             .with_z_index(self.z_index + 0.01)
             .with_height(6.0)
         , element_registry, asset_manager)?;
 
+        let layout = layout_registry.create_layout(&mut layout_builder, element_registry, widget_registry, asset_manager)?;
         let button_id = widget_registry.add_button(button);
 
         Ok(Dropdown {
@@ -302,6 +289,7 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
             button_id,
             icon_widget_id,
             options,
+            options_layout: layout,
             is_open: false,
             selected: selected_value,
             option_buttons_respect_draw_bounds: self.option_buttons_respect_draw_bounds,

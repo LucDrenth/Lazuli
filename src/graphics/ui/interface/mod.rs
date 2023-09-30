@@ -6,6 +6,7 @@ pub use widget_registry::WidgetRegistry;
 pub use widget_registry::WidgetRegistryUdpateResult;
 
 mod layout_registry;
+pub use layout_registry::LayoutRegistry;
 
 mod interface;
 pub use interface::*;

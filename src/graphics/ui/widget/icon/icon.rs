@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{ElementRegistry, UiElementId, shapes::{RectangleBuilder, Rectangle}, UiTexture, Position, interface::{is_valid_z_index, self, WidgetRegistry}, widget::{UiWidget, widget_update_target::WidgetUpdateTarget}, bounds_2d::Bounds2d}, Color, shader::ShaderBuilder, texture::Texture}, asset_manager::AssetManager, ResourceId, log};
+use crate::{graphics::{ui::{ElementRegistry, UiElementId, shapes::{RectangleBuilder, Rectangle}, UiTexture, Position, interface::{is_valid_z_index, self, WidgetRegistry}, widget::{UiWidget, ui_update_target::UiUpdateTargets}, bounds_2d::Bounds2d}, Color, shader::ShaderBuilder, texture::Texture}, asset_manager::AssetManager, ResourceId, log};
 
 pub struct Icon {
     rectangle_element_id: ResourceId<UiElementId>,
@@ -20,34 +20,34 @@ impl UiWidget for Icon {
     fn z_index(&self) -> f32 {
         self.z_index
     }
-    fn set_z_index(&mut self, z_index: f32, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<f32>> {
+    fn set_z_index(&mut self, z_index: f32, element_registry: &mut ElementRegistry) -> UiUpdateTargets<f32> {
         self.z_index = z_index;
         _ = element_registry.set_element_z_index(&self.rectangle_element_id, z_index);
 
-        vec![]
+        UiUpdateTargets::default()
     }
 
-    fn set_position(&self, position: Position, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<Position>>{
+    fn set_position(&self, position: Position, element_registry: &mut ElementRegistry) -> UiUpdateTargets<Position> {
         _ = element_registry.set_element_position(&self.rectangle_element_id, position);
-        vec![]
+        UiUpdateTargets::default()
     }
 
-    fn set_draw_bounds(&self, draw_bounds: Bounds2d, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<Bounds2d>> {
+    fn set_draw_bounds(&self, draw_bounds: Bounds2d, element_registry: &mut ElementRegistry) -> UiUpdateTargets<Bounds2d> {
         _ = element_registry.set_element_draw_bounds(&self.rectangle_element_id, draw_bounds);
-        vec![]
+        UiUpdateTargets::default()
     }
 
-    fn set_width(&self, width: f32, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<f32>> {
+    fn set_width(&self, width: f32, element_registry: &mut ElementRegistry) -> UiUpdateTargets<f32> {
         _ = element_registry.set_rectangle_width(&self.rectangle_element_id, width);
-        vec![]
+        UiUpdateTargets::default()
     }
-    fn set_height(&self, height: f32, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<f32>> {
+    fn set_height(&self, height: f32, element_registry: &mut ElementRegistry) -> UiUpdateTargets<f32> {
         _ = element_registry.set_rectangle_height(&self.rectangle_element_id, height);
-        vec![]
+        UiUpdateTargets::default()
     }
-    fn set_size(&self, size: Vec2, element_registry: &mut ElementRegistry) -> Vec<WidgetUpdateTarget<Vec2>> {
+    fn set_size(&self, size: Vec2, element_registry: &mut ElementRegistry) -> UiUpdateTargets<Vec2> {
         _ = element_registry.set_rectangle_size(&self.rectangle_element_id, size);
-        vec![]
+        UiUpdateTargets::default()
     }
 
     fn on_show(&mut self) {}

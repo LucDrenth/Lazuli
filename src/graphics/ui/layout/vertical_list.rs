@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{Position, AnchorPoint, shapes::RectangleBuilder, padding::Padding, bounds_2d::Bounds2d, UiWidgetId, UiElementId, interface::WidgetRegistry, ElementRegistry}, Color}, asset_manager::AssetManager, log, input::Input, ResourceId};
+use crate::{graphics::{ui::{Position, AnchorPoint, shapes::RectangleBuilder, padding::Padding, bounds_2d::Bounds2d, UiWidgetId, UiElementId, interface::WidgetRegistry, ElementRegistry, widget::{UiUpdateTargets, WidgetUpdateTarget}}, Color}, asset_manager::AssetManager, log, input::Input, ResourceId};
 
 use super::{Layout, layout::{LAYOUT_ELEMENT_EXTRA_Z_INDEX, LayoutBuilder}};
 
@@ -76,12 +76,23 @@ impl Layout for VerticalList {
         self.set_scroll_amount(new_scroll_amount, element_registry, widget_registry);
     }
 
-    fn set_z_index(&mut self, z_index: f32, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry) {
+    fn set_z_index(&mut self, z_index: f32, element_registry: &mut ElementRegistry) -> UiUpdateTargets<f32> {
         self.z_index = z_index;
 
+        element_registry.set_element_z_index(&self.background_element_id, z_index).unwrap_or_else(|err| {
+            log::engine_warn(format!("failed to set z-index for VerticalList background element with id {:?}: {}", self.background_element_id, err));
+        });
+        
+        let mut update_targets = UiUpdateTargets {
+            widgets: Vec::with_capacity(self.widget_ids.len()),
+            layouts: vec![],
+        };
+
         for widget_id in self.widget_ids.iter() {
-            widget_registry.set_widget_z_index(widget_id, self.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX, element_registry);
+            update_targets.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), self.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX));
         }
+
+        update_targets
     }
 }
 
@@ -128,6 +139,7 @@ pub struct VerticalListBuilder {
     padding: Padding,
     z_index: f32,
     resize_widgets: bool,
+    hidden: bool,
 }
 
 impl LayoutBuilder for VerticalListBuilder {
@@ -151,6 +163,7 @@ impl VerticalListBuilder {
             z_index: 100.0,
             resize_widgets: true,
             width: Width::Auto(),
+            hidden: false,
         }
     }
 
@@ -297,6 +310,11 @@ impl VerticalListBuilder {
 
     pub fn with_width(mut self, width: Width) -> Self {
         self.width = width;
+        self
+    }
+
+    pub fn with_hidden(mut self, hidden: bool) -> Self {
+        self.hidden = hidden;
         self
     }
 }

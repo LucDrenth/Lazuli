@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{event::{EventReader, WindowResizeEvent, EventSystem, PixelDensityChangeEvent}, asset_manager::AssetManager, input::Input, graphics::{ui::{widget::{SliderBuilder, SliderUpdateResult, ButtonBuilder, DropdownBuilder, IconBuilder}, Position, bounds_2d::Bounds2d, UiWidgetId, UiElementId, UiLayoutId, layout::LayoutBuilder, Layout}, font::{Font, PlainBitmapBuilder}, Color}, ResourceId, log};
+use crate::{event::{EventReader, WindowResizeEvent, EventSystem, PixelDensityChangeEvent}, asset_manager::AssetManager, input::Input, graphics::{ui::{widget::{SliderBuilder, SliderUpdateResult, ButtonBuilder, DropdownBuilder, IconBuilder, UiUpdateTargets}, Position, bounds_2d::Bounds2d, UiWidgetId, UiElementId, UiLayoutId, layout::LayoutBuilder, Layout}, font::{Font, PlainBitmapBuilder}, Color}, ResourceId, log};
 
 use super::{ElementRegistry, widget_registry::{WidgetRegistry, WidgetRegistryUdpateResult}, layout_registry::LayoutRegistry};
 
@@ -92,6 +92,7 @@ impl Interface {
         self.widget_registry.get_widget_main_element_id(widget_id)
     }
     pub fn show_widget(&mut self, widget_id: &ResourceId<UiWidgetId>) {
+        // TODO can we move this to the widget registry so that we can add show function to layout?
         for element in self.widget_registry.get_widget_by_id(widget_id).unwrap().get_all_element_ids(&self.widget_registry) {
             _ = self.element_registry.show_element(&element);
         }
@@ -99,6 +100,7 @@ impl Interface {
         self.widget_registry.get_mut_widget_by_id(widget_id).unwrap().on_show();
     }
     pub fn hide_widget(&mut self, widget_id: &ResourceId<UiWidgetId>) {
+        // TODO can we move this to the widget registry so that we can add hide function to layout?
         for element in self.widget_registry.get_widget_by_id(widget_id).unwrap().get_all_element_ids(&self.widget_registry) {
             _ = self.element_registry.hide_element(&element);
         }
@@ -115,22 +117,22 @@ impl Interface {
         self.widget_registry.get_widget_position_transform(widget_id, &self.element_registry)
     }
     pub fn set_widget_position(&mut self, widget_id: &ResourceId<UiWidgetId>, position: Position) {
-        self.widget_registry.set_widget_position(widget_id, position, &mut self.element_registry);
+        self.handle_ui_update_targets_position(UiUpdateTargets::from_widget_id(widget_id.clone(), position));
     }
     pub fn set_widget_z_index(&mut self, widget_id: &ResourceId<UiWidgetId>, z_index: f32) {
-        self.widget_registry.set_widget_z_index(widget_id, z_index, &mut self.element_registry);
+        self.handle_ui_update_targets_z_index(UiUpdateTargets::from_widget_id(widget_id.clone(), z_index));
     }
     pub fn set_widget_draw_bounds(&mut self, widget_id: &ResourceId<UiWidgetId>, draw_bounds: Bounds2d) {
-        self.widget_registry.set_widget_draw_bounds(widget_id, draw_bounds, &mut self.element_registry);
+        self.handle_ui_update_targets_draw_bounds(UiUpdateTargets::from_widget_id(widget_id.clone(), draw_bounds));
     }
     pub fn set_widget_width(&mut self, widget_id: &ResourceId<UiWidgetId>, width: f32) {
-        self.widget_registry.set_widget_width(widget_id, width, &mut self.element_registry);
+        self.handle_ui_update_targets_width(UiUpdateTargets::from_widget_id(widget_id.clone(), width));
     }
     pub fn set_widget_height(&mut self, widget_id: &ResourceId<UiWidgetId>, height: f32) {
-        self.widget_registry.set_widget_height(widget_id, height, &mut self.element_registry);
+        self.handle_ui_update_targets_height(UiUpdateTargets::from_widget_id(widget_id.clone(), height));
     }
     pub fn set_widget_size(&mut self, widget_id: &ResourceId<UiWidgetId>, size: Vec2) {
-        self.widget_registry.set_widget_size(widget_id, size, &mut self.element_registry);
+        self.handle_ui_update_targets_size(UiUpdateTargets::from_widget_id(widget_id.clone(), size));
     }
 
     // button specific functions
@@ -160,7 +162,7 @@ impl Interface {
 
     // dropdown specific functions
     pub fn create_dropdown(&mut self, builder: &DropdownBuilder<u32>, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
-        self.widget_registry.create_dropdown(builder, &mut self.element_registry, asset_manager)
+        self.widget_registry.create_dropdown(builder, &mut self.element_registry, &mut self.layout_registry, asset_manager)
     }
     pub fn dropdown_update_result(&self, dropdown_id: &ResourceId<UiWidgetId>) -> Option<u32> {
         self.widget_registry.dropdown_update_result(dropdown_id)
@@ -192,9 +194,70 @@ impl Interface {
         self.layout_registry.add_widget_to_layout(widget_id, layout_id, &mut self.element_registry, &mut self.widget_registry)
     }
 
+    pub fn set_layout_z_index(&mut self, layout_id: &ResourceId<UiLayoutId>, z_index: f32) {
+        self.handle_ui_update_targets_z_index(UiUpdateTargets::from_layout_id(layout_id.clone(), z_index));
+    }
 
     pub fn scroll_speed(&self) -> f32 {
         self.scroll_speed
+    }
+
+
+    // UiUpdateTarget handlers
+    fn handle_ui_update_targets_z_index(&mut self, targets: UiUpdateTargets<f32>) {
+        for target in targets.layouts {
+            let new_targets = self.layout_registry.set_layout_z_index(&target.layout_id, target.data, &mut self.element_registry).unwrap();
+            self.handle_ui_update_targets_z_index(new_targets);
+        }
+        for target in targets.widgets {
+            let new_targets = self.widget_registry.set_widget_z_index(&target.widget_id, target.data, &mut self.element_registry);
+            self.handle_ui_update_targets_z_index(new_targets);
+        }
+    }
+    fn handle_ui_update_targets_position(&mut self, targets: UiUpdateTargets<Position>) {
+        for _targets in targets.layouts {
+            log::engine_warn("TODO [UI]: implement layout position setter function");
+        }
+        for target in targets.widgets {
+            let new_targets = self.widget_registry.set_widget_position(&target.widget_id, target.data, &mut self.element_registry);
+            self.handle_ui_update_targets_position(new_targets);
+        }
+    }
+    fn handle_ui_update_targets_draw_bounds(&mut self, targets: UiUpdateTargets<Bounds2d>) {
+        for _targets in targets.layouts {
+            log::engine_warn("TODO [UI]: implement layout draw bounds setter function");
+        }
+        for target in targets.widgets {
+            let new_targets = self.widget_registry.set_widget_draw_bounds(&target.widget_id, target.data, &mut self.element_registry);
+            self.handle_ui_update_targets_draw_bounds(new_targets);
+        }
+    }
+    fn handle_ui_update_targets_width(&mut self, targets: UiUpdateTargets<f32>) {
+        for _targets in targets.layouts {
+            log::engine_warn("TODO [UI]: implement layout width setter function");
+        }
+        for target in targets.widgets {
+            let new_targets = self.widget_registry.set_widget_width(&target.widget_id, target.data, &mut self.element_registry);
+            self.handle_ui_update_targets_width(new_targets);
+        }
+    }
+    fn handle_ui_update_targets_height(&mut self, targets: UiUpdateTargets<f32>) {
+        for _targets in targets.layouts {
+            log::engine_warn("TODO [UI]: implement layout height setter function");
+        }
+        for target in targets.widgets {
+            let new_targets = self.widget_registry.set_widget_height(&target.widget_id, target.data, &mut self.element_registry);
+            self.handle_ui_update_targets_height(new_targets);
+        }
+    }
+    fn handle_ui_update_targets_size(&mut self, targets: UiUpdateTargets<Vec2>) {
+        for _targets in targets.layouts {
+            log::engine_warn("TODO [UI]: implement layout size setter function");
+        }
+        for target in targets.widgets {
+            let new_targets = self.widget_registry.set_widget_size(&target.widget_id, target.data, &mut self.element_registry);
+            self.handle_ui_update_targets_size(new_targets);
+        }
     }
 }
 
