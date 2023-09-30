@@ -52,17 +52,19 @@ impl Window for GlutinWindow {
                             return;
                         }
 
-                        // debugging
-                        // log::engine_info(format!("window resize event: physical_size: {:?}", physical_size));
-
                         render_context.resize(physical_size);
 
                         let dpi_factor = render_context.window().scale_factor();
                         let logical_size: LogicalSize<u32> = physical_size.to_logical(dpi_factor);
 
+                        let outer_size = render_context.window().outer_size();
+                        let inner_size = render_context.window().inner_size();
+                        let frame_width = outer_size.width - inner_size.width;
+                        let frame_height = outer_size.height - inner_size.height;
+
                         event_system.send(WindowResizeEvent {
-                            width: logical_size.width, 
-                            height: logical_size.height 
+                            width: logical_size.width - frame_width,
+                            height: logical_size.height - frame_height,
                         });
                     },
                     WindowEvent::ScaleFactorChanged { scale_factor, new_inner_size } => {
@@ -142,12 +144,21 @@ impl Window for GlutinWindow {
     }
 
     fn get_size(&self) -> Vec2 {
-        let dpi_factor = self.render_context.window().scale_factor();
-        let logical_size: LogicalSize<f32> = self.render_context.window().inner_size().to_logical(dpi_factor);
+        let logical_size: LogicalSize<f32> = self.render_context.window().inner_size().to_logical(self.get_pixel_density());
 
         return Vec2 { 
             x: logical_size.width, 
             y: logical_size.height,
+        }
+    }
+
+    fn frame_size(&self) -> Vec2 {
+        let outer_size: LogicalSize<f32> = self.render_context.window().outer_size().to_logical(self.get_pixel_density());
+        let inner_size: LogicalSize<f32> = self.render_context.window().outer_size().to_logical(self.get_pixel_density());
+
+        return Vec2 { 
+            x: outer_size.width - inner_size.width,
+            y: outer_size.height - inner_size.height,
         }
     }
 

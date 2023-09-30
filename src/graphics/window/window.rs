@@ -8,7 +8,10 @@ pub trait Window {
     /// in logical units (physical size / DPI)
     fn get_size(&self) -> Vec2;
 
-    // dpi
+    /// total size of decorators (like the top bar that has the window title, close button etc.)
+    fn frame_size(&self) -> Vec2;
+
+    /// dpi
     fn get_pixel_density(&self) -> f64;
     
     // TODO
