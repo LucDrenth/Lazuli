@@ -35,3 +35,9 @@ pub use ui_resource_id::*;
 
 mod ui_texture;
 pub use ui_texture::UiTexture;
+
+mod ui_update_target;
+pub use ui_update_target::WidgetUpdateTarget;
+pub use ui_update_target::LayoutUpdateTarget;
+pub use ui_update_target::UiUpdateTargets;
+pub use ui_update_target::UpdateTargetCollection;

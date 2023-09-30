@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{ElementRegistry, UiElementId, shapes::{RectangleBuilder, Rectangle}, UiTexture, Position, interface::{is_valid_z_index, self, WidgetRegistry}, widget::{UiWidget, ui_update_target::UiUpdateTargets}, bounds_2d::Bounds2d}, Color, shader::ShaderBuilder, texture::Texture}, asset_manager::AssetManager, ResourceId, log};
+use crate::{graphics::{ui::{ElementRegistry, UiElementId, shapes::{RectangleBuilder, Rectangle}, UiTexture, Position, interface::{is_valid_z_index, self, WidgetRegistry}, widget::UiWidget, bounds_2d::Bounds2d, UiUpdateTargets}, Color, shader::ShaderBuilder, texture::Texture}, asset_manager::AssetManager, ResourceId, log};
 
 pub struct Icon {
     rectangle_element_id: ResourceId<UiElementId>,
@@ -50,8 +50,10 @@ impl UiWidget for Icon {
         UiUpdateTargets::default()
     }
 
-    fn on_show(&mut self) {}
-    fn on_hide(&mut self) {}
+    fn set_visibility(&mut self, visible: bool, element_registry: &mut ElementRegistry) -> UiUpdateTargets<bool> {
+        _ = element_registry.set_element_visibility(&self.rectangle_element_id, visible);
+        UiUpdateTargets::default()
+    }
 }
 
 enum IconSize {
@@ -85,6 +87,7 @@ pub struct IconBuilder {
     position: Position,
     shader_builder: Option<ShaderBuilder>,
     padding: f32,
+    is_visible: bool,
 }
 
 impl IconBuilder {
@@ -98,6 +101,7 @@ impl IconBuilder {
             position: Default::default(),
             shader_builder: None,
             padding: 0.0,
+            is_visible: true,
         }
     }
 
@@ -122,6 +126,7 @@ impl IconBuilder {
             .with_z_index(self.z_index)
             .with_position(self.position)
             .with_custom_shader_value_f32("rotation", 0.)
+            .with_visibility(self.is_visible)
         ;
 
         match &self.color {
@@ -210,6 +215,11 @@ impl IconBuilder {
 
     pub fn with_padding(mut self, padding: f32) -> Self {
         self.padding = padding;
+        self
+    }
+
+    pub fn with_visibility(mut self, visible: bool) -> Self {
+        self.is_visible = visible;
         self
     }
 }

@@ -119,10 +119,10 @@ impl Scene for HelloUi {
         }
 
         if input.is_key_down(Key::ArrowUp) {
-            _ = interface.show_widget(&self.reset_button_id);
+            _ = interface.set_widget_visibility(&self.reset_button_id, true);
         }
         if input.is_key_down(Key::ArrowDown) {
-            _ = interface.hide_widget(&self.reset_button_id);
+            _ = interface.set_widget_visibility(&self.reset_button_id, false);
         }
 
         match interface.dropdown_update_result(&self.dropdown_id) {

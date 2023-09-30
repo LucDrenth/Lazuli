@@ -3,7 +3,7 @@ use std::{fmt::Debug, f32::consts::PI};
 use glam::Vec2;
 use interface::WidgetRegistryUdpateResult;
 
-use crate::{asset_manager::AssetManager, graphics::{ui::{ElementRegistry, widget::{ButtonBuilder, UiWidget, IconBuilder, ui_update_target::WidgetUpdateTarget, UiUpdateTargets, LayoutUpdateTarget}, interface::{is_valid_z_index, MAX_Z_INDEX, self, WidgetRegistry, LayoutRegistry}, Position, AnchorPoint, UiElementId, TextAlign, UiWidgetId, bounds_2d::Bounds2d, UiLayoutId, VerticalListBuilder, Width}, Color}, log, input::InputAction, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{ui::{ElementRegistry, widget::{ButtonBuilder, UiWidget, IconBuilder}, interface::{is_valid_z_index, MAX_Z_INDEX, self, WidgetRegistry, LayoutRegistry}, Position, AnchorPoint, UiElementId, TextAlign, UiWidgetId, bounds_2d::Bounds2d, UiLayoutId, VerticalListBuilder, Width, UiUpdateTargets, WidgetUpdateTarget, LayoutUpdateTarget, UpdateTargetCollection}, Color}, log, input::InputAction, ResourceId};
 
 struct DropdownOptionButton<T: Debug + Clone> {
     button_id: ResourceId<UiWidgetId>,
@@ -113,8 +113,17 @@ impl <T: Debug + Clone> UiWidget for Dropdown<T> {
         }
     }
 
-    fn on_show(&mut self) {}
-    fn on_hide(&mut self) {}
+    fn set_visibility(&mut self, visible: bool, _element_registry: &mut ElementRegistry) -> UiUpdateTargets<bool> {
+        UiUpdateTargets { 
+            widgets: vec![
+                WidgetUpdateTarget::new(self.button_id, visible),
+                WidgetUpdateTarget::new(self.icon_widget_id, visible),
+            ], 
+            layouts: vec![
+                LayoutUpdateTarget::new(self.options_layout, false), // only show upon clicking the button
+            ],
+        }
+    }
 }
 
 impl<T: Debug + Clone> Dropdown<T> {
@@ -138,7 +147,6 @@ impl<T: Debug + Clone> Dropdown<T> {
                         widget_registry_update_result.buttons_to_change_text.push(
                             WidgetUpdateTarget::new(self.button_id, option.label.clone())
                         );
-                        widget_registry_update_result.widgets_to_hide.append(&mut self.get_option_button_ids());
                         return Some(option.value.clone());
                     }
                 }
@@ -147,24 +155,10 @@ impl<T: Debug + Clone> Dropdown<T> {
             if clicked_button.equals(&self.button_id) {
                 self.is_open = !self.is_open;
                 self.handle_state(widget_registry_update_result);
-
-                if self.is_open {
-                    widget_registry_update_result.widgets_to_show.append(&mut self.get_option_button_ids());
-                } else {
-                    widget_registry_update_result.widgets_to_hide.append(&mut self.get_option_button_ids());
-                }
             }
         }
 
         None
-    }
-
-    fn get_option_button_ids(&self) -> Vec<ResourceId<UiWidgetId>> {
-        let mut ids = vec![];
-        for button in self.options.iter() {
-            ids.push(button.button_id);
-        }
-        ids
     }
 
     fn handle_state(&self, widget_registry_update_result: &mut WidgetRegistryUdpateResult) {
@@ -179,6 +173,8 @@ impl<T: Debug + Clone> Dropdown<T> {
             self.icon_widget_id, 
             ("rotation".to_string(), rotation) ,
         ));
+
+        widget_registry_update_result.update_targets_visibility.layouts.push(LayoutUpdateTarget::new(self.options_layout, self.is_open));
     }
 
     pub fn is_open(&self) -> bool { self.is_open }
@@ -224,7 +220,7 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
         }
     }
 
-    pub fn build(&self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, layout_registry: &mut LayoutRegistry, asset_manager: &mut AssetManager) -> Result<Dropdown<T>, String> {
+    pub fn build(&self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, layout_registry: &mut LayoutRegistry, asset_manager: &mut AssetManager) -> Result<(Dropdown<T>, Vec<UpdateTargetCollection>), String> {
         self.validate()?;
 
         let selected_value: Option<T>;
@@ -266,7 +262,7 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
         let mut layout_builder = VerticalListBuilder::new()
             .with_position(Position::ElementAnchor(AnchorPoint::BottomOutside(0.), button_anchor))
             .with_background_color(Color::orange())
-            .with_hidden(true)
+            .with_visibility(false)
             .with_z_index(Dropdown::<T>::option_button_z_index(self.z_index))
             .with_width(Width::Fixed(self.width))
         ;
@@ -285,10 +281,10 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
             .with_height(6.0)
         , element_registry, asset_manager)?;
 
-        let layout = layout_registry.create_layout(&mut layout_builder, element_registry, widget_registry, asset_manager)?;
+        let (layout, layout_update_targets) = layout_registry.create_layout(&mut layout_builder, element_registry, widget_registry, asset_manager)?;
         let button_id = widget_registry.add_button(button);
 
-        Ok(Dropdown {
+        Ok((Dropdown {
             z_index: self.z_index,
             button_id,
             icon_widget_id,
@@ -297,7 +293,7 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
             is_open: false,
             selected: selected_value,
             option_buttons_respect_draw_bounds: self.option_buttons_respect_draw_bounds,
-        })
+        }, vec![layout_update_targets]))
     }
 
     pub fn with_placeholder_text(mut self, placeholder_text: impl Into<String>) -> Self {

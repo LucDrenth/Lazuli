@@ -1,20 +1,18 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{widget::{Slider, SliderBuilder, SliderUpdateResult, Button, ButtonBuilder, UiWidget, Dropdown, DropdownBuilder, Icon, IconBuilder, WidgetUpdateTarget, UiUpdateTargets}, UiWidgetId, bounds_2d::Bounds2d, Position, UiElementId}, Color}, asset_manager::AssetManager, input::Input, log, ResourceId};
+use crate::{graphics::{ui::{widget::{Slider, SliderBuilder, SliderUpdateResult, Button, ButtonBuilder, UiWidget, Dropdown, DropdownBuilder, Icon, IconBuilder}, UiWidgetId, bounds_2d::Bounds2d, Position, UiElementId, UiUpdateTargets, WidgetUpdateTarget, UpdateTargetCollection}, Color}, asset_manager::AssetManager, input::Input, log, ResourceId};
 
 use super::{ElementRegistry, widget_list::WidgetList, LayoutRegistry};
 
 pub struct WidgetRegistryUdpateResult {
-    pub widgets_to_show: Vec<ResourceId<UiWidgetId>>,
-    pub widgets_to_hide: Vec<ResourceId<UiWidgetId>>,
+    pub update_targets_visibility: UiUpdateTargets<bool>,
     pub buttons_to_change_text: Vec<WidgetUpdateTarget<String>>,
     pub widgets_to_set_main_element_custom_shader_value_f32: Vec<WidgetUpdateTarget<(String, f32)>>,
 }
 impl Default for WidgetRegistryUdpateResult {
     fn default() -> Self {
         Self { 
-            widgets_to_show: vec![], 
-            widgets_to_hide: vec![],
+            update_targets_visibility: Default::default(), 
             buttons_to_change_text: vec![],
             widgets_to_set_main_element_custom_shader_value_f32: vec![],
         }
@@ -91,7 +89,7 @@ impl WidgetRegistry {
 
 
     // =============================================================================== \\
-    // ========= Functions for updating a widget (and its connected widgets) ========= \\
+    // ========= Functions for updating a widget (and its embedded widgets/layouts) ========= \\
 
     pub fn set_widget_z_index(&mut self, widget_id: &ResourceId<UiWidgetId>, z_index: f32, element_registry: &mut ElementRegistry) -> UiUpdateTargets<f32> {
         self.get_mut_widget_by_id(widget_id).unwrap().set_z_index(z_index, element_registry)
@@ -110,6 +108,9 @@ impl WidgetRegistry {
     }
     pub fn set_widget_position(&mut self, widget_id: &ResourceId<UiWidgetId>, position: Position, element_registry: &mut ElementRegistry) -> UiUpdateTargets<Position> {
         self.get_mut_widget_by_id(widget_id).unwrap().set_position(position, element_registry)
+    }
+    pub fn set_widget_visibility(&mut self, widget_id: &ResourceId<UiWidgetId>, visible: bool, element_registry: &mut ElementRegistry) -> UiUpdateTargets<bool> {
+        self.get_mut_widget_by_id(widget_id).unwrap().set_visibility(visible, element_registry)
     }
     
 
@@ -135,9 +136,11 @@ impl WidgetRegistry {
     pub fn add_dropdown(&mut self, dropdown: Dropdown<u32>) -> ResourceId<UiWidgetId> {
         self.dropdowns.push(dropdown)
     }
-    pub fn create_dropdown(&mut self, builder: &DropdownBuilder<u32>, element_registry: &mut ElementRegistry, layout_registry: &mut LayoutRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
-        let dropdown = builder.build(element_registry, self, layout_registry, asset_manager)?;
-        Ok(self.dropdowns.push(dropdown))
+    pub fn create_dropdown(&mut self, builder: &DropdownBuilder<u32>, element_registry: &mut ElementRegistry, layout_registry: &mut LayoutRegistry, asset_manager: &mut AssetManager) -> Result<(ResourceId<UiWidgetId>, Vec<UpdateTargetCollection>), String> {
+        let (dropdown, update_targets) = builder.build(element_registry, self, layout_registry, asset_manager)?;
+        let id = self.dropdowns.push(dropdown);
+
+        Ok((id, update_targets))
     }
 
     pub fn add_icon(&mut self, icon: Icon) -> ResourceId<UiWidgetId> {

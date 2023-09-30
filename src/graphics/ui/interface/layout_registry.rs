@@ -1,4 +1,4 @@
-use crate::{graphics::ui::{Layout, layout::LayoutBuilder, UiLayoutId, UiWidgetId, widget::UiUpdateTargets}, input::Input, ResourceId, asset_manager::AssetManager};
+use crate::{graphics::ui::{Layout, layout::LayoutBuilder, UiLayoutId, UiWidgetId, UpdateTargetCollection, UiUpdateTargets}, input::Input, ResourceId, asset_manager::AssetManager};
 
 use super::{WidgetRegistry, ElementRegistry, element_list::generate_id};
 
@@ -34,12 +34,14 @@ impl LayoutRegistry {
         element_registry: &mut ElementRegistry, 
         widget_registry: &mut WidgetRegistry, 
         asset_manager: &mut AssetManager
-    ) -> Result<ResourceId<UiLayoutId>, String> {
-        let layout = builder.build(element_registry, widget_registry, asset_manager)?;
-        Ok(self.add_layout(layout))
+    ) -> Result<(ResourceId<UiLayoutId>, UpdateTargetCollection), String> {
+        let (layout, update_targets) = builder.build(element_registry, widget_registry, asset_manager)?;
+        let layout_id = self.add_layout(layout);
+
+        Ok((layout_id, update_targets))
     }
 
-    pub fn add_layout(&mut self, layout: Box<dyn Layout>) -> ResourceId<UiLayoutId> {
+    fn add_layout(&mut self, layout: Box<dyn Layout>) -> ResourceId<UiLayoutId> {
         let id: ResourceId<UiLayoutId> = ResourceId::new(generate_id());
         self.layouts.push(LayoutEntry { layout, id, });
         id.clone()
@@ -64,6 +66,17 @@ impl LayoutRegistry {
     ) -> Result<UiUpdateTargets<f32>, String> {
         match self.get_mut_layout(layout_id) {
             Some(layout) => Ok(layout.set_z_index(z_index, element_registry)),
+            None => Err(Self::layout_not_found(layout_id)),
+        }
+    }
+
+    pub fn set_layout_visibility(&mut self, 
+        layout_id: &ResourceId<UiLayoutId>, 
+        visible: bool, 
+        element_registry: &mut ElementRegistry, 
+    ) -> Result<UiUpdateTargets<bool>, String> {
+        match self.get_mut_layout(layout_id) {
+            Some(layout) => Ok(layout.set_visibility(visible, element_registry)),
             None => Err(Self::layout_not_found(layout_id)),
         }
     }

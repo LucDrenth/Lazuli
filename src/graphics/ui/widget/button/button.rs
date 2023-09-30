@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{TextBuilder, ElementRegistry, self, interface::{is_valid_z_index, self, WidgetRegistry}, Position, element::{AnchorPoint, ui_element::UiElement}, widget::{UiWidget, ui_update_target::UiUpdateTargets}, UiElementId, text::TextAlign, Padding, bounds_2d::Bounds2d}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, input::{Input, InputAction, MouseButton}, log, ResourceId};
+use crate::{graphics::{ui::{TextBuilder, ElementRegistry, self, interface::{is_valid_z_index, self, WidgetRegistry}, Position, element::{AnchorPoint, ui_element::UiElement}, widget::UiWidget, UiElementId, text::TextAlign, Padding, bounds_2d::Bounds2d, UiUpdateTargets}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, input::{Input, InputAction, MouseButton}, log, ResourceId};
 
 pub struct Button {
     text_element_id: ResourceId<UiElementId>,
@@ -67,8 +67,12 @@ impl UiWidget for Button {
         UiUpdateTargets::default()
     }
 
-    fn on_show(&mut self) {}
-    fn on_hide(&mut self) {}
+    fn set_visibility(&mut self, visible: bool, element_registry: &mut ElementRegistry) -> UiUpdateTargets<bool> {
+        _ = element_registry.set_element_visibility(&self.background_element_id, visible);
+        _ = element_registry.set_element_visibility(&self.text_element_id, visible);
+
+        UiUpdateTargets::default()
+    }
 }
 
 impl Button {
@@ -118,7 +122,7 @@ pub struct ButtonBuilder {
     mouse_button_to_activate: MouseButton,
     width: Option<f32>,
     height: Option<f32>,
-    hidden: bool,
+    is_visible: bool,
     text_align: TextAlign,
 }
 
@@ -137,7 +141,7 @@ impl ButtonBuilder {
             mouse_button_to_activate: MouseButton::Left,
             width: None,
             height: None,
-            hidden: false,
+            is_visible: true,
             text_align: TextAlign::Center,
         }
     }
@@ -156,7 +160,7 @@ impl ButtonBuilder {
             .with_z_index(self.z_index + 0.01)
             .with_font_size(self.font_size)
             .with_scale(self.scale)
-            .with_hidden(self.hidden)
+            .with_visibility(self.is_visible)
             .build(label, &font_id, asset_manager, element_registry)?;
         
         let button_width = match self.width {
@@ -175,7 +179,7 @@ impl ButtonBuilder {
             .with_z_index(self.z_index)
             .with_position(self.position)
             .with_scale(self.scale)
-            .with_hidden(self.hidden)
+            .with_visibility(self.is_visible)
             .build(asset_manager, element_registry)?;
         let background_element_id = element_registry.add_rectangle(background);
 
@@ -270,8 +274,8 @@ impl ButtonBuilder {
         self
     }
 
-    pub fn with_hidden(mut self, hidden: bool) -> Self {
-        self.hidden = hidden;
+    pub fn with_visibility(mut self, visible: bool) -> Self {
+        self.is_visible = visible;
         self
     }
 

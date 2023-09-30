@@ -159,7 +159,7 @@ pub struct TextBuilder {
     position: Position,
     z_index: f32,
     scale: Vec2,
-    hidden: bool,
+    is_visible: bool,
     custom_shader_values: CustomShaderValues,
 }
 
@@ -172,7 +172,7 @@ impl TextBuilder {
             position: Position::ScreenAnchor(AnchorPoint::Center),
             z_index: 10.0,
             scale: Vec2::ONE,
-            hidden: false,
+            is_visible: true,
             custom_shader_values: Default::default(),
         }
     }
@@ -193,7 +193,7 @@ impl TextBuilder {
             , self.scale
             , element_registry
         );
-        world_data.show = !self.hidden;
+        world_data.show = self.is_visible;
 
         let mut result = Text { 
             text: text.into(), 
@@ -252,8 +252,8 @@ impl TextBuilder {
         self
     }
 
-    pub fn with_hidden(mut self, hidden: bool) -> Self {
-        self.hidden = hidden;
+    pub fn with_visibility(mut self, visible: bool) -> Self {
+        self.is_visible = visible;
         self
     }
 

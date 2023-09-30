@@ -547,22 +547,15 @@ impl ElementRegistry {
         }
     }
 
-    pub fn show_element(&mut self, element_id: &ResourceId<UiElementId>) -> Result<(), String> {
+    pub fn set_element_visibility(&mut self, element_id: &ResourceId<UiElementId>, visible: bool) -> Result<(), String> {
         match self.get_mut_ui_element_by_id(element_id) {
             Some(element) => {
-                Ok(element.mut_world_data().show = true)
+                Ok(element.mut_world_data().show = visible)
             },
-            None => Err(format!("failed to show element because element with id {:?} was not found", element_id)),
+            None => Err(format!("failed to set element visibility because element with id {:?} was not found", element_id)),
         }
     }
-    pub fn hide_element(&mut self, element_id: &ResourceId<UiElementId>) -> Result<(), String> {
-        match self.get_mut_ui_element_by_id(element_id) {
-            Some(element) => {
-                Ok(element.mut_world_data().show = false)
-            },
-            None => Err(format!("failed to hide element because element with id {:?} was not found", element_id)),
-        }
-    }
+    
     pub fn element_world_data(&self, element_id: &ResourceId<UiElementId>) -> Result<&WorldElementData, String> {
         match self.get_ui_element_by_id(element_id) {
             Some(element) => {

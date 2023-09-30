@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{Position, AnchorPoint, shapes::RectangleBuilder, padding::Padding, bounds_2d::Bounds2d, UiWidgetId, UiElementId, interface::WidgetRegistry, ElementRegistry, widget::{UiUpdateTargets, WidgetUpdateTarget}}, Color}, asset_manager::AssetManager, log, input::Input, ResourceId};
+use crate::{graphics::{ui::{Position, AnchorPoint, shapes::RectangleBuilder, padding::Padding, bounds_2d::Bounds2d, UiWidgetId, UiElementId, interface::WidgetRegistry, ElementRegistry, UpdateTargetCollection, UiUpdateTargets, WidgetUpdateTarget}, Color}, asset_manager::AssetManager, log, input::Input, ResourceId};
 
 use super::{Layout, layout::{LAYOUT_ELEMENT_EXTRA_Z_INDEX, LayoutBuilder}};
 
@@ -16,6 +16,7 @@ pub struct VerticalList {
     draw_bounds: Bounds2d,
     z_index: f32,
     resize_widgets: bool,
+    is_visible: bool,
 }
 
 impl Layout for VerticalList {
@@ -83,15 +84,20 @@ impl Layout for VerticalList {
             log::engine_warn(format!("failed to set z-index for VerticalList background element with id {:?}: {}", self.background_element_id, err));
         });
         
-        let mut update_targets = UiUpdateTargets {
-            widgets: Vec::with_capacity(self.widget_ids.len()),
-            layouts: vec![],
-        };
-
+        let mut update_targets: UiUpdateTargets<f32> = Default::default();
         for widget_id in self.widget_ids.iter() {
             update_targets.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), self.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX));
         }
+        update_targets
+    }
 
+    fn set_visibility(&mut self, visible: bool, element_registry: &mut ElementRegistry) -> UiUpdateTargets<bool> {
+        _ = element_registry.set_element_visibility(&self.background_element_id, visible);
+
+        let mut update_targets: UiUpdateTargets<bool> = Default::default();
+        for widget_id in self.widget_ids.iter() {
+            update_targets.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), visible));
+        }
         update_targets
     }
 }
@@ -139,13 +145,13 @@ pub struct VerticalListBuilder {
     padding: Padding,
     z_index: f32,
     resize_widgets: bool,
-    hidden: bool,
+    is_visible: bool,
 }
 
 impl LayoutBuilder for VerticalListBuilder {
-    fn build(&mut self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, asset_manager: &mut AssetManager) -> Result<Box<dyn Layout>, String> {
-        let layout = self.build(element_registry, widget_registry, asset_manager)?;
-        Ok(Box::new(layout))
+    fn build(&mut self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, asset_manager: &mut AssetManager) -> Result<(Box<dyn Layout>, UpdateTargetCollection), String> {
+        let (layout, update_targets) = self.build(element_registry, widget_registry, asset_manager)?;
+        Ok((Box::new(layout), update_targets))
     }
 }
 
@@ -163,12 +169,12 @@ impl VerticalListBuilder {
             z_index: 100.0,
             resize_widgets: true,
             width: Width::Auto(),
-            hidden: false,
+            is_visible: true,
         }
     }
 
     /// Clears widget ids
-    pub fn build(&mut self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, asset_manager: &mut AssetManager) -> Result<VerticalList, String> {
+    pub fn build(&mut self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, asset_manager: &mut AssetManager) -> Result<(VerticalList, UpdateTargetCollection), String> {
         let background_width = match self.width {
             Width::Fixed(width) => width,
             Width::MaxWidth(max_width) => { 
@@ -184,6 +190,7 @@ impl VerticalListBuilder {
             .with_width(background_width)
             .with_height(background_height)
             .with_z_index(self.z_index)
+            .with_visibility(self.is_visible)
         , asset_manager)?;
 
         let layout_position = element_registry.get_ui_element_by_id(&background_element_id).unwrap().world_data().position();
@@ -197,7 +204,7 @@ impl VerticalListBuilder {
         widget_ids.extend(self.widget_ids.drain(..));
 
         let mut list = VerticalList { 
-            widget_ids: widget_ids,
+            widget_ids,
             background_element_id, 
             gap_size: self.gap_size, 
             position: self.position, 
@@ -208,39 +215,40 @@ impl VerticalListBuilder {
             draw_bounds: Bounds2d::some(draw_bound_top, draw_bound_right, draw_bound_bottom, draw_bound_left),
             z_index: self.z_index,
             resize_widgets: self.resize_widgets,
+            is_visible: self.is_visible,
         };
 
+        let mut update_targets = UpdateTargetCollection::default();
+
         if list.widget_ids.is_empty() {
-            return Ok(list);
+            return Ok((list, update_targets));
         }
 
-        // position and resize widgets
-        widget_registry.set_widget_position(
-            &list.widget_ids[0], 
-            Position::ElementAnchor(AnchorPoint::TopInside(list.padding.top()), list.background_element_id), 
-            element_registry,
-        );
+        update_targets.positions.widgets.push(WidgetUpdateTarget::new(
+            list.widget_ids[0], 
+            Position::ElementAnchor(AnchorPoint::TopInside(list.padding.top()), list.background_element_id)
+        ));
 
         for i in 1..list.widget_ids.len() {
             let anchor_element = widget_registry.get_widget_main_element_id(&list.widget_ids[i - 1]).unwrap();
             
-            widget_registry.set_widget_position(
-                &list.widget_ids[i], 
+            update_targets.positions.widgets.push(WidgetUpdateTarget::new(
+                list.widget_ids[i], 
                 Position::ElementAnchor(AnchorPoint::BottomOutside(self.gap_size), anchor_element), 
-                element_registry
-            );
+            ));
         }
 
         for widget_id in list.widget_ids.iter() {
-            widget_registry.set_widget_z_index(widget_id, list.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX, element_registry);
-            widget_registry.set_widget_draw_bounds(widget_id, list.draw_bounds.clone(), element_registry);
-            widget_registry.set_widget_width(widget_id, background_width - list.padding.horizontal(), element_registry);
+            update_targets.z_index.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), list.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX));
+            update_targets.draw_bounds.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), list.draw_bounds.clone()));
+            update_targets.width.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), background_width - list.padding.horizontal()));
+            update_targets.visibility.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), self.is_visible));
         }
 
         // We can only set this after the widget positions has been set
         list.max_scroll = calculate_max_scroll(&list.widget_ids, &list.padding, &background_element_id, background_height, &element_registry, &widget_registry);
 
-        Ok(list)
+        Ok((list, update_targets))
     }
 
 
@@ -313,8 +321,8 @@ impl VerticalListBuilder {
         self
     }
 
-    pub fn with_hidden(mut self, hidden: bool) -> Self {
-        self.hidden = hidden;
+    pub fn with_visibility(mut self, visible: bool) -> Self {
+        self.is_visible = visible;
         self
     }
 }

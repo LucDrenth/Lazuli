@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{ElementRegistry, interface::{is_valid_z_index, self, WidgetRegistry}, TextBuilder, Position, element::AnchorPoint, widget::{UiWidget, ui_update_target::UiUpdateTargets}, UiElementId, self, bounds_2d::Bounds2d}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, log, input::{Input, MouseButton}, ResourceId};
+use crate::{graphics::{ui::{ElementRegistry, interface::{is_valid_z_index, self, WidgetRegistry}, TextBuilder, Position, element::AnchorPoint, widget::UiWidget, UiElementId, self, bounds_2d::Bounds2d, UiUpdateTargets}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, log, input::{Input, MouseButton}, ResourceId};
 
 #[derive(Clone, Copy, Debug)]
 pub enum SliderProgressBarAlignment {
@@ -99,8 +99,11 @@ impl UiWidget for Slider {
         UiUpdateTargets::default()
     }
 
-    fn on_show(&mut self) {}
-    fn on_hide(&mut self) {}
+    fn set_visibility(&mut self, visible: bool, element_registry: &mut ElementRegistry) -> UiUpdateTargets<bool> {
+        _ = element_registry.set_element_visibility(&self.background_element_id, visible);
+        _ = element_registry.set_element_visibility(&self.progress_element_id, visible);
+        UiUpdateTargets::default()
+    }
 }
 
 impl Slider {
@@ -227,6 +230,7 @@ pub struct SliderBuilder {
     decimals: usize,
     scale: Vec2,
     direction: SliderDirection,
+    is_visible: bool,
 }
 
 impl SliderBuilder {
@@ -248,6 +252,7 @@ impl SliderBuilder {
             decimals: 2,
             scale: Vec2::ONE,
             direction: SliderDirection::LeftToRight,
+            is_visible: true,
         }
     }
 
@@ -267,6 +272,7 @@ impl SliderBuilder {
             .with_position(self.position)
             .with_color(self.background_color.clone())
             .with_scale(self.scale)
+            .with_visibility(self.is_visible)
             .build(asset_manager, element_registry)?;
         let background_element_id = element_registry.add_rectangle(background);
 
@@ -280,6 +286,7 @@ impl SliderBuilder {
                 background_element_id
             ))
             .with_scale(Vec2::new(self.initial_value / (self.maximum_value - self.minimum_value), 1.0) * self.scale)
+            .with_visibility(self.is_visible)
             .build(asset_manager, element_registry)?;
         let progress_element_id = element_registry.add_rectangle(progress_rectangle);
 
@@ -289,6 +296,7 @@ impl SliderBuilder {
             .with_scale(self.scale)
             .with_position(Position::ElementAnchor(AnchorPoint::Center, background_element_id))
             .with_font_size(self.font_size)
+            .with_visibility(self.is_visible)
             .build(Slider::value_string(self.initial_value, self.decimals), &font_id, asset_manager, element_registry)?;
         let text_element_id = element_registry.add_text(text);
 
@@ -391,6 +399,11 @@ impl SliderBuilder {
 
     pub fn with_direction(mut self, direction: SliderDirection) -> Self {
         self.direction = direction;
+        self
+    }
+
+    pub fn with_visibility(mut self, visible: bool) -> Self {
+        self.is_visible = visible;
         self
     }
 }

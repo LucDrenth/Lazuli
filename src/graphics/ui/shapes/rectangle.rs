@@ -182,7 +182,7 @@ pub struct RectangleBuilder {
     size: Vec2,
     z_index: f32,
     scale: Vec2,
-    hidden: bool,
+    is_visible: bool,
     texture: Option<UiTexture>,
     border: Border,
     texture_padding: f32,
@@ -198,7 +198,7 @@ impl RectangleBuilder {
             size: Vec2::new(100.0, 40.0),
             z_index: 10.0,
             scale: Vec2::ONE,
-            hidden: false,
+            is_visible: true,
             texture: None,
             border: Border {
                 color: Color::black(),
@@ -251,7 +251,7 @@ impl RectangleBuilder {
             self.scale,
             element_registry
         );
-        world_data.show = !self.hidden;
+        world_data.show = self.is_visible;
 
         Ok(Rectangle { 
             vao, 
@@ -320,8 +320,8 @@ impl RectangleBuilder {
         self
     }
 
-    pub fn with_hidden(mut self, hidden: bool) -> Self {
-        self.hidden = hidden;
+    pub fn with_visibility(mut self, visible: bool) -> Self {
+        self.is_visible = visible;
         self
     }
 

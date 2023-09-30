@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{event::{EventReader, WindowResizeEvent, EventSystem, PixelDensityChangeEvent}, asset_manager::AssetManager, input::Input, graphics::{ui::{widget::{SliderBuilder, SliderUpdateResult, ButtonBuilder, DropdownBuilder, IconBuilder, UiUpdateTargets}, Position, bounds_2d::Bounds2d, UiWidgetId, UiElementId, UiLayoutId, layout::LayoutBuilder, Layout}, font::{Font, PlainBitmapBuilder}, Color}, ResourceId, log};
+use crate::{event::{EventReader, WindowResizeEvent, EventSystem, PixelDensityChangeEvent}, asset_manager::AssetManager, input::Input, graphics::{ui::{widget::{SliderBuilder, SliderUpdateResult, ButtonBuilder, DropdownBuilder, IconBuilder}, Position, bounds_2d::Bounds2d, UiWidgetId, UiElementId, UiLayoutId, layout::LayoutBuilder, UiUpdateTargets, UpdateTargetCollection}, font::{Font, PlainBitmapBuilder}, Color}, ResourceId, log};
 
 use super::{ElementRegistry, widget_registry::{WidgetRegistry, WidgetRegistryUdpateResult}, layout_registry::LayoutRegistry};
 
@@ -52,13 +52,7 @@ impl Interface {
     }
 
     pub fn handle_widget_registry_update_result(&mut self, update_result: &WidgetRegistryUdpateResult, asset_manager: &mut AssetManager) {
-        for id in &update_result.widgets_to_show {
-            self.show_widget(&id);
-        }
-
-        for id in &update_result.widgets_to_hide {
-            self.hide_widget(&id);
-        }
+        self.handle_ui_update_targets_visibility(update_result.update_targets_visibility.clone());
 
         for target in &update_result.buttons_to_change_text {
             let element_id = self.widget_registry.get_button(&target.widget_id).unwrap().text_element_id();
@@ -92,22 +86,6 @@ impl Interface {
     pub fn get_widget_main_element_id(&self, widget_id: &ResourceId<UiWidgetId>) -> Option<ResourceId<UiElementId>> {
         self.widget_registry.get_widget_main_element_id(widget_id)
     }
-    pub fn show_widget(&mut self, widget_id: &ResourceId<UiWidgetId>) {
-        // TODO can we move this to the widget registry so that we can add show function to layout?
-        for element in self.widget_registry.get_widget_by_id(widget_id).unwrap().get_all_element_ids(&self.widget_registry) {
-            _ = self.element_registry.show_element(&element);
-        }
-
-        self.widget_registry.get_mut_widget_by_id(widget_id).unwrap().on_show();
-    }
-    pub fn hide_widget(&mut self, widget_id: &ResourceId<UiWidgetId>) {
-        // TODO can we move this to the widget registry so that we can add hide function to layout?
-        for element in self.widget_registry.get_widget_by_id(widget_id).unwrap().get_all_element_ids(&self.widget_registry) {
-            _ = self.element_registry.hide_element(&element);
-        }
-        
-        self.widget_registry.get_mut_widget_by_id(widget_id).unwrap().on_hide();
-    }
     pub fn get_widget_size(&self, widget_id: &ResourceId<UiWidgetId>) -> Result<Vec2, String> {
         self.widget_registry.get_widget_size(widget_id, &self.element_registry)
     }
@@ -134,6 +112,9 @@ impl Interface {
     }
     pub fn set_widget_size(&mut self, widget_id: &ResourceId<UiWidgetId>, size: Vec2) {
         self.handle_ui_update_targets_size(UiUpdateTargets::from_widget_id(widget_id.clone(), size));
+    }
+    pub fn set_widget_visibility(&mut self, widget_id: &ResourceId<UiWidgetId>, visible: bool) {
+        self.handle_ui_update_targets_visibility(UiUpdateTargets::from_widget_id(widget_id.clone(), visible));
     }
 
     // button specific functions
@@ -163,7 +144,11 @@ impl Interface {
 
     // dropdown specific functions
     pub fn create_dropdown(&mut self, builder: &DropdownBuilder<u32>, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
-        self.widget_registry.create_dropdown(builder, &mut self.element_registry, &mut self.layout_registry, asset_manager)
+        let (id, update_target_collections) = self.widget_registry.create_dropdown(builder, &mut self.element_registry, &mut self.layout_registry, asset_manager)?;
+        for update_target_collection in update_target_collections {
+            self.handle_ui_update_targets_collection(update_target_collection);
+        }
+        Ok(id)
     }
     pub fn dropdown_update_result(&self, dropdown_id: &ResourceId<UiWidgetId>) -> Option<u32> {
         self.widget_registry.dropdown_update_result(dropdown_id)
@@ -183,13 +168,11 @@ impl Interface {
         }
     }
 
-
     // layout specific functions
     pub fn create_layout(&mut self, builder: &mut impl LayoutBuilder, asset_manager: &mut AssetManager) -> Result<ResourceId<UiLayoutId>, String> {
-        self.layout_registry.create_layout(builder, &mut self.element_registry, &mut self.widget_registry, asset_manager)
-    }
-    pub fn add_layout(&mut self, layout: Box<dyn Layout>) -> ResourceId<UiLayoutId> {
-        self.layout_registry.add_layout(layout)
+        let (id, update_targets) = self.layout_registry.create_layout(builder, &mut self.element_registry, &mut self.widget_registry, asset_manager)?;
+        self.handle_ui_update_targets_collection(update_targets);
+        Ok(id)
     }
     pub fn add_widget_to_layout(&mut self, widget_id: &ResourceId<UiWidgetId>, layout_id: &ResourceId<UiLayoutId>) -> Result<(), String> {
         self.layout_registry.add_widget_to_layout(widget_id, layout_id, &mut self.element_registry, &mut self.widget_registry)
@@ -201,6 +184,15 @@ impl Interface {
 
     pub fn scroll_speed(&self) -> f32 {
         self.scroll_speed
+    }
+
+    fn handle_ui_update_targets_collection(&mut self, targets_collection: UpdateTargetCollection) {
+        self.handle_ui_update_targets_draw_bounds(targets_collection.draw_bounds);
+        self.handle_ui_update_targets_position(targets_collection.positions);
+        self.handle_ui_update_targets_z_index(targets_collection.z_index);
+        self.handle_ui_update_targets_visibility(targets_collection.visibility);
+        self.handle_ui_update_targets_width(targets_collection.width);
+        self.handle_ui_update_targets_height(targets_collection.height);
     }
 
 
@@ -216,7 +208,7 @@ impl Interface {
         }
     }
     fn handle_ui_update_targets_position(&mut self, targets: UiUpdateTargets<Position>) {
-        for _targets in targets.layouts {
+        for _target in targets.layouts {
             log::engine_warn("TODO [UI]: implement layout position setter function");
         }
         for target in targets.widgets {
@@ -225,7 +217,7 @@ impl Interface {
         }
     }
     fn handle_ui_update_targets_draw_bounds(&mut self, targets: UiUpdateTargets<Bounds2d>) {
-        for _targets in targets.layouts {
+        for _target in targets.layouts {
             log::engine_warn("TODO [UI]: implement layout draw bounds setter function");
         }
         for target in targets.widgets {
@@ -234,7 +226,7 @@ impl Interface {
         }
     }
     fn handle_ui_update_targets_width(&mut self, targets: UiUpdateTargets<f32>) {
-        for _targets in targets.layouts {
+        for _target in targets.layouts {
             log::engine_warn("TODO [UI]: implement layout width setter function");
         }
         for target in targets.widgets {
@@ -243,7 +235,7 @@ impl Interface {
         }
     }
     fn handle_ui_update_targets_height(&mut self, targets: UiUpdateTargets<f32>) {
-        for _targets in targets.layouts {
+        for _target in targets.layouts {
             log::engine_warn("TODO [UI]: implement layout height setter function");
         }
         for target in targets.widgets {
@@ -252,12 +244,22 @@ impl Interface {
         }
     }
     fn handle_ui_update_targets_size(&mut self, targets: UiUpdateTargets<Vec2>) {
-        for _targets in targets.layouts {
+        for _target in targets.layouts {
             log::engine_warn("TODO [UI]: implement layout size setter function");
         }
         for target in targets.widgets {
             let new_targets = self.widget_registry.set_widget_size(&target.widget_id, target.data, &mut self.element_registry);
             self.handle_ui_update_targets_size(new_targets);
+        }
+    }
+    fn handle_ui_update_targets_visibility(&mut self, targets: UiUpdateTargets<bool>) {
+        for target in targets.layouts {
+            let new_targets = self.layout_registry.set_layout_visibility(&target.layout_id, target.data, &mut self.element_registry).unwrap();
+            self.handle_ui_update_targets_visibility(new_targets);
+        }
+        for target in targets.widgets {
+            let new_targets = self.widget_registry.set_widget_visibility(&target.widget_id, target.data, &mut self.element_registry);
+            self.handle_ui_update_targets_visibility(new_targets);
         }
     }
 }
