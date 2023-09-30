@@ -3,7 +3,7 @@ use std::{fmt::Debug, f32::consts::PI};
 use glam::Vec2;
 use interface::WidgetRegistryUdpateResult;
 
-use crate::{asset_manager::AssetManager, graphics::{ui::{ElementRegistry, widget::{ButtonBuilder, UiWidget, IconBuilder, ui_update_target::WidgetUpdateTarget, UiUpdateTargets, LayoutUpdateTarget}, interface::{is_valid_z_index, MAX_Z_INDEX, self, WidgetRegistry, LayoutRegistry}, Position, AnchorPoint, UiElementId, TextAlign, UiWidgetId, bounds_2d::Bounds2d, UiLayoutId, VerticalListBuilder}, Color}, log, input::InputAction, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{ui::{ElementRegistry, widget::{ButtonBuilder, UiWidget, IconBuilder, ui_update_target::WidgetUpdateTarget, UiUpdateTargets, LayoutUpdateTarget}, interface::{is_valid_z_index, MAX_Z_INDEX, self, WidgetRegistry, LayoutRegistry}, Position, AnchorPoint, UiElementId, TextAlign, UiWidgetId, bounds_2d::Bounds2d, UiLayoutId, VerticalListBuilder, Width}, Color}, log, input::InputAction, ResourceId};
 
 struct DropdownOptionButton<T: Debug + Clone> {
     button_id: ResourceId<UiWidgetId>,
@@ -205,6 +205,7 @@ pub struct DropdownBuilder<T: Debug + Clone> {
     text_align: TextAlign,
     text_color: Color,
     gap_size: f32, // space between options
+    width: f32,
 }
 
 impl<T: Debug + Clone> DropdownBuilder<T> {
@@ -219,6 +220,7 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
             text_align: TextAlign::Left,
             text_color: interface::default_text_color(),
             gap_size: 5.0,
+            width: 100.0,
         }
     }
 
@@ -245,6 +247,7 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
             .with_z_index(self.z_index)
             .with_text_align(self.text_align)
             .with_text_color(self.text_color.clone())
+            .with_width(self.width)
             .build(label, element_registry, asset_manager)
         ?;
 
@@ -265,6 +268,7 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
             .with_background_color(Color::orange())
             .with_hidden(true)
             .with_z_index(Dropdown::<T>::option_button_z_index(self.z_index))
+            .with_width(Width::Fixed(self.width))
         ;
 
         for option in &self.options {
@@ -352,6 +356,11 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
 
     pub fn with_gap_size(mut self, gap_size: f32) -> Self {
         self.gap_size = gap_size;
+        self
+    }
+
+    pub fn with_width(mut self, width: f32) -> Self {
+        self.width = width;
         self
     }
 }
