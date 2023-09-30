@@ -86,6 +86,7 @@ impl Interface {
 
     pub fn element_registry(&self) -> &ElementRegistry { &self.element_registry }
     pub fn mut_element_registry(&mut self) -> &mut ElementRegistry { &mut self.element_registry }
+    pub fn size(&mut self) -> Vec2 { self.size }
 
     // UiWidget functions
     pub fn get_widget_main_element_id(&self, widget_id: &ResourceId<UiWidgetId>) -> Option<ResourceId<UiElementId>> {

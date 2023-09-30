@@ -6,6 +6,12 @@ use crate::{event::{EventSystem, WindowResizeEvent, PixelDensityChangeEvent}, in
 
 use super::event_mapper;
 
+/**
+ * !! ISSUES !!
+ * 
+ * 1. On startup, we get an initial Resize event with width and height of 2^32: PhysicalSize { width: 4294967295, height: 4294967295 }.
+ *    This seems to be a bug of Glutin (/ macos 14).
+ */
 pub struct GlutinWindow {
     render_context: ContextWrapper<PossiblyCurrent, glutin::window::Window>,
     event_loop: EventLoop<()>,
@@ -27,6 +33,12 @@ impl Window for GlutinWindow {
         // Read events from Scene::new
         Self::read_event_listeners(&mut event_listeners, &render_context.window());
 
+        // Due to issue 1, we do not receive a correct initial size event. To fix it, we manually send one.
+        event_system.send(WindowResizeEvent {
+            width: interface.size().x as u32,
+            height: interface.size().y as u32,
+        });
+
         event_loop.run(move |event, _, control_flow| {
             let start_time = Instant::now();
 
@@ -34,6 +46,15 @@ impl Window for GlutinWindow {
                 Event::WindowEvent { event, .. } => match event {
                     WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                     WindowEvent::Resized(physical_size) => {
+                        // Due to issue 1, we do a sanity check on the size
+                        if physical_size.width > 100_000_000 || physical_size.height > 100_000_000 {
+                            log::engine_warn(format!("preventing unusual window resize: {:?}", physical_size));
+                            return;
+                        }
+
+                        // debugging
+                        // log::engine_info(format!("window resize event: physical_size: {:?}", physical_size));
+
                         render_context.resize(physical_size);
 
                         let dpi_factor = render_context.window().scale_factor();
