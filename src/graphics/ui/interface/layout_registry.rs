@@ -70,6 +70,17 @@ impl LayoutRegistry {
         }
     }
 
+    pub fn set_layout_width(&mut self, 
+        layout_id: &ResourceId<UiLayoutId>, 
+        width: f32, 
+        element_registry: &mut ElementRegistry, 
+    ) -> Result<UpdateTargetCollection, String> {
+        match self.get_mut_layout(layout_id) {
+            Some(layout) => Ok(layout.set_width(width, element_registry)),
+            None => Err(Self::layout_not_found(layout_id)),
+        }
+    }
+
     pub fn set_layout_visibility(&mut self, 
         layout_id: &ResourceId<UiLayoutId>, 
         visible: bool, 

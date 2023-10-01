@@ -181,6 +181,12 @@ impl Interface {
     pub fn set_layout_z_index(&mut self, layout_id: &ResourceId<UiLayoutId>, z_index: f32) {
         self.handle_ui_update_targets_z_index(UiUpdateTargets::from_layout_id(layout_id.clone(), z_index));
     }
+    pub fn set_layout_width(&mut self, layout_id: &ResourceId<UiLayoutId>, width: f32) {
+        self.handle_ui_update_targets_width(UiUpdateTargets::from_layout_id(layout_id.clone(), width));
+    }
+    pub fn set_layout_visibility(&mut self, layout_id: &ResourceId<UiLayoutId>, visible: bool) {
+        self.handle_ui_update_targets_visibility(UiUpdateTargets::from_layout_id(layout_id.clone(), visible));
+    }
 
     pub fn scroll_speed(&self) -> f32 {
         self.scroll_speed
@@ -226,8 +232,9 @@ impl Interface {
         }
     }
     fn handle_ui_update_targets_width(&mut self, targets: UiUpdateTargets<f32>) {
-        for _target in targets.layouts {
-            log::engine_warn("TODO [UI]: implement layout width setter function");
+        for target in targets.layouts {
+            let targets_collection = self.layout_registry.set_layout_width(&target.layout_id, target.data, &mut self.element_registry).unwrap();
+            self.handle_ui_update_targets_collection(targets_collection);
         }
         for target in targets.widgets {
             let new_targets = self.widget_registry.set_widget_width(&target.widget_id, target.data, &mut self.element_registry);

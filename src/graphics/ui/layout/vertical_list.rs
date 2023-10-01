@@ -100,6 +100,23 @@ impl Layout for VerticalList {
         }
         update_targets
     }
+
+    fn set_width(&mut self, width: f32, element_registry: &mut ElementRegistry) -> UpdateTargetCollection {
+        _ = element_registry.set_rectangle_width(&self.background_element_id, width);
+
+        // calculate new draw bounds
+        let layout_position = element_registry.get_ui_element_by_id(&self.background_element_id).unwrap().world_data().position();
+        let background_size = element_registry.get_element_size(&self.background_element_id).unwrap();
+        self.draw_bounds = calculate_draw_bounds(layout_position, background_size);
+
+        let mut update_targets: UpdateTargetCollection = Default::default();
+        for widget_id in self.widget_ids.iter() {
+            update_targets.width.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), width - self.padding.horizontal()));
+            update_targets.draw_bounds.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), self.draw_bounds.clone()));
+        }
+
+        update_targets
+    }
 }
 
 impl VerticalList {
@@ -194,10 +211,6 @@ impl VerticalListBuilder {
         , asset_manager)?;
 
         let layout_position = element_registry.get_ui_element_by_id(&background_element_id).unwrap().world_data().position();
-        let draw_bound_top = layout_position.y + background_height / 2.0;
-        let draw_bound_bottom = layout_position.y - background_height / 2.0;
-        let draw_bound_left = layout_position.x - background_width / 2.0;
-        let draw_bound_right = layout_position.x + background_width / 2.0;
 
         // Take out all of the widget ids
         let mut widget_ids: Vec<ResourceId<UiWidgetId>> = Vec::new();
@@ -212,7 +225,7 @@ impl VerticalListBuilder {
             current_scroll: 0.0,
             max_scroll: 0.0, // Will be set after the widget position have been set
             padding: self.padding.clone(),
-            draw_bounds: Bounds2d::some(draw_bound_top, draw_bound_right, draw_bound_bottom, draw_bound_left),
+            draw_bounds: calculate_draw_bounds(layout_position, Vec2::new(background_width, background_height)),
             z_index: self.z_index,
             resize_widgets: self.resize_widgets,
             is_visible: self.is_visible,
@@ -379,4 +392,13 @@ fn calculate_max_scroll(
         + widget_registry.get_widget_size(last_widget_id, element_registry).unwrap().y / 2.0 
         + widget_registry.get_widget_position_transform(first_widget_id, element_registry).unwrap().y;
     (max_scroll).max(0.0)
+}
+
+fn calculate_draw_bounds(layout_position: Vec2, layout_size: Vec2) -> Bounds2d {
+    Bounds2d::some(
+        layout_position.y + layout_size.y / 2.0, 
+        layout_position.x + layout_size.x / 2.0, 
+        layout_position.y - layout_size.y / 2.0, 
+        layout_position.x - layout_size.x / 2.0
+    )
 }
