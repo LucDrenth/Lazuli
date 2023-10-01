@@ -40,8 +40,9 @@ impl Interface {
             let window_size = Vec2::new(e.width as f32, e.height as f32);
             self.element_registry.handle_window_resize(window_size, asset_manager);
 
-            // TODO update layout elements their draw bounds. See HelloUi scene, where the
-            // layout elements get buggy after window resize.
+            for targets_collection in self.layout_registry.handle_window_resize(&self.element_registry) {
+                self.handle_ui_update_targets_collection(targets_collection);
+            }
         });
 
         self.pixel_density_change_event.read().last().map(|e| {
@@ -184,6 +185,9 @@ impl Interface {
     pub fn set_layout_width(&mut self, layout_id: &ResourceId<UiLayoutId>, width: f32) {
         self.handle_ui_update_targets_width(UiUpdateTargets::from_layout_id(layout_id.clone(), width));
     }
+    pub fn set_layout_position(&mut self, layout_id: &ResourceId<UiLayoutId>, position: Position) {
+        self.handle_ui_update_targets_position(UiUpdateTargets::from_layout_id(layout_id.clone(), position));
+    }
     pub fn set_layout_visibility(&mut self, layout_id: &ResourceId<UiLayoutId>, visible: bool) {
         self.handle_ui_update_targets_visibility(UiUpdateTargets::from_layout_id(layout_id.clone(), visible));
     }
@@ -214,8 +218,9 @@ impl Interface {
         }
     }
     fn handle_ui_update_targets_position(&mut self, targets: UiUpdateTargets<Position>) {
-        for _target in targets.layouts {
-            log::engine_warn("TODO [UI]: implement layout position setter function");
+        for target in targets.layouts {
+            let targets_collection = self.layout_registry.set_layout_position(&target.layout_id, target.data, &mut self.element_registry).unwrap();
+            self.handle_ui_update_targets_collection(targets_collection);
         }
         for target in targets.widgets {
             let new_targets = self.widget_registry.set_widget_position(&target.widget_id, target.data, &mut self.element_registry);

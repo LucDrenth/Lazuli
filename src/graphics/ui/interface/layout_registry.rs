@@ -1,4 +1,4 @@
-use crate::{graphics::ui::{Layout, layout::LayoutBuilder, UiLayoutId, UiWidgetId, UpdateTargetCollection, UiUpdateTargets}, input::Input, ResourceId, asset_manager::AssetManager};
+use crate::{graphics::ui::{Layout, layout::LayoutBuilder, UiLayoutId, UiWidgetId, UpdateTargetCollection, UiUpdateTargets, Position}, input::Input, ResourceId, asset_manager::AssetManager};
 
 use super::{WidgetRegistry, ElementRegistry, element_list::generate_id};
 
@@ -92,6 +92,17 @@ impl LayoutRegistry {
         }
     }
 
+    pub fn set_layout_position(&mut self, 
+        layout_id: &ResourceId<UiLayoutId>, 
+        position: Position, 
+        element_registry: &mut ElementRegistry, 
+    ) -> Result<UpdateTargetCollection, String> {
+        match self.get_mut_layout(layout_id) {
+            Some(layout) => Ok(layout.set_position(position, element_registry)),
+            None => Err(Self::layout_not_found(layout_id)),
+        }
+    }
+
     fn layout_not_found(layout_id: &ResourceId<UiLayoutId>) -> String {
         format!("Layout with id {:?} not found", layout_id)
     }
@@ -114,5 +125,15 @@ impl LayoutRegistry {
         }
 
         None
+    }
+
+    pub fn handle_window_resize(&mut self, element_registry: &ElementRegistry) -> Vec<UpdateTargetCollection> {
+        let mut targets: Vec<UpdateTargetCollection> = vec![];
+
+        for entry in self.layouts.iter_mut() {
+            targets.push( entry.layout.update_draw_bounds(element_registry) );
+        }
+
+        targets
     }
 }

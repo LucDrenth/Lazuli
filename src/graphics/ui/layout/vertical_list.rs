@@ -117,6 +117,26 @@ impl Layout for VerticalList {
 
         update_targets
     }
+
+    fn set_position(&mut self, position: Position, element_registry: &mut ElementRegistry) -> UpdateTargetCollection {
+        self.position = position;
+        _ = element_registry.set_element_position(&self.background_element_id, position);
+
+        self.update_draw_bounds(element_registry)
+    }
+
+    fn update_draw_bounds(&mut self, element_registry: &ElementRegistry) -> UpdateTargetCollection {
+        let layout_position = element_registry.get_ui_element_by_id(&self.background_element_id).unwrap().world_data().position();
+        let background_size = element_registry.get_element_size(&self.background_element_id).unwrap();
+        self.draw_bounds = calculate_draw_bounds(layout_position, background_size);
+
+        let mut update_targets: UpdateTargetCollection = Default::default();
+        for widget_id in self.widget_ids.iter() {
+            update_targets.draw_bounds.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), self.draw_bounds.clone()));
+        }
+
+        update_targets
+    }
 }
 
 impl VerticalList {
