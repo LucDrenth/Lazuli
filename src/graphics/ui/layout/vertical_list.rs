@@ -58,14 +58,20 @@ impl Layout for VerticalList {
         }
 
         // update position and size of the newly added widget
+        // TODO pass these back as update targets
         widget_registry.set_widget_width(widget_id, old_background_size.x - self.padding.horizontal(), element_registry);
 
         widget_registry.set_widget_position(&widget_id, Position::ElementAnchor(anchor_point, anchor_id), element_registry);
         widget_registry.set_widget_z_index(&widget_id, self.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX, element_registry);
         widget_registry.set_widget_draw_bounds(&widget_id, self.draw_bounds.clone(), element_registry);
 
-        // update max scroll
+        // update max scroll. We do not use self.update_max_scroll because we already know the background height, so this will safe as some lookup.
         self.max_scroll = calculate_max_scroll(&self.widget_ids, &self.padding, &self.background_element_id, new_background_height, &element_registry, &widget_registry);
+    }
+
+    fn calculate_max_scroll(&mut self, element_registry: &ElementRegistry, widget_registry: &WidgetRegistry) {
+        let background_height = element_registry.get_element_size(&self.background_element_id).unwrap().x;
+        self.max_scroll = calculate_max_scroll(&self.widget_ids, &self.padding, &self.background_element_id, background_height, &element_registry, &widget_registry);
     }
 
     fn update(&mut self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, input: &Input, scroll_speed: f32) {
@@ -236,7 +242,7 @@ impl VerticalListBuilder {
         let mut widget_ids: Vec<ResourceId<UiWidgetId>> = Vec::new();
         widget_ids.extend(self.widget_ids.drain(..));
 
-        let mut list = VerticalList { 
+        let list = VerticalList { 
             widget_ids,
             background_element_id, 
             gap_size: self.gap_size, 
@@ -278,8 +284,7 @@ impl VerticalListBuilder {
             update_targets.visibility.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), self.is_visible));
         }
 
-        // We can only set this after the widget positions has been set
-        list.max_scroll = calculate_max_scroll(&list.widget_ids, &list.padding, &background_element_id, background_height, &element_registry, &widget_registry);
+        // list.max_scroll still needs to be calculated, after the update targets are handled.
 
         Ok((list, update_targets))
     }
@@ -402,14 +407,15 @@ fn calculate_max_scroll(
     let first_widget_id = widget_ids.first().unwrap();
     let last_widget_id = widget_ids.last().unwrap();
 
-    let bottom_of_last_element = widget_registry.get_widget_screen_position(last_widget_id, element_registry).unwrap().y;
+    let last_element_size = widget_registry.get_widget_size(last_widget_id, element_registry).unwrap();
+    let last_element_position = widget_registry.get_widget_screen_position(last_widget_id, element_registry).unwrap();
+    let bottom_of_last_element = last_element_position.y + last_element_size.y / 2.0;
             
     let layout_position_y = element_registry.get_element_screen_position(background_element_id).unwrap().y;
     let bottom_of_layout = layout_position_y - layout_height / 2.0;
 
     let max_scroll = (bottom_of_last_element - bottom_of_layout).abs() 
         + padding.bottom() 
-        + widget_registry.get_widget_size(last_widget_id, element_registry).unwrap().y / 2.0 
         + widget_registry.get_widget_position_transform(first_widget_id, element_registry).unwrap().y;
     (max_scroll).max(0.0)
 }

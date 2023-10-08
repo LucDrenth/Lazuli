@@ -11,6 +11,9 @@ pub trait Layout {
     fn set_position(&mut self, position: Position, element_registry: &mut ElementRegistry) -> UpdateTargetCollection;
     /// The width parameter is used as fixed: `Width::Fixed(width)`
     fn set_width(&mut self, width: f32, element_registry: &mut ElementRegistry) -> UpdateTargetCollection;
+    /// Recalculate (and set) max scroll using internal values. Should be called after list of layout elements changed or any layout element has
+    /// been resized. Can not be called internally since element resizing is handled through UpdateTargetCollection.
+    fn calculate_max_scroll(&mut self, element_registry: &ElementRegistry, widget_registry: &WidgetRegistry);
 
     /// Update elements their draw bounds. To be called after the background element (and with it all other elements) have been repositioned.
     /// This happens, for example, after resizing the window.
