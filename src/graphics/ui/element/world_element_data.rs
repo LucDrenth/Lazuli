@@ -10,7 +10,7 @@ pub struct WorldElementData {
     size: Vec2, // given in world space (pixels)
     position: Vec2, // the world space coordinates at which we render the center of the element. (0,0) is the center of the screen
     position_type: Position,
-    pub position_transform: Vec2,
+    pub position_transform: Vec2, // Where self.position is meant to be static, this position transform can be used to move the element around
     pub z_index: f32,
     scale: Vec2,
     pub show: bool,
@@ -21,7 +21,7 @@ impl WorldElementData {
     pub fn new(position_type: Position, z_index: f32, size: Vec2, scale: Vec2, element_registry: &ElementRegistry) -> Self {
         let mut result = Self {
             size,
-            position: Vec2::ZERO, // to be calculated with calculate_position
+            position: Vec2::ZERO, // will be calculated later in this function with calculate_position
             position_type,
             position_transform: Vec2::ZERO,
             z_index,
