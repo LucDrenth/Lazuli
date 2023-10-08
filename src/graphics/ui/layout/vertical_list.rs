@@ -20,8 +20,8 @@ pub struct VerticalList {
 }
 
 impl Layout for VerticalList {
-    fn add_widget(&mut self, widget_id: &ResourceId<UiWidgetId>, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry) {
-        // calculate position of newly added widget
+    fn add_widget(&mut self, widget_id: &ResourceId<UiWidgetId>, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry) -> UpdateTargetCollection {
+        // Calculate position of newly added widget
         let anchor_id;
         let anchor_point;
 
@@ -34,17 +34,19 @@ impl Layout for VerticalList {
             anchor_point = AnchorPoint::BottomOutside(self.gap_size);
         }
 
-        // add our new widget to the list if widgets
+        // Add our new widget to the list if widgets if we don't already have it
+        let mut update_targets = UpdateTargetCollection::default();
+
         for existing_widget_id in self.widget_ids.iter() {
             if existing_widget_id.equals(widget_id) {
                 log::engine_warn( format!("VerticalList: widget with id {} was already in the list", widget_id.id()) );
-                return;
+                return update_targets;
             }
         }
 
         self.widget_ids.push(widget_id.duplicate());
 
-        // resize background element
+        // Resize background element
         let old_background_size = element_registry.get_element_size(&self.background_element_id).unwrap();
         let new_background_height = calculate_background_height(
             &self.widget_ids, self.gap_size, &self.padding, &element_registry, &widget_registry
@@ -57,16 +59,13 @@ impl Layout for VerticalList {
             );
         }
 
-        // update position and size of the newly added widget
-        // TODO pass these back as update targets
-        widget_registry.set_widget_width(widget_id, old_background_size.x - self.padding.horizontal(), element_registry);
+        // Set update targets for newly added widget
+        update_targets.width.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), old_background_size.x - self.padding.horizontal()));
+        update_targets.positions.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), Position::ElementAnchor(anchor_point, anchor_id)));
+        update_targets.z_index.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), self.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX));
+        update_targets.draw_bounds.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), self.draw_bounds.clone()));
 
-        widget_registry.set_widget_position(&widget_id, Position::ElementAnchor(anchor_point, anchor_id), element_registry);
-        widget_registry.set_widget_z_index(&widget_id, self.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX, element_registry);
-        widget_registry.set_widget_draw_bounds(&widget_id, self.draw_bounds.clone(), element_registry);
-
-        // update max scroll. We do not use self.update_max_scroll because we already know the background height, so this will safe as some lookup.
-        self.max_scroll = calculate_max_scroll(&self.widget_ids, &self.padding, &self.background_element_id, new_background_height, &element_registry, &widget_registry);
+        update_targets
     }
 
     fn calculate_max_scroll(&mut self, element_registry: &ElementRegistry, widget_registry: &WidgetRegistry) {

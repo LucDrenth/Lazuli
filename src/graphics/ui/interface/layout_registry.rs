@@ -52,7 +52,7 @@ impl LayoutRegistry {
         layout_id: &ResourceId<UiLayoutId>, 
         element_registry: &mut ElementRegistry, 
         widget_registry: &mut WidgetRegistry
-    ) -> Result<(), String> {
+    ) -> Result<UpdateTargetCollection, String> {
         match self.get_mut_layout(layout_id) {
             Some(layout) => Ok(layout.add_widget(widget_id, element_registry, widget_registry)),
             None => Err(Self::layout_not_found(layout_id)),
