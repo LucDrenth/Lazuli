@@ -75,6 +75,11 @@ pub fn map_glutin_keycode(glutin_key: glutin::event::VirtualKeyCode) -> Key {
         glutin::event::VirtualKeyCode::Tab => Key::Tab,
         glutin::event::VirtualKeyCode::Grave => Key::BackTick,
         glutin::event::VirtualKeyCode::Return => Key::Enter,
+        glutin::event::VirtualKeyCode::Back => Key::Backspace,
+        glutin::event::VirtualKeyCode::Equals => Key::Equals,
+        glutin::event::VirtualKeyCode::Minus => Key::Minus,
+        glutin::event::VirtualKeyCode::Plus => Key::Plus,
+        glutin::event::VirtualKeyCode::Caret => Key::Caret,
         _ => {
             log::engine_warn(format!("Unhandled glutin key event: {:?}", glutin_key));
             Key::Uknown

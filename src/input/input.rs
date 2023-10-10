@@ -243,6 +243,11 @@ pub enum Key {
     Cmd = 59,
     BackTick = 60,
     Enter = 61,
+    Backspace = 62,
+    Equals = 63,
+    Minus = 64,
+    Plus = 65,
+    Caret = 66,
 }
 
 impl Key {
