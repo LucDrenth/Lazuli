@@ -259,8 +259,8 @@ impl Key {
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum MouseButtonState {
-    Up, // pressed down
-    Down, // released
+    Up, // released
+    Down, // pressed down
 }
 
 #[derive(Copy, Clone)]
