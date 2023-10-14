@@ -9,6 +9,7 @@ pub struct HelloUi {
     rectangle_id: ResourceId<UiElementId>,
     dropdown_id: ResourceId<UiWidgetId>,
     layout_id: ResourceId<UiLayoutId>,
+    mouse_pos: ResourceId<UiElementId>,
 }
 
 impl Scene for HelloUi {
@@ -81,6 +82,10 @@ impl Scene for HelloUi {
             .add_widget(&layout_button_5)
         , asset_manager)?;
 
+        let mouse_pos = interface.mut_element_registry().create_text("", None, &TextBuilder::new()
+                .with_position(Position::ScreenAnchor(AnchorPoint::TopRightInside(10., 10.)))
+        , asset_manager)?;
+
         Ok(Self { 
             width_slider_id,
             height_slider_id,
@@ -88,6 +93,7 @@ impl Scene for HelloUi {
             reset_button_id,
             dropdown_id,
             layout_id,
+            mouse_pos,
         })
     }
 
@@ -149,6 +155,10 @@ impl Scene for HelloUi {
         if input.is_key_down(Key::Space) {
             _ = interface.add_widget_to_layout(&self.height_slider_id, &self.layout_id);
         }
+
+        let mouse_pos = input.get_mouse_position() - interface.size() / 2.0;
+        let mouse_pos_text = format!("{}, {}", mouse_pos.x as i32, mouse_pos.y as i32);
+        _ = interface.mut_element_registry().set_text(&self.mouse_pos, &mouse_pos_text, asset_manager);
     }
 
     unsafe fn draw(&self, _: &mut AssetManager) {

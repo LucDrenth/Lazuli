@@ -74,14 +74,16 @@ impl Layout for VerticalList {
     }
 
     fn update(&mut self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, input: &Input, scroll_speed: f32) -> UpdateTargetCollection {
-        let update_targets = UpdateTargetCollection::default();
+        let mut update_targets = UpdateTargetCollection::default();
 
         if self.widget_ids.is_empty() || input.get_scroll_y() == 0.0 {
             return update_targets;
         }
 
         let new_scroll_amount = (self.current_scroll - input.get_scroll_y() as f32 * scroll_speed).clamp(0.0, self.max_scroll);
-        self.set_scroll_amount(new_scroll_amount, element_registry, widget_registry);
+        update_targets.append(
+            self.set_scroll_amount(new_scroll_amount, element_registry, widget_registry)
+        );
 
         update_targets
     }
@@ -153,10 +155,12 @@ impl Layout for VerticalList {
 }
 
 impl VerticalList {
-    pub fn set_scroll_amount(&mut self, new_scroll_amount: f32, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry) {
+    pub fn set_scroll_amount(&mut self, new_scroll_amount: f32, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry) -> UpdateTargetCollection {
+        let update_targets = UpdateTargetCollection::default();
+
         if new_scroll_amount == self.current_scroll {
             // There is no scrolling in this layout
-            return;
+            return update_targets;
         }
 
         self.current_scroll = new_scroll_amount;
@@ -173,6 +177,8 @@ impl VerticalList {
         });
 
         // TODO implement and update scrollbar
+        
+        update_targets
     }
 }
 
