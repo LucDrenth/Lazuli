@@ -40,8 +40,8 @@ impl Interface {
             let window_size = Vec2::new(e.width as f32, e.height as f32);
             self.element_registry.handle_window_resize(window_size, asset_manager);
 
-            for targets_collection in self.layout_registry.handle_window_resize(&self.element_registry) {
-                self.handle_ui_update_targets_collection(targets_collection);
+            for update_target_collection in self.layout_registry.handle_window_resize(&self.element_registry) {
+                self.handle_ui_update_targets_collection(update_target_collection);
             }
         });
 
@@ -49,7 +49,9 @@ impl Interface {
             self.element_registry.set_pixel_density(e.pixel_density);
         });
 
-        self.layout_registry.update(&mut self.element_registry, &mut self.widget_registry, input, self.scroll_speed);
+        for update_target_collection in self.layout_registry.update(&mut self.element_registry, &mut self.widget_registry, input, self.scroll_speed) {
+            self.handle_ui_update_targets_collection(update_target_collection);
+        }
     }
 
     pub fn handle_widget_registry_update_result(&mut self, update_result: &WidgetRegistryUdpateResult, asset_manager: &mut AssetManager) {

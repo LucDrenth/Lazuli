@@ -73,13 +73,17 @@ impl Layout for VerticalList {
         self.max_scroll = calculate_max_scroll(&self.widget_ids, &self.padding, &self.background_element_id, background_height, &element_registry, &widget_registry);
     }
 
-    fn update(&mut self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, input: &Input, scroll_speed: f32) {
+    fn update(&mut self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, input: &Input, scroll_speed: f32) -> UpdateTargetCollection {
+        let update_targets = UpdateTargetCollection::default();
+
         if self.widget_ids.is_empty() || input.get_scroll_y() == 0.0 {
-            return;
+            return update_targets;
         }
 
         let new_scroll_amount = (self.current_scroll - input.get_scroll_y() as f32 * scroll_speed).clamp(0.0, self.max_scroll);
         self.set_scroll_amount(new_scroll_amount, element_registry, widget_registry);
+
+        update_targets
     }
 
     fn set_z_index(&mut self, z_index: f32, element_registry: &mut ElementRegistry) -> UiUpdateTargets<f32> {

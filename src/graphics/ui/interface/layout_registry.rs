@@ -23,10 +23,16 @@ impl LayoutRegistry {
         widget_registry: &mut WidgetRegistry, 
         input: &Input,
         scroll_speed: f32,
-    ) {
+    ) -> Vec<UpdateTargetCollection> {
+        let mut update_targets = vec![];
+
         for entry in self.layouts.iter_mut() {
-            entry.layout.update(element_registry, widget_registry, input, scroll_speed);
-                    }
+            update_targets.push(
+                entry.layout.update(element_registry, widget_registry, input, scroll_speed)
+            );
+        }
+
+        update_targets
     }
 
     pub fn create_layout(&mut self, 
