@@ -142,6 +142,10 @@ impl Layout for VerticalList {
 
         update_targets
     }
+
+    fn widgets(&self) -> Vec<ResourceId<UiWidgetId>> {
+        self.widget_ids.clone()
+    }
 }
 
 impl VerticalList {

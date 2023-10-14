@@ -18,6 +18,8 @@ pub trait Layout {
     /// Update elements their draw bounds. To be called after the background element (and with it all other elements) have been repositioned.
     /// This happens, for example, after resizing the window.
     fn update_draw_bounds(&mut self, element_registry: &ElementRegistry) -> UpdateTargetCollection;
+
+    fn widgets(&self) -> Vec<ResourceId<UiWidgetId>>;
 }
 
 pub trait LayoutBuilder {
