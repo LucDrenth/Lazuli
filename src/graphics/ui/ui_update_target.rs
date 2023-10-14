@@ -63,6 +63,7 @@ pub struct UpdateTargetCollection {
     pub width: UiUpdateTargets<f32>,
     pub height: UiUpdateTargets<f32>,
     pub visibility: UiUpdateTargets<bool>,
+    pub layouts_to_update_draw_bounds: Vec<ResourceId<UiLayoutId>>,
 }
 impl Default for UpdateTargetCollection {
     fn default() -> Self {
@@ -73,6 +74,7 @@ impl Default for UpdateTargetCollection {
             width: Default::default(),
             height: Default::default(),
             visibility: Default::default(),
+            layouts_to_update_draw_bounds: vec![],
         }
     }
 }

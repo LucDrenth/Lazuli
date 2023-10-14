@@ -151,13 +151,13 @@ impl Layout for VerticalList {
 impl VerticalList {
     pub fn set_scroll_amount(&mut self, new_scroll_amount: f32, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry) {
         if new_scroll_amount == self.current_scroll {
-            // there was no scroll change
+            // There is no scrolling in this layout
             return;
         }
 
         self.current_scroll = new_scroll_amount;
 
-        // update widgets position
+        // Update widgets position
         let first_widget_id = self.widget_ids.first().unwrap();
         let first_widget_anchor_element_id  = widget_registry.get_widget_main_element_id(first_widget_id).unwrap();
 

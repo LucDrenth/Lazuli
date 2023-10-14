@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{ElementRegistry, UiElementId, shapes::{RectangleBuilder, Rectangle}, UiTexture, Position, interface::{is_valid_z_index, self, WidgetRegistry}, widget::UiWidget, bounds_2d::Bounds2d, UiUpdateTargets}, Color, shader::ShaderBuilder, texture::Texture}, asset_manager::AssetManager, ResourceId, log};
+use crate::{graphics::{ui::{ElementRegistry, UiElementId, shapes::{RectangleBuilder, Rectangle}, UiTexture, Position, interface::{is_valid_z_index, self, WidgetRegistry}, widget::UiWidget, bounds_2d::Bounds2d, UiUpdateTargets, UpdateTargetCollection}, Color, shader::ShaderBuilder, texture::Texture}, asset_manager::AssetManager, ResourceId, log};
 
 pub struct Icon {
     rectangle_element_id: ResourceId<UiElementId>,
@@ -27,9 +27,9 @@ impl UiWidget for Icon {
         UiUpdateTargets::default()
     }
 
-    fn set_position(&self, position: Position, element_registry: &mut ElementRegistry) -> UiUpdateTargets<Position> {
+    fn set_position(&self, position: Position, element_registry: &mut ElementRegistry) -> UpdateTargetCollection {
         _ = element_registry.set_element_position(&self.rectangle_element_id, position);
-        UiUpdateTargets::default()
+        UpdateTargetCollection::default()
     }
 
     fn set_draw_bounds(&self, draw_bounds: Bounds2d, element_registry: &mut ElementRegistry) -> UiUpdateTargets<Bounds2d> {

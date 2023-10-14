@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{TextBuilder, ElementRegistry, self, interface::{is_valid_z_index, self, WidgetRegistry}, Position, element::{AnchorPoint, ui_element::UiElement}, widget::UiWidget, UiElementId, text::TextAlign, Padding, bounds_2d::Bounds2d, UiUpdateTargets}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, input::{Input, InputAction, MouseButton}, log, ResourceId};
+use crate::{graphics::{ui::{TextBuilder, ElementRegistry, self, interface::{is_valid_z_index, self, WidgetRegistry}, Position, element::{AnchorPoint, ui_element::UiElement}, widget::UiWidget, UiElementId, text::TextAlign, Padding, bounds_2d::Bounds2d, UiUpdateTargets, UpdateTargetCollection}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, input::{Input, InputAction, MouseButton}, log, ResourceId};
 
 pub struct Button {
     text_element_id: ResourceId<UiElementId>,
@@ -27,14 +27,14 @@ impl UiWidget for Button {
         self.background_element_id.clone()
     }
 
-    fn set_position(&self, position: Position, element_registry: &mut ElementRegistry) -> UiUpdateTargets<Position> {
+    fn set_position(&self, position: Position, element_registry: &mut ElementRegistry) -> UpdateTargetCollection {
         _ = element_registry.set_element_position(&self.background_element_id, position);
         _ = element_registry.set_element_position(&self.text_element_id, Position::ElementAnchor(
             text_align_to_anchor_point(&self.text_align, &self.padding), 
             self.background_element_id)
         );
 
-        UiUpdateTargets::default()
+        UpdateTargetCollection::default()
     }
 
     fn z_index(&self) -> f32 {

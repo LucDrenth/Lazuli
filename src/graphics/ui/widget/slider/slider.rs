@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{ElementRegistry, interface::{is_valid_z_index, self, WidgetRegistry}, TextBuilder, Position, element::AnchorPoint, widget::UiWidget, UiElementId, self, bounds_2d::Bounds2d, UiUpdateTargets}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, log, input::{Input, MouseButton}, ResourceId};
+use crate::{graphics::{ui::{ElementRegistry, interface::{is_valid_z_index, self, WidgetRegistry}, TextBuilder, Position, element::AnchorPoint, widget::UiWidget, UiElementId, self, bounds_2d::Bounds2d, UiUpdateTargets, UpdateTargetCollection}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, log, input::{Input, MouseButton}, ResourceId};
 
 #[derive(Clone, Copy, Debug)]
 pub enum SliderProgressBarAlignment {
@@ -65,7 +65,7 @@ impl UiWidget for Slider {
         UiUpdateTargets::default()
     }
 
-    fn set_position(&self, position: Position, element_registry: &mut ElementRegistry) -> UiUpdateTargets<Position> {
+    fn set_position(&self, position: Position, element_registry: &mut ElementRegistry) -> UpdateTargetCollection {
         _ = element_registry.set_element_position(&self.background_element_id, position);
         _ = element_registry.set_element_position(&self.text_element_id, Position::ElementAnchor(AnchorPoint::Center, self.background_element_id));
         _ = element_registry.set_element_position(&self.progress_element_id, Position::ElementAnchor(
@@ -73,7 +73,7 @@ impl UiWidget for Slider {
             , self.background_element_id
         ));
 
-        UiUpdateTargets::default()
+        UpdateTargetCollection::default()
     }
 
     fn set_draw_bounds(&self, draw_bounds: Bounds2d, element_registry: &mut ElementRegistry) -> UiUpdateTargets<Bounds2d> {

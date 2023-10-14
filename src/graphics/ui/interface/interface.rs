@@ -207,6 +207,11 @@ impl Interface {
         self.handle_ui_update_targets_visibility(targets_collection.visibility);
         self.handle_ui_update_targets_width(targets_collection.width);
         self.handle_ui_update_targets_height(targets_collection.height);
+
+        for layout_id in targets_collection.layouts_to_update_draw_bounds {
+            let targets = self.layout_registry.update_layout_draw_bounds(&layout_id, &self.element_registry).unwrap();
+            self.handle_ui_update_targets_collection(targets);
+        }
     }
 
 
@@ -227,8 +232,8 @@ impl Interface {
             self.handle_ui_update_targets_collection(targets_collection);
         }
         for target in targets.widgets {
-            let new_targets = self.widget_registry.set_widget_position(&target.widget_id, target.data, &mut self.element_registry);
-            self.handle_ui_update_targets_position(new_targets);
+            let targets_collection = self.widget_registry.set_widget_position(&target.widget_id, target.data, &mut self.element_registry);
+            self.handle_ui_update_targets_collection(targets_collection);
         }
     }
     fn handle_ui_update_targets_draw_bounds(&mut self, targets: UiUpdateTargets<Bounds2d>) {

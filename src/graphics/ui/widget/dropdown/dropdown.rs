@@ -59,13 +59,15 @@ impl <T: Debug + Clone> UiWidget for Dropdown<T> {
         }
     }
 
-    fn set_position(&self, position: Position, _element_registry: &mut ElementRegistry) -> UiUpdateTargets<Position> {
-        // Since the layout is anchored to the button, we only have to return the button here.
-        UiUpdateTargets {
-            widgets: vec![ WidgetUpdateTarget::new(self.button_id, position) ],
-            layouts: vec![],
-        }
-        
+    fn set_position(&self, position: Position, _element_registry: &mut ElementRegistry) -> UpdateTargetCollection {
+        let mut targets = UpdateTargetCollection::default();
+
+        // The options layout is anchored to the button, which makes it reposition the elements already. But we also need to
+        // update the layout its drawbounds after repositioning its elements.
+        targets.positions.widgets.push(WidgetUpdateTarget::new(self.button_id, position));
+        targets.layouts_to_update_draw_bounds.push(self.options_layout);
+
+        targets
     }
 
     fn set_draw_bounds(&self, draw_bounds: Bounds2d, _element_registry: &mut ElementRegistry) -> UiUpdateTargets<Bounds2d> {

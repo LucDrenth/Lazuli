@@ -26,7 +26,7 @@ impl LayoutRegistry {
     ) {
         for entry in self.layouts.iter_mut() {
             entry.layout.update(element_registry, widget_registry, input, scroll_speed);
-        }
+                    }
     }
 
     pub fn create_layout(&mut self, 
@@ -135,5 +135,15 @@ impl LayoutRegistry {
         }
 
         targets
+    }
+
+    pub fn update_layout_draw_bounds(&mut self, 
+        layout_id: &ResourceId<UiLayoutId>, 
+        element_registry: &ElementRegistry
+    ) -> Result<UpdateTargetCollection, String> {
+        match self.get_mut_layout(layout_id) {
+            Some(layout) => Ok(layout.update_draw_bounds(element_registry)),
+            None => Err(Self::layout_not_found(layout_id)),
+        }
     }
 }

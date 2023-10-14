@@ -106,7 +106,7 @@ impl WidgetRegistry {
     pub fn set_widget_draw_bounds(&mut self, widget_id: &ResourceId<UiWidgetId>, draw_bounds: Bounds2d, element_registry: &mut ElementRegistry) -> UiUpdateTargets<Bounds2d> {
         self.get_mut_widget_by_id(widget_id).unwrap().set_draw_bounds(draw_bounds, element_registry)
     }
-    pub fn set_widget_position(&mut self, widget_id: &ResourceId<UiWidgetId>, position: Position, element_registry: &mut ElementRegistry) -> UiUpdateTargets<Position> {
+    pub fn set_widget_position(&mut self, widget_id: &ResourceId<UiWidgetId>, position: Position, element_registry: &mut ElementRegistry) -> UpdateTargetCollection {
         self.get_mut_widget_by_id(widget_id).unwrap().set_position(position, element_registry)
     }
     pub fn set_widget_visibility(&mut self, widget_id: &ResourceId<UiWidgetId>, visible: bool, element_registry: &mut ElementRegistry) -> UiUpdateTargets<bool> {
