@@ -53,6 +53,11 @@ impl <T: Clone> UiUpdateTargets<T> {
             layouts: vec![ LayoutUpdateTarget::new(layout_id, data) ],
         }
     }
+
+    pub fn append(&mut self, mut target: UiUpdateTargets<T>) {
+        self.widgets.append(&mut target.widgets);
+        self.layouts.append(&mut target.layouts);
+    }
 }
 
 
@@ -76,5 +81,17 @@ impl Default for UpdateTargetCollection {
             visibility: Default::default(),
             layouts_to_update_draw_bounds: vec![],
         }
+    }
+}
+
+impl UpdateTargetCollection {
+    pub fn append(&mut self, mut target: UpdateTargetCollection) {
+        self.positions.append(target.positions);
+        self.z_index.append(target.z_index);
+        self.draw_bounds.append(target.draw_bounds);
+        self.width.append(target.width);
+        self.height.append(target.height);
+        self.visibility.append(target.visibility);
+        self.layouts_to_update_draw_bounds.append(&mut target.layouts_to_update_draw_bounds);
     }
 }
