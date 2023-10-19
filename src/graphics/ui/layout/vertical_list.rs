@@ -156,7 +156,7 @@ impl Layout for VerticalList {
 
 impl VerticalList {
     pub fn set_scroll_amount(&mut self, new_scroll_amount: f32, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry) -> UpdateTargetCollection {
-        let update_targets = UpdateTargetCollection::default();
+        let mut update_targets = UpdateTargetCollection::default();
 
         if new_scroll_amount == self.current_scroll {
             // There is no scrolling in this layout
@@ -175,6 +175,13 @@ impl VerticalList {
         ).map_err(|err|{
             log::engine_err(format!("failed to scroll VerticalList layout because the first widget element [id={}] was not found", err));
         });
+
+        for widget_id in &self.widget_ids {
+            update_targets.update_draw_bounds_recursively.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), ()))
+        }
+
+        // TODO make sure we update the drawbounds of each affected layout, excluding this one. For this, we have to go through each widget
+        // and get its layouts, call update_draw_bounds and repeat for the widgets of that layout (recursively).
 
         // TODO implement and update scrollbar
         

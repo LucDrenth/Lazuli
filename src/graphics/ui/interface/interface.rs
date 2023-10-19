@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{event::{EventReader, WindowResizeEvent, EventSystem, PixelDensityChangeEvent}, asset_manager::AssetManager, input::Input, graphics::{ui::{widget::{SliderBuilder, SliderUpdateResult, ButtonBuilder, DropdownBuilder, IconBuilder}, Position, bounds_2d::Bounds2d, UiWidgetId, UiElementId, UiLayoutId, layout::LayoutBuilder, UiUpdateTargets, UpdateTargetCollection}, font::{Font, PlainBitmapBuilder}, Color}, ResourceId, log};
+use crate::{event::{EventReader, WindowResizeEvent, EventSystem, PixelDensityChangeEvent}, asset_manager::AssetManager, input::Input, graphics::{ui::{widget::{SliderBuilder, SliderUpdateResult, ButtonBuilder, DropdownBuilder, IconBuilder}, Position, bounds_2d::Bounds2d, UiWidgetId, UiElementId, UiLayoutId, layout::LayoutBuilder, UiUpdateTargets, UpdateTargetCollection, LayoutUpdateTarget}, font::{Font, PlainBitmapBuilder}, Color}, ResourceId, log};
 
 use super::{ElementRegistry, widget_registry::{WidgetRegistry, WidgetRegistryUdpateResult}, layout_registry::LayoutRegistry};
 
@@ -213,6 +213,29 @@ impl Interface {
         for layout_id in targets_collection.layouts_to_update_draw_bounds {
             let targets = self.layout_registry.update_layout_draw_bounds(&layout_id, &self.element_registry).unwrap();
             self.handle_ui_update_targets_collection(targets);
+        }
+
+
+        // TODO handle update_draw_bounds_recursively
+        let mut new_targets = UpdateTargetCollection::default();
+        let mut handle_new_targets = false;
+
+        for widget_id in targets_collection.update_draw_bounds_recursively.widgets {
+            for layout_id in self.widget_registry.get_widget_by_id(&widget_id.widget_id).unwrap().get_direct_layout_ids() {
+                new_targets.update_draw_bounds_recursively.layouts.push(LayoutUpdateTarget::new(layout_id, ()));
+                handle_new_targets = true;
+            }
+        }
+
+        for layout_id in targets_collection.update_draw_bounds_recursively.layouts {
+            let targets = self.layout_registry.update_layout_draw_bounds(&layout_id.layout_id, &self.element_registry).unwrap();
+            new_targets.append(targets);
+            handle_new_targets = true;
+        
+        }
+
+        if handle_new_targets {
+            self.handle_ui_update_targets_collection(new_targets);
         }
     }
 

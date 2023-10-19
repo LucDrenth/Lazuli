@@ -1,9 +1,14 @@
 use glam::Vec2;
 
-use crate::{graphics::ui::{ElementRegistry, Position, bounds_2d::Bounds2d, UiElementId, interface::WidgetRegistry, UiUpdateTargets, UpdateTargetCollection}, ResourceId};
+use crate::{graphics::ui::{ElementRegistry, Position, bounds_2d::Bounds2d, UiElementId, interface::WidgetRegistry, UiUpdateTargets, UpdateTargetCollection, UiLayoutId, UiWidgetId}, ResourceId};
 
 pub trait UiWidget {
-    fn get_all_element_ids(&self, widget_registry: &WidgetRegistry) -> Vec<ResourceId<UiElementId>>;
+    /// Get direct elements, not including elements of nested widgets and layouts
+    fn get_direct_element_ids(&self) -> Vec<ResourceId<UiElementId>>;
+    /// Get direct layouts, not including layouts of nested widgets and layouts
+    fn get_direct_layout_ids(&self) -> Vec<ResourceId<UiLayoutId>>;
+    /// Get direct widgets, not including widgets of nested widgets and layouts
+    fn get_direct_widget_ids(&self) -> Vec<ResourceId<UiWidgetId>>;
 
     /// Get the id of the main element (usually the background), which can be 
     /// used for positioning, anchoring etcetera. It is usually the background element.

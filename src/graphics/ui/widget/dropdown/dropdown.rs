@@ -24,17 +24,19 @@ pub struct Dropdown<T: Debug + Clone> {
 }
 
 impl <T: Debug + Clone> UiWidget for Dropdown<T> {
-    fn get_all_element_ids(&self, widget_registry: &WidgetRegistry) -> Vec<ResourceId<UiElementId>> {
-        let mut element_ids = vec![];
-
-        for option in &self.options {
-            element_ids.append(&mut widget_registry.get_widget_by_id(&option.button_id).unwrap().get_all_element_ids(widget_registry));
-        }
-
-        element_ids.append(&mut widget_registry.get_widget_by_id(&self.button_id).unwrap().get_all_element_ids(widget_registry));
-        element_ids.append(&mut widget_registry.get_widget_by_id(&self.icon_widget_id).unwrap().get_all_element_ids(widget_registry));
-
-        return element_ids
+    fn get_direct_element_ids(&self) -> Vec<ResourceId<UiElementId>> {
+        vec![]
+    }
+    fn get_direct_layout_ids(&self) -> Vec<ResourceId<UiLayoutId>> {
+        vec![ 
+            self.options_layout,
+        ]
+    }
+    fn get_direct_widget_ids(&self) -> Vec<ResourceId<UiWidgetId>> {
+        vec![
+            self.icon_widget_id,
+            self.button_id,
+        ]
     }
 
     fn get_main_element_id(&self, widget_registry: &WidgetRegistry) -> ResourceId<UiElementId> {

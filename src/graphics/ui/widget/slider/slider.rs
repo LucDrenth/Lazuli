@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{ElementRegistry, interface::{is_valid_z_index, self, WidgetRegistry}, TextBuilder, Position, element::AnchorPoint, widget::UiWidget, UiElementId, self, bounds_2d::Bounds2d, UiUpdateTargets, UpdateTargetCollection}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, log, input::{Input, MouseButton}, ResourceId};
+use crate::{graphics::{ui::{ElementRegistry, interface::{is_valid_z_index, self, WidgetRegistry}, TextBuilder, Position, element::AnchorPoint, widget::UiWidget, UiElementId, self, bounds_2d::Bounds2d, UiUpdateTargets, UpdateTargetCollection, UiLayoutId, UiWidgetId}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, log, input::{Input, MouseButton}, ResourceId};
 
 #[derive(Clone, Copy, Debug)]
 pub enum SliderProgressBarAlignment {
@@ -39,12 +39,18 @@ pub struct SliderUpdateResult {
 }
 
 impl UiWidget for Slider {
-    fn get_all_element_ids(&self, _widget_registry: &WidgetRegistry) -> Vec<ResourceId<UiElementId>> {
+    fn get_direct_element_ids(&self) -> Vec<ResourceId<UiElementId>> {
         vec![
             self.background_element_id,
             self.text_element_id,
             self.progress_element_id,
         ]
+    }
+    fn get_direct_layout_ids(&self) -> Vec<ResourceId<UiLayoutId>> {
+        vec![]
+    }
+    fn get_direct_widget_ids(&self) -> Vec<ResourceId<UiWidgetId>> {
+        vec![]
     }
 
     /// Background is the main element. It defines the position and size of the slider

@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{ElementRegistry, UiElementId, shapes::{RectangleBuilder, Rectangle}, UiTexture, Position, interface::{is_valid_z_index, self, WidgetRegistry}, widget::UiWidget, bounds_2d::Bounds2d, UiUpdateTargets, UpdateTargetCollection}, Color, shader::ShaderBuilder, texture::Texture}, asset_manager::AssetManager, ResourceId, log};
+use crate::{graphics::{ui::{ElementRegistry, UiElementId, shapes::{RectangleBuilder, Rectangle}, UiTexture, Position, interface::{is_valid_z_index, self, WidgetRegistry}, widget::UiWidget, bounds_2d::Bounds2d, UiUpdateTargets, UpdateTargetCollection, UiLayoutId, UiWidgetId}, Color, shader::ShaderBuilder, texture::Texture}, asset_manager::AssetManager, ResourceId, log};
 
 pub struct Icon {
     rectangle_element_id: ResourceId<UiElementId>,
@@ -9,8 +9,16 @@ pub struct Icon {
 }
 
 impl UiWidget for Icon {
-    fn get_all_element_ids(&self, _widget_registry: &WidgetRegistry) -> Vec<ResourceId<UiElementId>> {
-        vec![self.rectangle_element_id]
+    fn get_direct_element_ids(&self) -> Vec<ResourceId<UiElementId>> {
+        vec![
+            self.rectangle_element_id,
+        ]
+    }
+    fn get_direct_layout_ids(&self) -> Vec<ResourceId<UiLayoutId>> {
+        vec![]
+    }
+    fn get_direct_widget_ids(&self) -> Vec<ResourceId<UiWidgetId>> {
+        vec![]
     }
 
     fn get_main_element_id(&self, _widget_registry: &WidgetRegistry) -> ResourceId<UiElementId> {
