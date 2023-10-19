@@ -67,7 +67,7 @@ impl <T: Debug + Clone> UiWidget for Dropdown<T> {
         // The options layout is anchored to the button, which makes it reposition the elements already. But we also need to
         // update the layout its drawbounds after repositioning its elements.
         targets.positions.widgets.push(WidgetUpdateTarget::new(self.button_id, position));
-        targets.layouts_to_update_draw_bounds.push(self.options_layout);
+        targets.update_draw_bounds_recursively.layouts.push(LayoutUpdateTarget::new(self.options_layout, ()));
 
         targets
     }

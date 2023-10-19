@@ -68,7 +68,6 @@ pub struct UpdateTargetCollection {
     pub width: UiUpdateTargets<f32>,
     pub height: UiUpdateTargets<f32>,
     pub visibility: UiUpdateTargets<bool>,
-    pub layouts_to_update_draw_bounds: Vec<ResourceId<UiLayoutId>>, // TODO remove, since update_draw_bounds is a replacement
     pub update_draw_bounds_recursively: UiUpdateTargets<()>,
 }
 impl Default for UpdateTargetCollection {
@@ -80,20 +79,18 @@ impl Default for UpdateTargetCollection {
             width: Default::default(),
             height: Default::default(),
             visibility: Default::default(),
-            layouts_to_update_draw_bounds: vec![],
             update_draw_bounds_recursively: Default::default(),
         }
     }
 }
 
 impl UpdateTargetCollection {
-    pub fn append(&mut self, mut target: UpdateTargetCollection) {
+    pub fn append(&mut self, target: UpdateTargetCollection) {
         self.positions.append(target.positions);
         self.z_index.append(target.z_index);
         self.draw_bounds.append(target.draw_bounds);
         self.width.append(target.width);
         self.height.append(target.height);
-        self.layouts_to_update_draw_bounds.append(&mut target.layouts_to_update_draw_bounds);
         self.update_draw_bounds_recursively.append(target.update_draw_bounds_recursively);
     }
 }

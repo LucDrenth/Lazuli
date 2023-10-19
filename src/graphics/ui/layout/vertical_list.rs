@@ -180,9 +180,6 @@ impl VerticalList {
             update_targets.update_draw_bounds_recursively.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), ()))
         }
 
-        // TODO make sure we update the drawbounds of each affected layout, excluding this one. For this, we have to go through each widget
-        // and get its layouts, call update_draw_bounds and repeat for the widgets of that layout (recursively).
-
         // TODO implement and update scrollbar
         
         update_targets

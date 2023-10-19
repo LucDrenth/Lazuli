@@ -209,34 +209,7 @@ impl Interface {
         self.handle_ui_update_targets_visibility(targets_collection.visibility);
         self.handle_ui_update_targets_width(targets_collection.width);
         self.handle_ui_update_targets_height(targets_collection.height);
-
-        for layout_id in targets_collection.layouts_to_update_draw_bounds {
-            let targets = self.layout_registry.update_layout_draw_bounds(&layout_id, &self.element_registry).unwrap();
-            self.handle_ui_update_targets_collection(targets);
-        }
-
-
-        // TODO handle update_draw_bounds_recursively
-        let mut new_targets = UpdateTargetCollection::default();
-        let mut handle_new_targets = false;
-
-        for widget_id in targets_collection.update_draw_bounds_recursively.widgets {
-            for layout_id in self.widget_registry.get_widget_by_id(&widget_id.widget_id).unwrap().get_direct_layout_ids() {
-                new_targets.update_draw_bounds_recursively.layouts.push(LayoutUpdateTarget::new(layout_id, ()));
-                handle_new_targets = true;
-            }
-        }
-
-        for layout_id in targets_collection.update_draw_bounds_recursively.layouts {
-            let targets = self.layout_registry.update_layout_draw_bounds(&layout_id.layout_id, &self.element_registry).unwrap();
-            new_targets.append(targets);
-            handle_new_targets = true;
-        
-        }
-
-        if handle_new_targets {
-            self.handle_ui_update_targets_collection(new_targets);
-        }
+        self.handle_ui_update_targets_draw_bounds_recursively(targets_collection.update_draw_bounds_recursively);
     }
 
 
@@ -306,6 +279,28 @@ impl Interface {
         for target in targets.widgets {
             let new_targets = self.widget_registry.set_widget_visibility(&target.widget_id, target.data, &mut self.element_registry);
             self.handle_ui_update_targets_visibility(new_targets);
+        }
+    }
+
+    fn handle_ui_update_targets_draw_bounds_recursively(&mut self, targets: UiUpdateTargets<()>) {
+        let mut new_targets = UpdateTargetCollection::default();
+        let mut handle_new_targets = false;
+
+        for widget_id in targets.widgets {
+            for layout_id in self.widget_registry.get_widget_by_id(&widget_id.widget_id).unwrap().get_direct_layout_ids() {
+                new_targets.update_draw_bounds_recursively.layouts.push(LayoutUpdateTarget::new(layout_id, ()));
+                handle_new_targets = true;
+            }
+        }
+
+        for layout_id in targets.layouts {
+            let targets = self.layout_registry.update_layout_draw_bounds(&layout_id.layout_id, &self.element_registry).unwrap();
+            new_targets.append(targets);
+            handle_new_targets = true;
+        }
+
+        if handle_new_targets {
+            self.handle_ui_update_targets_collection(new_targets);
         }
     }
 }
