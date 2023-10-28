@@ -155,7 +155,17 @@ impl ElementRegistry {
         };
 
         let text_element = text_builder.build(text, &font_id_to_use, asset_manager, self)?;
+        self.on_create_element(&text_element, asset_manager);
+
         Ok(self.add_text(text_element))
+    }
+
+    fn on_create_element(&self, element: &impl UiElement, asset_manager: &mut AssetManager) {
+        // TODO We only need to set this view uniform when the shader has been newly made.
+        asset_manager.get_material_shader(element.material_id()).unwrap().set_uniform(
+            "view", 
+            to_view_uniform(self.window_size.x, self.window_size.y)
+        );
     }
 
     pub fn add_text(&mut self, text_element: Text) -> ResourceId<UiElementId> {
@@ -171,6 +181,8 @@ impl ElementRegistry {
 
     pub fn create_rectangle(&mut self, builder: &RectangleBuilder, asset_manager: &mut AssetManager) -> Result<ResourceId<UiElementId>, String> {
         let rectangle_element = builder.build(asset_manager, self)?;
+        self.on_create_element(&rectangle_element, asset_manager);
+
         Ok(self.add_rectangle(rectangle_element))
     }
 

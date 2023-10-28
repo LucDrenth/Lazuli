@@ -20,6 +20,16 @@ impl ShaderBuilder {
         ShaderProgram::new(&self.vertex_shader_path, &self.fragment_shader_path)
     }
 
+    pub fn with_vertex_shader(mut self, path: impl Into<String>) -> Self {
+        self.vertex_shader_path = path.into();
+        self
+    }
+
+    pub fn with_fragment_shader(mut self, path: impl Into<String>) -> Self {
+        self.fragment_shader_path = path.into();
+        self
+    }
+
     pub fn hash(&self) -> Result<u64, String> {
         let mut hasher = DefaultHasher::new();
         self.vertex_shader_path.hash(&mut hasher);
