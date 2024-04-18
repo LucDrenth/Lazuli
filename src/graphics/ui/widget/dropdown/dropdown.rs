@@ -132,13 +132,13 @@ impl <T: Debug + Clone> UiWidget for Dropdown<T> {
 
 impl<T: Debug + Clone> Dropdown<T> {
     fn option_button_z_index(base_z_index: f32) -> f32 {
-        (1000.0 + base_z_index).min(MAX_Z_INDEX - 1.0)
+        (1_000.0 + base_z_index).min(MAX_Z_INDEX - 1.0)
     }
 
     /// Returns the newly selected value, or None if nothing has changed
     pub fn update(
         &mut self, 
-        clicked_button_id: &Option<ResourceId<UiWidgetId>>, 
+        clicked_button_id: &Option<ResourceId<UiWidgetId>>,
         widget_registry_update_result: &mut WidgetRegistryUdpateResult,
     ) -> Option<T> {
         if let Some(clicked_button) = clicked_button_id {

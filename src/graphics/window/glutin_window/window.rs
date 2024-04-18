@@ -270,6 +270,6 @@ impl GlutinWindow {
 
 fn get_next_frame_time(start_time: Instant, target_fps: u64) -> u128 {
     let elapsed_time = Instant::now().duration_since(start_time).as_millis() as u128;
-    let frame_time_ms = 1000 / target_fps as u128;
+    let frame_time_ms = 1_000 / target_fps as u128;
     return time::now_millis() + frame_time_ms - elapsed_time;
 }
