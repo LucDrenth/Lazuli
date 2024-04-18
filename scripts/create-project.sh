@@ -11,7 +11,7 @@ COLOR_RESET='\033[0m'
 # $1 = color
 # $2 = message
 function log() {
-    printf "\n$1 $2 ${COLOR_RESET}\n\n"
+    printf "\n${1}${2} ${COLOR_RESET}\n\n"
 }
 
 function log_info() {
