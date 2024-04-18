@@ -23,3 +23,9 @@ To start the engine locally, run [run.sh](/scripts/run.sh). The scene that will 
 ## Coding standards
 ### Shaders
 Local variables names use the snake_case convention. Variable qualifiers ('in', 'out', 'uniform' etc.) use the camelCase convention.
+
+### Scripts
+Variables should be screaming snake_case, like 
+```bash
+MY_VARIABLE_NAME="awesome"
+```
