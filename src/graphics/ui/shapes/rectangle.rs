@@ -187,6 +187,7 @@ pub struct RectangleBuilder {
     border: Border,
     texture_padding: f32,
     custom_shader_values: CustomShaderValues,
+    handle_scroll: bool,
 }
 
 impl RectangleBuilder {
@@ -207,6 +208,7 @@ impl RectangleBuilder {
             },
             texture_padding: 0.0,
             custom_shader_values: Default::default(),
+            handle_scroll: false,
         }
     }
 
@@ -252,6 +254,7 @@ impl RectangleBuilder {
             element_registry
         );
         world_data.show = self.is_visible;
+        world_data.event_handlers.scroll_handler.set_handle(self.handle_scroll);
 
         Ok(Rectangle { 
             vao, 
@@ -374,6 +377,10 @@ impl RectangleBuilder {
     }
     pub fn with_custom_shader_value_f32(mut self, name: impl Into<String>, value: f32) -> Self {
         self.custom_shader_values.set_f32(name, value);
+        self
+    }
+    pub fn with_handle_scroll(mut self, handle_scroll: bool) -> Self {
+        self.handle_scroll = handle_scroll;
         self
     }
 }

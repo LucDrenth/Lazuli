@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{Position, AnchorPoint, shapes::RectangleBuilder, padding::Padding, bounds_2d::Bounds2d, UiWidgetId, UiElementId, interface::WidgetRegistry, ElementRegistry, UpdateTargetCollection, UiUpdateTargets, WidgetUpdateTarget}, Color}, asset_manager::AssetManager, log, input::Input, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{ui::{bounds_2d::Bounds2d, interface::WidgetRegistry, padding::Padding, shapes::RectangleBuilder, AnchorPoint, ElementRegistry, Position, UiElementId, UiUpdateTargets, UiWidgetId, UpdateTargetCollection, WidgetUpdateTarget}, Color}, input::Input, log::{self}, ResourceId};
 
 use super::{Layout, layout::{LAYOUT_ELEMENT_EXTRA_Z_INDEX, LayoutBuilder}};
 
@@ -76,14 +76,7 @@ impl Layout for VerticalList {
     fn update(&mut self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, input: &Input, scroll_speed: f32) -> UpdateTargetCollection {
         let mut update_targets = UpdateTargetCollection::default();
 
-        if self.widget_ids.is_empty() || input.get_scroll_y() == 0.0 {
-            return update_targets;
-        }
-
-        let new_scroll_amount = (self.current_scroll - input.get_scroll_y() as f32 * scroll_speed).clamp(0.0, self.max_scroll);
-        update_targets.append(
-            self.set_scroll_amount(new_scroll_amount, element_registry, widget_registry)
-        );
+        self.update_scroll(&mut update_targets, element_registry, widget_registry, input, scroll_speed);
 
         update_targets
     }
@@ -155,6 +148,29 @@ impl Layout for VerticalList {
 }
 
 impl VerticalList {
+    fn update_scroll(&mut self, update_target_collection: &mut UpdateTargetCollection, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, input: &Input, scroll_speed: f32) {
+        if self.widget_ids.is_empty() && input.get_scroll_y() == 0.0 {
+            return;
+        }
+
+        match element_registry.get_ui_element_by_id(&self.background_element_id) {
+            Some(element) => {
+                if !element.world_data().event_handlers.scroll_handler.did_handle() {
+                    return;
+                }
+            },
+            None => {
+                log::engine_warn(format!("VerticalLst does not update scroll because background element (id={:?}) was not found", self.background_element_id.id()));
+                return;
+            },
+        }
+
+        let new_scroll_amount = (self.current_scroll - input.get_scroll_y() as f32 * scroll_speed).clamp(0.0, self.max_scroll);
+        update_target_collection.append(
+            self.set_scroll_amount(new_scroll_amount, element_registry, widget_registry)
+        );
+    }
+
     pub fn set_scroll_amount(&mut self, new_scroll_amount: f32, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry) -> UpdateTargetCollection {
         let mut update_targets = UpdateTargetCollection::default();
 
@@ -233,7 +249,6 @@ impl VerticalListBuilder {
         }
     }
 
-    /// Clears widget ids
     pub fn build(&mut self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, asset_manager: &mut AssetManager) -> Result<(VerticalList, UpdateTargetCollection), String> {
         let background_width = match self.width {
             Width::Fixed(width) => width,
@@ -251,6 +266,7 @@ impl VerticalListBuilder {
             .with_height(background_height)
             .with_z_index(self.z_index)
             .with_visibility(self.is_visible)
+            .with_handle_scroll(true)
         , asset_manager)?;
 
         let layout_position = element_registry.get_ui_element_by_id(&background_element_id).unwrap().world_data().position();
@@ -301,7 +317,7 @@ impl VerticalListBuilder {
             update_targets.visibility.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), self.is_visible));
         }
 
-        // list.max_scroll still needs to be calculated, after the update targets are handled.
+        // list.max_scroll still needs to be calculated, but only after the update targets are handled.
 
         Ok((list, update_targets))
     }
