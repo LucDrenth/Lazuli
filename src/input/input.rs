@@ -104,6 +104,10 @@ impl Input {
         self.current_state.scroll_y
     }
 
+    pub fn has_scroll(&self) -> bool {
+        self.current_state.scroll_x != 0.0 && self.current_state.scroll_y != 0.0
+    }
+
 
     pub fn register_key_event(&mut self, key: Key, state: KeyState) {
         self.current_state.keys[key.as_number()] = state;
@@ -263,7 +267,7 @@ pub enum MouseButtonState {
     Down, // pressed down
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum MouseButton {
     Uknown = 0,
     Left = 1,

@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{ElementRegistry, interface::{is_valid_z_index, self, WidgetRegistry}, TextBuilder, Position, element::AnchorPoint, widget::UiWidget, UiElementId, self, bounds_2d::Bounds2d, UiUpdateTargets, UpdateTargetCollection, UiLayoutId, UiWidgetId}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, log, input::{Input, MouseButton}, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{font::PlainBitmapBuilder, ui::{self, bounds_2d::Bounds2d, element::{ui_element::UiElement, AnchorPoint}, interface::{self, is_valid_z_index, WidgetRegistry}, widget::UiWidget, ElementRegistry, Position, TextBuilder, UiElementId, UiLayoutId, UiUpdateTargets, UiWidgetId, UpdateTargetCollection}, Color}, input::{Input, InputAction, MouseButton}, log::{self}, ResourceId};
 
 #[derive(Clone, Copy, Debug)]
 pub enum SliderProgressBarAlignment {
@@ -29,6 +29,7 @@ pub struct Slider {
     scale: Vec2,
     z_index: f32,
     direction: SliderDirection,
+    debug: bool,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -110,12 +111,16 @@ impl UiWidget for Slider {
         _ = element_registry.set_element_visibility(&self.progress_element_id, visible);
         UiUpdateTargets::default()
     }
+    
+    fn is_debug(&self) -> bool {
+        self.debug
+    }
 }
 
 impl Slider {
     /// Returns Some if there is a change by dragging the slider
     pub fn update(&mut self, input: &Input, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Option<SliderUpdateResult> {
-        let did_start_drag = self.check_activate_drag(input, element_registry);
+        let did_start_drag = self.check_activate_drag(element_registry);
 
         if !element_registry.is_element_dragged(&self.id) {
             return None;
@@ -132,8 +137,8 @@ impl Slider {
     }
 
     /// Check if we should enable dragging
-    fn check_activate_drag(&self, input: &Input, element_registry: &mut ElementRegistry) -> bool {
-        if input.is_mouse_button_down(MouseButton::Left) && self.is_hovered(input, element_registry) {
+    fn check_activate_drag(&self, element_registry: &mut ElementRegistry) -> bool {
+        if element_registry.is_element_clicked(&self.background_element_id, MouseButton::Left, &InputAction::Down) {
             return element_registry.try_set_dragged_element(&self.id);
         }
 
@@ -159,8 +164,8 @@ impl Slider {
         self.set_normalised_value(normalised_value, element_registry, asset_manager);
     }
 
-    pub fn is_hovered(&self, input: &Input, element_registry: &ElementRegistry) -> bool {
-        element_registry.is_element_hovered(&self.background_element_id, input)
+    pub fn is_hovered(&self, element_registry: &ElementRegistry) -> bool {
+        element_registry.is_element_hovered(&self.background_element_id)
     }
 
     pub fn value(&self) -> f32 { self.value }
@@ -237,6 +242,7 @@ pub struct SliderBuilder {
     scale: Vec2,
     direction: SliderDirection,
     is_visible: bool,
+    debug: bool,
 }
 
 impl SliderBuilder {
@@ -259,6 +265,7 @@ impl SliderBuilder {
             scale: Vec2::ONE,
             direction: SliderDirection::LeftToRight,
             is_visible: true,
+            debug: false,
         }
     }
 
@@ -282,7 +289,7 @@ impl SliderBuilder {
             .build(asset_manager, element_registry)?;
         let background_element_id = element_registry.add_rectangle(background);
 
-        let progress_rectangle = ui::shapes::RectangleBuilder::new()
+        let mut progress_rectangle = ui::shapes::RectangleBuilder::new()
             .with_width(self.width)
             .with_height(self.height)
             .with_z_index(self.z_index + 0.01)
@@ -294,6 +301,8 @@ impl SliderBuilder {
             .with_scale(Vec2::new(self.initial_value / (self.maximum_value - self.minimum_value), 1.0) * self.scale)
             .with_visibility(self.is_visible)
             .build(asset_manager, element_registry)?;
+        progress_rectangle.mut_world_data().event_handlers.mouse_left_down_handler.set_capture(false);
+        progress_rectangle.mut_world_data().event_handlers.mouse_left_up_handler.set_capture(false);
         let progress_element_id = element_registry.add_rectangle(progress_rectangle);
 
         let text = TextBuilder::new()
@@ -319,6 +328,7 @@ impl SliderBuilder {
             scale: self.scale,
             z_index: self.z_index,
             direction: self.direction,
+            debug: self.debug,
         })
     }
 
@@ -410,6 +420,11 @@ impl SliderBuilder {
 
     pub fn with_visibility(mut self, visible: bool) -> Self {
         self.is_visible = visible;
+        self
+    }
+
+    pub fn with_debug(mut self, debug: bool) -> Self {
+        self.debug = debug;
         self
     }
 }

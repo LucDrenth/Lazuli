@@ -6,6 +6,7 @@ pub struct Icon {
     rectangle_element_id: ResourceId<UiElementId>,
     color: Option<Color>,
     z_index: f32,
+    debug: bool,
 }
 
 impl UiWidget for Icon {
@@ -62,6 +63,10 @@ impl UiWidget for Icon {
         _ = element_registry.set_element_visibility(&self.rectangle_element_id, visible);
         UiUpdateTargets::default()
     }
+
+    fn is_debug(&self) -> bool {
+        self.debug
+    }
 }
 
 enum IconSize {
@@ -96,6 +101,7 @@ pub struct IconBuilder {
     shader_builder: Option<ShaderBuilder>,
     padding: f32,
     is_visible: bool,
+    debug: bool,
 }
 
 impl IconBuilder {
@@ -110,6 +116,7 @@ impl IconBuilder {
             shader_builder: None,
             padding: 0.0,
             is_visible: true,
+            debug: false,
         }
     }
 
@@ -152,6 +159,7 @@ impl IconBuilder {
             rectangle_element_id,
             color: self.color.clone(),
             z_index: self.z_index,
+            debug: self.debug,
         };
 
         Ok(icon)
@@ -228,6 +236,11 @@ impl IconBuilder {
 
     pub fn with_visibility(mut self, visible: bool) -> Self {
         self.is_visible = visible;
+        self
+    }
+
+    pub fn with_debug(mut self, debug: bool) -> Self {
+        self.debug = debug;
         self
     }
 }

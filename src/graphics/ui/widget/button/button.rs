@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{TextBuilder, ElementRegistry, self, interface::{is_valid_z_index, self, WidgetRegistry}, Position, element::{AnchorPoint, ui_element::UiElement}, widget::UiWidget, UiElementId, text::TextAlign, Padding, bounds_2d::Bounds2d, UiUpdateTargets, UpdateTargetCollection, UiLayoutId, UiWidgetId}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, input::{Input, InputAction, MouseButton}, log, ResourceId};
+use crate::{graphics::{ui::{TextBuilder, ElementRegistry, self, interface::{is_valid_z_index, self, WidgetRegistry}, Position, element::{AnchorPoint, ui_element::UiElement}, widget::UiWidget, UiElementId, text::TextAlign, Padding, bounds_2d::Bounds2d, UiUpdateTargets, UpdateTargetCollection, UiLayoutId, UiWidgetId}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, input::{InputAction, MouseButton}, log, ResourceId};
 
 pub struct Button {
     text_element_id: ResourceId<UiElementId>,
@@ -12,6 +12,7 @@ pub struct Button {
     height: f32,
     text_align: TextAlign,
     padding: Padding,
+    debug: bool,
 }
 
 impl UiWidget for Button {
@@ -79,19 +80,22 @@ impl UiWidget for Button {
 
         UiUpdateTargets::default()
     }
+
+    fn is_debug(&self) -> bool {
+        self.debug
+    }
 }
 
 impl Button {
-    pub fn is_hovered(&self, input: &Input, element_registry: &ElementRegistry) -> bool {
-        element_registry.is_element_hovered(&self.background_element_id, input)
+    pub fn is_hovered(&self, element_registry: &ElementRegistry) -> bool {
+        element_registry.is_element_hovered(&self.background_element_id)
     }
 
-    pub fn is_clicked(&self, input: &Input, element_registry: &ElementRegistry) -> bool {
+    pub fn is_clicked(&self, element_registry: &ElementRegistry) -> bool {
         !element_registry.is_any_element_dragged() && element_registry.is_element_clicked(
             &self.background_element_id, 
             self.mouse_button_to_activate,
             &self.mouse_action_to_activate, 
-            input
         )
     }
 
@@ -130,6 +134,7 @@ pub struct ButtonBuilder {
     height: Option<f32>,
     is_visible: bool,
     text_align: TextAlign,
+    debug: bool,
 }
 
 impl ButtonBuilder {
@@ -149,6 +154,7 @@ impl ButtonBuilder {
             height: None,
             is_visible: true,
             text_align: TextAlign::Center,
+            debug: false,
         }
     }
 
@@ -211,6 +217,7 @@ impl ButtonBuilder {
             height: button_height,
             text_align: self.text_align,
             padding: self.padding.clone(),
+            debug: self.debug,
         })
     }
 
@@ -287,6 +294,11 @@ impl ButtonBuilder {
 
     pub fn with_text_align(mut self, text_align: TextAlign) -> Self {
         self.text_align = text_align;
+        self
+    }
+
+    pub fn with_debug(mut self, debug: bool) -> Self {
+        self.debug = debug;
         self
     }
 }

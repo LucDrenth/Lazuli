@@ -21,6 +21,7 @@ pub struct Dropdown<T: Debug + Clone> {
     selected: Option<T>,
     /// If false, option buttons do not use draw bounds
     option_buttons_respect_draw_bounds: bool,
+    debug: bool,
 }
 
 impl <T: Debug + Clone> UiWidget for Dropdown<T> {
@@ -128,6 +129,10 @@ impl <T: Debug + Clone> UiWidget for Dropdown<T> {
             ],
         }
     }
+
+    fn is_debug(&self) -> bool {
+        self.debug
+    }
 }
 
 impl<T: Debug + Clone> Dropdown<T> {
@@ -206,6 +211,7 @@ pub struct DropdownBuilder<T: Debug + Clone> {
     text_color: Color,
     gap_size: f32, // space between options
     width: f32,
+    debug: bool,
 }
 
 impl<T: Debug + Clone> DropdownBuilder<T> {
@@ -221,6 +227,7 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
             text_color: interface::default_text_color(),
             gap_size: 5.0,
             width: 100.0,
+            debug: false,
         }
     }
 
@@ -297,6 +304,7 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
             is_open: false,
             selected: selected_value,
             option_buttons_respect_draw_bounds: self.option_buttons_respect_draw_bounds,
+            debug: self.debug,
         }, vec![layout_update_targets]))
     }
 
@@ -361,6 +369,11 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
 
     pub fn with_width(mut self, width: f32) -> Self {
         self.width = width;
+        self
+    }
+
+    pub fn with_debug(mut self, debug: bool) -> Self {
+        self.debug = debug;
         self
     }
 }

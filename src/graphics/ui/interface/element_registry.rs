@@ -2,7 +2,7 @@ use std::any::TypeId;
 
 use glam::Vec2;
 
-use crate::{asset_manager::AssetManager, input::{Input, MouseButton, InputAction}, graphics::{font::Font, ui::{element::{ui_element::UiElement, AnchorElementData, world_element_data::WorldElementData}, Text, TextBuilder, shapes::{RectangleBuilder, Rectangle}, Position, bounds_2d::Bounds2d, UiElementId}, Color, shader::CustomShaderValues}, log, ResourceId};
+use crate::{asset_manager::AssetManager, input::{Input, MouseButton, InputAction}, graphics::{font::Font, ui::{element::{ui_element::UiElement, AnchorElementData, world_element_data::WorldElementData, InputEvent}, Text, TextBuilder, shapes::{RectangleBuilder, Rectangle}, Position, bounds_2d::Bounds2d, UiElementId}, Color, shader::CustomShaderValues}, log, ResourceId};
 
 use super::{interface, element_list::{ElementList, OrderedElementsItem, self}, anchor_tree::{AnchorTree, AnchorElementIdentifier}};
 
@@ -13,8 +13,10 @@ pub struct ElementRegistry {
     text_elements: ElementList<Text>,
     rectangle_elements: ElementList<Rectangle>,
 
-    /// list of ordered elements, ordered by z_index, so list starts with 
-    /// the elements with the highest z_index
+    /// list of ordered elements, ordered by z_index, so that the list starts with 
+    /// the elements with the lowest z_index and ends with the element with the highest 
+    /// z_index. This means the last element in the list gets drawn on top of every other
+    /// element.
     ordered_elements: Vec<OrderedElementsItem>,
 
     window_size: Vec2,
@@ -44,6 +46,46 @@ impl ElementRegistry {
     pub fn update(&mut self, _asset_manager: &mut AssetManager, input: &Input) {
         if input.is_mouse_button_up(MouseButton::Left) {
             self.dragged_element_id = None;
+        }
+
+        self.handle_inputs_events(input);
+    }
+
+    fn handle_inputs_events(&mut self, input: &Input) {
+        self.text_elements.reset_event_handlers();
+        self.rectangle_elements.reset_event_handlers();
+
+        self.handle_input_event(InputEvent::Hover, input);
+
+        if input.has_scroll() {
+            self.handle_input_event(InputEvent::Scroll, input);
+        }
+
+        if input.is_mouse_button_down(MouseButton::Left) {
+            self.handle_input_event(InputEvent::MouseLeftDown, input);
+        } else if input.is_mouse_button_up(MouseButton::Left) {
+            self.handle_input_event(InputEvent::MouseLeftUp, input);
+        }
+    }
+
+    fn handle_input_event(&mut self, event: InputEvent, input: &Input) {
+        let mouse_position = self.map_mouse_position(input);
+
+        for i in (0..self.ordered_elements.len()).rev() {
+            let element_type = self.ordered_elements[i].element_type;
+            let element_index = self.ordered_elements[i].index;
+
+            match self.get_mut_ui_element_by_index(element_type, element_index) {
+                Some(element) => {                    
+                    if element.world_data().show && element.world_data().is_within(mouse_position) && element.mut_world_data().event_handlers.register_event(event) {
+                        break;
+                    }
+                },
+                None => {
+                    log::engine_warn(format!("Failed to handle ElementRegistry input for element because we could not get it from ordered item {:?}"
+                    , self.ordered_elements[i]));
+                },
+            }
         }
     }
     
@@ -285,14 +327,10 @@ impl ElementRegistry {
         element_list::generate_id()
     }
 
-    pub fn is_element_hovered(&self, element_id: &ResourceId<UiElementId>, input: &Input) -> bool {
+    pub fn is_element_hovered(&self, element_id: &ResourceId<UiElementId>) -> bool {
         match self.get_ui_element_by_id(element_id) {
             Some(element) => {
-                let mouse_pos = self.map_mouse_position(&input);
-                
-                return element.world_data().show 
-                    && element.world_data().is_within(mouse_pos) 
-                ;
+                element.world_data().event_handlers.hover_handler.did_handle()
             }
             None => {
                 log::engine_warn(format!("ElementRegistry.is_element_hovered for element id {:?} returned false because element was not found", element_id));
@@ -301,9 +339,16 @@ impl ElementRegistry {
         }
     }
 
-    pub fn is_element_clicked(&self, element_id: &ResourceId<UiElementId>, mouse_button: MouseButton, input_action: &InputAction, input: &Input) -> bool {
-        return input.is_mouse_button_action(mouse_button, input_action)
-            && self.is_element_hovered(element_id, input)
+    pub fn is_element_clicked(&self, element_id: &ResourceId<UiElementId>, mouse_button: MouseButton, input_action: &InputAction) -> bool {
+        match self.get_ui_element_by_id(element_id) {
+            Some(element) => {
+                element.world_data().event_handlers.did_handle_mouse_event(&mouse_button, input_action)
+            },
+            None => {
+                log::engine_warn(format!("ElementRegistry.is_element_clicked for element id {:?} returned false because element was not found", element_id));
+                false
+            },
+        }
     }
 
     pub fn get_element_scale(&self, element_id: &ResourceId<UiElementId>) -> Result<Vec2, String> {

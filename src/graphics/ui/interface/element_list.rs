@@ -96,4 +96,10 @@ impl<T: UiElement + 'static> ElementList<T> {
             return Some(&self.elements.last().unwrap().element);
         }
     }
+
+    pub fn reset_event_handlers(&mut self) {
+        for i in 0..self.elements.len() {
+            self.elements[i].element.mut_world_data().event_handlers.reset();
+        }
+    }
 }

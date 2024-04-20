@@ -39,9 +39,6 @@ impl WidgetRegistry {
     pub fn update(&mut self, input: &Input, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> WidgetRegistryUdpateResult {
         let mut result: WidgetRegistryUdpateResult = Default::default();
 
-        // TODO update based on z-index of the widget and make it so that if two widgets lay on top of each other, do not
-        // handle input on them both.
-
         // update sliders
         for entry in self.sliders.entries.iter_mut() {
             entry.update_result = entry.widget.update(input, element_registry, asset_manager);
@@ -53,7 +50,7 @@ impl WidgetRegistry {
             if clicked_button_id.is_some() {
                 entry.update_result = false;
             } else {
-                entry.update_result = entry.widget.is_clicked(input, element_registry);
+                entry.update_result = entry.widget.is_clicked(element_registry);
                 if entry.update_result {
                     clicked_button_id = Some(entry.id);
                 }

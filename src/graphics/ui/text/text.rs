@@ -194,6 +194,7 @@ impl TextBuilder {
             , element_registry
         );
         world_data.show = self.is_visible;
+        world_data.event_handlers.set_handle(false);
 
         let mut result = Text { 
             text: text.into(), 

@@ -2,7 +2,7 @@ use glam::Vec2;
 
 use crate::graphics::ui::{ElementRegistry, bounds_2d::Bounds2d};
 
-use super::{Position, AnchorElementData};
+use super::{Position, AnchorElementData, input_handlers::InputEventHandlers};
 
 /// World space data about size and positioning of a UI element
 #[derive(Clone, Copy)]
@@ -15,6 +15,7 @@ pub struct WorldElementData {
     scale: Vec2,
     pub show: bool,
     pub draw_bounds: Bounds2d,
+    pub event_handlers: InputEventHandlers,
 }
 
 impl WorldElementData {
@@ -28,6 +29,7 @@ impl WorldElementData {
             scale,
             show: true,
             draw_bounds: Bounds2d::none(),
+            event_handlers: InputEventHandlers::new(),
         };
 
         let anchor_element_data = position_type.get_anchor_element_data(element_registry);

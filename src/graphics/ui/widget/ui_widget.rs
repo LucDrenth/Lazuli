@@ -23,4 +23,8 @@ pub trait UiWidget {
     fn set_height(&self, height: f32, element_registry: &mut ElementRegistry) -> UiUpdateTargets<f32>;
     fn set_size(&self, size: Vec2, element_registry: &mut ElementRegistry) -> UiUpdateTargets<Vec2>;
     fn set_visibility(&mut self, visible: bool, element_registry: &mut ElementRegistry) -> UiUpdateTargets<bool>;
+
+    /// We can mark elements as debug in the widget builders. This does nothing on itself, but can be useful for tracking
+    /// and debugging the element
+    fn is_debug(&self) -> bool;
 }
