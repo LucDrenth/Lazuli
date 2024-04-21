@@ -33,22 +33,17 @@ impl AssetManager {
             None => (),
         }
 
-        let mut texture = Texture::new();
-        match texture.load_from_path(path_string) {
-            Ok(_) => (),
-            Err(err) => {
-                return Err(err);
-            },
+        match Texture::new_from_path(path_string) {
+            Ok(texture) => self.textures.add(texture, some_path),
+            Err(err) => Err(err),
         }
-
-        self.textures.add(texture, some_path)
     }
 
     pub fn load_texture_from_image<T: Into<TextureImage>>(&mut self, img: T) -> Result<ResourceId<Texture>, String> {
-        let texture = Texture::new();
-        texture.load_from_image(img);
-
-        self.textures.add(texture, None)
+        match Texture::new_from_image(img) {
+            Ok(texture) => self.textures.add(texture, None),
+            Err(err) => Err(err),
+        }
     }
 
     pub fn get_texture_by_id(&mut self, id: &ResourceId<Texture>) -> Option<&Texture> {

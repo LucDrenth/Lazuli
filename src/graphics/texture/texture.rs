@@ -11,7 +11,7 @@ pub struct Texture {
 }
 
 impl Texture {
-    pub fn new() -> Self {
+    fn create() -> Self {
         let mut id: GLuint = 0;
 
         unsafe {
@@ -20,6 +20,37 @@ impl Texture {
 
         opengl::gl_check_errors();
         Self { id, original_size: Vec2::ZERO }
+    }
+
+    pub fn new_from_path(path: impl Into<String>) -> Result<Self, String> {
+        let mut texture = Self::create();
+
+        let path_string = path.into();
+
+        match image::open(path_string.clone()) {
+            Ok(img) => {
+                texture.bind();
+
+                let image_size = Self::upload(&img.into_rgba8());
+                texture.original_size = image_size;
+
+                Ok(texture)
+            }
+            Err(err) => {
+                Err(format!("Failed to load texture image from path {:?}: {}", path_string, err))
+            }
+        }
+    }
+
+    // Currently always returns Ok, but returns a Result to keep consistent with new_from_path
+    pub fn new_from_image<T: Into<TextureImage>>(img: T) -> Result<Texture, String> {
+        let mut texture = Self::create();
+        texture.bind();
+
+        let image_size = Self::upload(img);
+        texture.original_size = image_size;
+
+        Ok(texture)
     }
 
     pub fn activate(&self, unit: usize) {
@@ -38,33 +69,7 @@ impl Texture {
         opengl::gl_check_errors();
     }
 
-    pub fn load_from_path(&mut self, path: impl Into<String>) -> Result<(), String> {
-        let path_string = path.into();
-
-        match image::open(path_string.clone()) {
-            Ok(img) => {
-                let width = img.width() as f32;
-                let height = img.height() as f32;
-
-                self.bind();
-                Self::upload(&img.into_rgba8());
-
-                self.original_size = Vec2::new(width, height);
-
-                Ok(())
-            }
-            Err(err) => {
-                Err(format!("Failed to load texture image from path {:?}: {}", path_string, err))
-            }
-        }
-    }
-
-    pub fn load_from_image<T: Into<TextureImage>>(&self, img: T) {
-        self.bind();
-        Self::upload(img);
-    }
-
-    fn upload<T: Into<TextureImage>>(texture_image: T) {
+    fn upload<T: Into<TextureImage>>(texture_image: T) -> Vec2 {
         let img: TextureImage = texture_image.into();
 
         unsafe {
@@ -99,6 +104,8 @@ impl Texture {
         }
             
         opengl::gl_check_errors();
+
+        Vec2 { x: img.width as f32, y: img.height as f32 }
     }
 
     pub fn size(&self) -> Vec2 { self.original_size }
