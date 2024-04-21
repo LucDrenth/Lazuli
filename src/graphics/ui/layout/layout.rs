@@ -2,6 +2,7 @@ use crate::{graphics::ui::{UiWidgetId, ElementRegistry, interface::WidgetRegistr
 
 /// Widgets in a layout should get a higher z_index than the background
 pub const LAYOUT_ELEMENT_EXTRA_Z_INDEX: f32  = 0.1;
+pub const LAYOUT_SCROLLBAR_EXTRA_Z_INDEX: f32 = LAYOUT_ELEMENT_EXTRA_Z_INDEX + 0.5;
 
 pub trait Layout {
     fn add_widget(&mut self, widget_id: &ResourceId<UiWidgetId>, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry) -> UpdateTargetCollection;
@@ -13,7 +14,7 @@ pub trait Layout {
     fn set_width(&mut self, width: f32, element_registry: &mut ElementRegistry) -> UpdateTargetCollection;
     /// Recalculate (and set) max scroll using internal values. Should be called after list of layout elements changed or any layout element has
     /// been resized. Can not be called internally since element resizing is handled through UpdateTargetCollection.
-    fn calculate_max_scroll(&mut self, element_registry: &ElementRegistry, widget_registry: &WidgetRegistry);
+    fn update_max_scroll(&mut self, element_registry: &mut ElementRegistry, widget_registry: &WidgetRegistry);
 
     /// Update elements their draw bounds. To be called after the background element (and with it all other elements) have been repositioned.
     /// This happens, for example, after resizing the window.

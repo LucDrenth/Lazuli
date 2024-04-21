@@ -274,6 +274,7 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
             .with_visibility(false)
             .with_z_index(Dropdown::<T>::option_button_z_index(self.z_index))
             .with_width(Width::Fixed(self.width))
+            .with_scrollbar(false)
         ;
 
         for option in &self.options {

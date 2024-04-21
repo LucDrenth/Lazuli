@@ -175,13 +175,13 @@ impl Interface {
     pub fn create_layout(&mut self, builder: &mut impl LayoutBuilder, asset_manager: &mut AssetManager) -> Result<ResourceId<UiLayoutId>, String> {
         let (id, update_targets) = self.layout_registry.create_layout(builder, &mut self.element_registry, &mut self.widget_registry, asset_manager)?;
         self.handle_ui_update_targets_collection(update_targets);
-        self.layout_registry.get_mut_layout(&id).unwrap().calculate_max_scroll(&self.element_registry, &self.widget_registry);
+        self.layout_registry.get_mut_layout(&id).unwrap().update_max_scroll(&mut self.element_registry, &self.widget_registry);
         Ok(id)
     }
     pub fn add_widget_to_layout(&mut self, widget_id: &ResourceId<UiWidgetId>, layout_id: &ResourceId<UiLayoutId>) -> Result<(), String> {
         let update_targets = self.layout_registry.add_widget_to_layout(widget_id, layout_id, &mut self.element_registry, &mut self.widget_registry)?;
         self.handle_ui_update_targets_collection(update_targets);
-        self.layout_registry.get_mut_layout(&layout_id).unwrap().calculate_max_scroll(&self.element_registry, &self.widget_registry);
+        self.layout_registry.get_mut_layout(&layout_id).unwrap().update_max_scroll(&mut self.element_registry, &self.widget_registry);
         Ok(())
     }
 

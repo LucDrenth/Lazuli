@@ -2,11 +2,13 @@ use glam::Vec2;
 
 use crate::{asset_manager::AssetManager, graphics::{ui::{bounds_2d::Bounds2d, interface::WidgetRegistry, padding::Padding, shapes::RectangleBuilder, AnchorPoint, ElementRegistry, Position, UiElementId, UiUpdateTargets, UiWidgetId, UpdateTargetCollection, WidgetUpdateTarget}, Color}, input::Input, log::{self}, ResourceId};
 
-use super::{Layout, layout::{LAYOUT_ELEMENT_EXTRA_Z_INDEX, LayoutBuilder}};
+use super::{Layout, layout::{LAYOUT_ELEMENT_EXTRA_Z_INDEX, LAYOUT_SCROLLBAR_EXTRA_Z_INDEX, LayoutBuilder}};
 
 pub struct VerticalList {
     widget_ids: Vec<ResourceId<UiWidgetId>>, // List of unique ids. We do not use a HashSet because the order matters.
     background_element_id: ResourceId<UiElementId>,
+    scrollbar_element_id: Option<ResourceId<UiElementId>>,
+    scrollbar_inset: Vec2,
     gap_size: f32, // the amount of space between elements
     position: Position,
     max_height: f32,
@@ -65,12 +67,15 @@ impl Layout for VerticalList {
         update_targets.z_index.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), self.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX));
         update_targets.draw_bounds.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), self.draw_bounds.clone()));
 
+        // New max scroll and background height will be calculated after the update_targets have been processed
+
         update_targets
     }
 
-    fn calculate_max_scroll(&mut self, element_registry: &ElementRegistry, widget_registry: &WidgetRegistry) {
+    fn update_max_scroll(&mut self, element_registry: &mut ElementRegistry, widget_registry: &WidgetRegistry) {
         let background_height = element_registry.get_element_size(&self.background_element_id).unwrap().x;
         self.max_scroll = calculate_max_scroll(&self.widget_ids, &self.padding, &self.background_element_id, background_height, &element_registry, &widget_registry);
+        self.update_scroll_bar(element_registry);
     }
 
     fn update(&mut self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, input: &Input, scroll_speed: f32) -> UpdateTargetCollection {
@@ -85,8 +90,17 @@ impl Layout for VerticalList {
         self.z_index = z_index;
 
         element_registry.set_element_z_index(&self.background_element_id, z_index).unwrap_or_else(|err| {
-            log::engine_warn(format!("failed to set z-index for VerticalList background element with id {:?}: {}", self.background_element_id, err));
+            log::engine_warn(format!("failed to set z-index for VerticalList background element with id {:?}: {}", self.background_element_id.id(), err));
         });
+
+        match &self.scrollbar_element_id {
+            Some(scrollbar_element_id) => {
+                element_registry.set_element_z_index(scrollbar_element_id, z_index + LAYOUT_SCROLLBAR_EXTRA_Z_INDEX).unwrap_or_else(|err| {
+                    log::engine_warn(format!("failed to set z-index for VerticalList scrollbar element with id {:?}: {}", scrollbar_element_id.id(), err));
+                });
+            },
+            None => {},
+        } 
         
         let mut update_targets: UiUpdateTargets<f32> = Default::default();
         for widget_id in self.widget_ids.iter() {
@@ -96,7 +110,18 @@ impl Layout for VerticalList {
     }
 
     fn set_visibility(&mut self, visible: bool, element_registry: &mut ElementRegistry) -> UiUpdateTargets<bool> {
-        _ = element_registry.set_element_visibility(&self.background_element_id, visible);
+        _ = element_registry.set_element_visibility(&self.background_element_id, visible).unwrap_or_else(|err| {
+            log::engine_warn(format!("failed to set visibility for VerticalList background element with id {:?}: {}", &self.background_element_id.id(), err));
+        });
+
+        match &self.scrollbar_element_id {
+            Some(scrollbar_element_id) => {
+                element_registry.set_element_visibility(scrollbar_element_id, visible).unwrap_or_else(|err| {
+                    log::engine_warn(format!("failed to set visibility for VerticalList scrollbar element with id {:?}: {}", scrollbar_element_id.id(), err));
+                });
+            },
+            None => {},
+        }
 
         let mut update_targets: UiUpdateTargets<bool> = Default::default();
         for widget_id in self.widget_ids.iter() {
@@ -149,37 +174,41 @@ impl Layout for VerticalList {
 
 impl VerticalList {
     fn update_scroll(&mut self, update_target_collection: &mut UpdateTargetCollection, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, input: &Input, scroll_speed: f32) {
-        if self.widget_ids.is_empty() && input.get_scroll_y() == 0.0 {
+        if !self.should_update_scroll(element_registry, input) {
             return;
+        }
+
+        let new_scroll_amount = (self.current_scroll - input.get_scroll_y() as f32 * scroll_speed).clamp(0.0, self.max_scroll);
+        if self.current_scroll == new_scroll_amount {
+            return;
+        }
+        self.current_scroll = new_scroll_amount;
+
+        update_target_collection.append(self.update_scroll_for_widgets(element_registry, widget_registry));
+        self.update_scroll_bar(element_registry);
+    }
+
+    fn should_update_scroll(&self, element_registry: &ElementRegistry, input: &Input) -> bool {
+        if self.widget_ids.is_empty() && input.get_scroll_y() == 0.0 {
+            return false;
         }
 
         match element_registry.get_ui_element_by_id(&self.background_element_id) {
             Some(element) => {
-                if !element.world_data().event_handlers.scroll_handler.did_handle() {
-                    return;
+                if element.world_data().event_handlers.scroll_handler.did_handle() {
+                    return true;
                 }
             },
             None => {
-                log::engine_warn(format!("VerticalLst does not update scroll because background element (id={:?}) was not found", self.background_element_id.id()));
-                return;
+                log::engine_warn(format!("VerticalLst does not update scroll because background element (id={}) was not found", self.background_element_id.id()));
             },
         }
 
-        let new_scroll_amount = (self.current_scroll - input.get_scroll_y() as f32 * scroll_speed).clamp(0.0, self.max_scroll);
-        update_target_collection.append(
-            self.set_scroll_amount(new_scroll_amount, element_registry, widget_registry)
-        );
+        false
     }
 
-    pub fn set_scroll_amount(&mut self, new_scroll_amount: f32, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry) -> UpdateTargetCollection {
+    fn update_scroll_for_widgets(&self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry) -> UpdateTargetCollection {
         let mut update_targets = UpdateTargetCollection::default();
-
-        if new_scroll_amount == self.current_scroll {
-            // There is no scrolling in this layout
-            return update_targets;
-        }
-
-        self.current_scroll = new_scroll_amount;
 
         // Update widgets position
         let first_widget_id = self.widget_ids.first().unwrap();
@@ -195,10 +224,33 @@ impl VerticalList {
         for widget_id in &self.widget_ids {
             update_targets.update_draw_bounds_recursively.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), ()))
         }
-
-        // TODO implement and update scrollbar
         
         update_targets
+    }
+
+    fn update_scroll_bar(&self, element_registry: &mut ElementRegistry) {
+        match self.scrollbar_element_id {
+            Some(scrollbar_element_id) => {
+                let progress = self.current_scroll / self.max_scroll;
+
+                match element_registry.get_element_size(&scrollbar_element_id) {
+                    Ok(scrollbar_size) => {
+                        let max_scrollbar_distance = self.max_height - scrollbar_size.y - self.scrollbar_inset.y * 2.0;
+                        let offset = max_scrollbar_distance * progress;
+                        _ = element_registry.set_element_position(&scrollbar_element_id, Position::ElementAnchor(
+                            AnchorPoint::TopRightInside(self.scrollbar_inset.x, self.scrollbar_inset.y + offset), 
+                            self.background_element_id
+                        )).map_err(|err| {
+                            log::engine_err(format!("failed to scroll scrollbar because background element with id {} was not found: {}", self.background_element_id.id(), err));
+                        });
+                    },
+                    Err(err) => {
+                        log::engine_err(format!("failed to scroll scrollbar because scrollbar element with id {} was not found: {}", scrollbar_element_id.id(), err));
+                    },
+                }
+            },
+            None => {},
+        }
     }
 }
 
@@ -222,6 +274,10 @@ pub struct VerticalListBuilder {
     z_index: f32,
     resize_widgets: bool,
     is_visible: bool,
+    has_scrollbar: bool,
+    scrollbar_color: Color,
+    scrollbar_width: f32,
+    scrollbar_inset: Vec2,
 }
 
 impl LayoutBuilder for VerticalListBuilder {
@@ -246,6 +302,10 @@ impl VerticalListBuilder {
             resize_widgets: true,
             width: Width::Auto(),
             is_visible: true,
+            has_scrollbar: true,
+            scrollbar_width: 5.0,
+            scrollbar_color: Color::Rgba(255, 255, 255, 0.7),
+            scrollbar_inset: Vec2::new(2.0, 2.0),
         }
     }
 
@@ -269,6 +329,26 @@ impl VerticalListBuilder {
             .with_handle_scroll(true)
         , asset_manager)?;
 
+        let scrollbar_element_id = match self.has_scrollbar {
+            true => {
+                // TODO base this on the amount we can scroll 
+                let scrollbar_height = background_height / 2.0;
+
+                Some(element_registry.create_rectangle(&RectangleBuilder::new()
+                    .with_position(Position::ElementAnchor(
+                        AnchorPoint::TopRightInside(self.scrollbar_inset.x, self.scrollbar_inset.y), 
+                        background_element_id
+                    ))
+                    .with_width(self.scrollbar_width)
+                    .with_height(scrollbar_height)
+                    .with_color(self.scrollbar_color.clone())
+                    .with_z_index(self.z_index + LAYOUT_SCROLLBAR_EXTRA_Z_INDEX)
+                    .with_border_radius(self.scrollbar_width / 2.0)
+                , asset_manager)?)
+            },
+            false => None,
+        };
+
         let layout_position = element_registry.get_ui_element_by_id(&background_element_id).unwrap().world_data().position();
 
         // Take out all of the widget ids
@@ -278,6 +358,8 @@ impl VerticalListBuilder {
         let list = VerticalList { 
             widget_ids,
             background_element_id, 
+            scrollbar_element_id: scrollbar_element_id,
+            scrollbar_inset: self.scrollbar_inset,
             gap_size: self.gap_size, 
             position: self.position, 
             max_height: self.max_height,
@@ -394,6 +476,34 @@ impl VerticalListBuilder {
 
     pub fn with_visibility(mut self, visible: bool) -> Self {
         self.is_visible = visible;
+        self
+    }
+
+    pub fn with_scrollbar(mut self, has_scrollbar: bool) -> Self {
+        self.has_scrollbar = has_scrollbar;
+        self
+    }
+
+    pub fn with_scrollbar_width(mut self, scrollbar_width: f32) -> Self {
+        self.scrollbar_width = scrollbar_width;
+        self
+    }
+
+    pub fn with_scrollbar_color(mut self, color: Color) -> Self {
+        self.scrollbar_color = color;
+        self
+    }
+
+    pub fn with_scrollbar_inset(mut self, scrollbar_inset: Vec2) -> Self {
+        self.scrollbar_inset = scrollbar_inset;
+        self
+    }
+    pub fn with_scrollbar_inset_x(mut self, scrollbar_inset_x: f32) -> Self {
+        self.scrollbar_inset.x = scrollbar_inset_x;
+        self
+    }
+    pub fn with_scrollbar_inset_y(mut self, scrollbar_inset_y: f32) -> Self {
+        self.scrollbar_inset.y = scrollbar_inset_y;
         self
     }
 }
