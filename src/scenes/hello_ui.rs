@@ -63,13 +63,8 @@ impl Scene for HelloUi {
         , asset_manager)?;
 
         let layout_button_builder = ButtonBuilder::new();
-        let layout_button_1 = interface.create_button("Button 1", &layout_button_builder, asset_manager)?;
-        let layout_button_2 = interface.create_button("Button 2", &layout_button_builder, asset_manager)?;
-        let layout_button_3 = interface.create_button("Button 3", &layout_button_builder, asset_manager)?;
-        let layout_button_4 = interface.create_button("Button 4", &layout_button_builder, asset_manager)?;
-        let layout_button_5 = interface.create_button("Button 5", &layout_button_builder, asset_manager)?;
 
-        let layout_id = interface.create_layout(&mut VerticalListBuilder::new()
+        let mut vertical_list_builder = VerticalListBuilder::new()
             .with_position(Position::ScreenAnchor(AnchorPoint::LeftInside(10.0)))
             .with_padding(Padding::Universal(10.0))
             .with_max_height(230.0)
@@ -77,12 +72,14 @@ impl Scene for HelloUi {
             .add_widget(&dropdown_id)
             .add_widget(&reset_button_id)
             .add_widget(&width_slider_id)
-            .add_widget(&layout_button_1)
-            .add_widget(&layout_button_2)
-            .add_widget(&layout_button_3)
-            .add_widget(&layout_button_4)
-            .add_widget(&layout_button_5)
-        , asset_manager)?;
+            ;
+
+        for i in 0..=25 {
+            let button_id = interface.create_button(format!("Button {i}"), &layout_button_builder, asset_manager)?;
+            vertical_list_builder = vertical_list_builder.add_widget(&button_id);
+        }
+        
+        let layout_id = interface.create_layout(&mut vertical_list_builder, asset_manager)?;
 
         let mouse_pos = interface.mut_element_registry().create_text("", None, &TextBuilder::new()
                 .with_position(Position::ScreenAnchor(AnchorPoint::TopRightInside(10., 10.)))

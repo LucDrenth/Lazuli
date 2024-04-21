@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{asset_manager::AssetManager, graphics::{ui::{bounds_2d::Bounds2d, interface::WidgetRegistry, padding::Padding, shapes::RectangleBuilder, AnchorPoint, ElementRegistry, Position, UiElementId, UiUpdateTargets, UiWidgetId, UpdateTargetCollection, WidgetUpdateTarget}, Color}, input::Input, log::{self}, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{ui::{bounds_2d::Bounds2d, interface::{self, WidgetRegistry}, padding::Padding, shapes::RectangleBuilder, AnchorPoint, ElementRegistry, Position, UiElementId, UiUpdateTargets, UiWidgetId, UpdateTargetCollection, WidgetUpdateTarget}, Color}, input::Input, log, ResourceId};
 
 use super::{Layout, layout::{LAYOUT_ELEMENT_EXTRA_Z_INDEX, LAYOUT_SCROLLBAR_EXTRA_Z_INDEX, LayoutBuilder}};
 
@@ -232,10 +232,19 @@ impl VerticalList {
         match self.scrollbar_element_id {
             Some(scrollbar_element_id) => {
                 let progress = self.current_scroll / self.max_scroll;
+                let max_scrollbar_height = self.max_height - self.scrollbar_inset.y * 2.0;
+                let mut new_scrollbar_height = self.max_height / (self.max_scroll + self.max_height) * max_scrollbar_height;
+                new_scrollbar_height = new_scrollbar_height.max(interface::minimum_scrollbar_size());
 
                 match element_registry.get_element_size(&scrollbar_element_id) {
-                    Ok(scrollbar_size) => {
-                        let max_scrollbar_distance = self.max_height - scrollbar_size.y - self.scrollbar_inset.y * 2.0;
+                    Ok(current_scrollbar_size) => {
+                        if current_scrollbar_size.y != new_scrollbar_height {
+                            _ = element_registry.set_rectangle_height(&scrollbar_element_id, new_scrollbar_height).map_err(|err| {
+                                log::engine_err(format!("failed to update scrollbar height because scrollbar element with id {} was not found: {}", scrollbar_element_id.id(), err));
+                            });
+                        }
+
+                        let max_scrollbar_distance = self.max_height - new_scrollbar_height - self.scrollbar_inset.y * 2.0;
                         let offset = max_scrollbar_distance * progress;
                         _ = element_registry.set_element_position(&scrollbar_element_id, Position::ElementAnchor(
                             AnchorPoint::TopRightInside(self.scrollbar_inset.x, self.scrollbar_inset.y + offset), 
@@ -331,16 +340,13 @@ impl VerticalListBuilder {
 
         let scrollbar_element_id = match self.has_scrollbar {
             true => {
-                // TODO base this on the amount we can scroll 
-                let scrollbar_height = background_height / 2.0;
-
                 Some(element_registry.create_rectangle(&RectangleBuilder::new()
                     .with_position(Position::ElementAnchor(
                         AnchorPoint::TopRightInside(self.scrollbar_inset.x, self.scrollbar_inset.y), 
                         background_element_id
                     ))
                     .with_width(self.scrollbar_width)
-                    .with_height(scrollbar_height)
+                    .with_height(0.0) // Will be set after the widget positions have been set because only after that we can calculate the maximum scroll
                     .with_color(self.scrollbar_color.clone())
                     .with_z_index(self.z_index + LAYOUT_SCROLLBAR_EXTRA_Z_INDEX)
                     .with_border_radius(self.scrollbar_width / 2.0)
@@ -364,7 +370,7 @@ impl VerticalListBuilder {
             position: self.position, 
             max_height: self.max_height,
             current_scroll: 0.0,
-            max_scroll: 0.0, // Will be set after the widget position have been set
+            max_scroll: 0.0, // Will be set after the widget position have been set because only after that we can calculate the maximum scroll
             padding: self.padding.clone(),
             draw_bounds: calculate_draw_bounds(layout_position, Vec2::new(background_width, background_height)),
             z_index: self.z_index,

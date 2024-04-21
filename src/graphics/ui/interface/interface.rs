@@ -317,3 +317,6 @@ pub fn default_font(asset_manager: &mut AssetManager) -> Result<ResourceId<Font>
         .with_font_size(50.0)
     , None)
 }
+pub fn minimum_scrollbar_size() -> f32 {
+    15.0
+}
