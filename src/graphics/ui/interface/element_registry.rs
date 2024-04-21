@@ -258,14 +258,19 @@ impl ElementRegistry {
             Position::ElementAnchor(_, anchor_id) => {
                 for ordered_element in self.ordered_elements.iter() {
                     if ordered_element.item_id.equals(anchor_id) {
-                        self.anchor_tree.add_element_anchor(
+                        match self.anchor_tree.add_element_anchor(
                             ordered_element.element_type, 
                             &ordered_element.item_id, 
                             type_id, 
                             element_id
-                        );
+                        ) {
+                            Ok(_) => {},
+                            Err(err) => {
+                                log::engine_warn(format!("Failed to register element in anchor tree as element anchor: {:?}", err));
+                            },
+                        }
 
-                        return;
+                        return
                     }
                 }
 

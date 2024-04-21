@@ -146,10 +146,6 @@ impl Text {
 
         return total_width - letter_spacing + spread;
     }
-
-    // TODO remove later
-    pub fn a_text_only_function(&self) {}
-    pub fn a_mut_text_only_function(&mut self) {}
 }
 
 pub struct TextBuilder {

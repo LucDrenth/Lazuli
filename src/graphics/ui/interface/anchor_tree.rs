@@ -164,10 +164,12 @@ impl AnchorTree {
     }
 
     /// Add anchor that is anchored to another element
-    pub fn add_element_anchor(&mut self, anchor_type_id: TypeId, anchor_element_id: &ResourceId<UiElementId>, type_id: TypeId, element_id: ResourceId<UiElementId>) {
+    pub fn add_element_anchor(&mut self, anchor_type_id: TypeId, anchor_element_id: &ResourceId<UiElementId>, type_id: TypeId, element_id: ResourceId<UiElementId>)  -> Result<(), String>{
         match self.get_mut(anchor_type_id, anchor_element_id) {
-            Some(anchor) => anchor.push(type_id, element_id),
-            None => todo!(),
+            Some(anchor) => Ok(anchor.push(type_id, element_id)),
+            None => {
+                Err(format!("anchor with type {:?} and id {:?} was not found", anchor_type_id, anchor_element_id))
+            },
         }
     }
 

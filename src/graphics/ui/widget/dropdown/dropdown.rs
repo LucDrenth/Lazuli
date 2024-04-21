@@ -258,8 +258,6 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
             .build(label, element_registry, asset_manager)
         ?;
 
-        // TODO add background for options
-
         let mut options = vec![];
         let button_anchor = button.get_main_element_id(&widget_registry);
 
