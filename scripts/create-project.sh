@@ -78,6 +78,9 @@ cp -r ${LAZULI_DIRECTORY}/project-template/src ./
 printf "README.md\n"
 cp ${LAZULI_DIRECTORY}/project-template/README.md ./
 
+printf "Makefile\n"
+cp ${LAZULI_DIRECTORY}/project-template/Makefile ./
+
 # Getting here means we successfully created the project
 log_info "Successfully created project '${NEW_PROJECT_NAME}'"
 
