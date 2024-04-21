@@ -354,7 +354,7 @@ impl ElementRegistry {
             Some(element) => {
                 match mouse_button {
                     MouseButton::Left => {
-                        return element.world_data().event_handlers.mouse_left_drag_handler.did_handle();
+                        return element.world_data().event_handlers.mouse_left_drag_handler.is_handling();
                     },
                     _ => {
                         log::engine_warn(format!("ElementRegistry.is_element_dragged for element id {} returns false because mouse button {:?} is not handled", element_id.id(), mouse_button));

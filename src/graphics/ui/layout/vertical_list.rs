@@ -1,19 +1,22 @@
 use glam::Vec2;
 
-use crate::{asset_manager::AssetManager, graphics::{ui::{bounds_2d::Bounds2d, interface::{self, WidgetRegistry}, padding::Padding, shapes::RectangleBuilder, AnchorPoint, ElementRegistry, Position, UiElementId, UiUpdateTargets, UiWidgetId, UpdateTargetCollection, WidgetUpdateTarget}, Color}, input::Input, log, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{ui::{bounds_2d::Bounds2d, interface::{self, WidgetRegistry}, padding::Padding, shapes::RectangleBuilder, AnchorPoint, ElementRegistry, Position, UiElementId, UiUpdateTargets, UiWidgetId, UpdateTargetCollection, WidgetUpdateTarget}, Color}, input::{Input, MouseButton}, log, ResourceId};
 
 use super::{Layout, layout::{LAYOUT_ELEMENT_EXTRA_Z_INDEX, LAYOUT_SCROLLBAR_EXTRA_Z_INDEX, LayoutBuilder}};
 
 pub struct VerticalList {
-    widget_ids: Vec<ResourceId<UiWidgetId>>, // List of unique ids. We do not use a HashSet because the order matters.
+    // List of unique ids. We use a Vec instead some Set-like data structure because the order matters.
+    widget_ids: Vec<ResourceId<UiWidgetId>>,
     background_element_id: ResourceId<UiElementId>,
     scrollbar_element_id: Option<ResourceId<UiElementId>>,
     scrollbar_inset: Vec2,
-    gap_size: f32, // the amount of space between elements
+    /// The amount of space between elements
+    gap_size: f32, 
     position: Position,
     max_height: f32,
     current_scroll: f32,
     max_scroll: f32,
+    scroll_on_start_scrollbar_drag: f32,
     padding: Padding,
     draw_bounds: Bounds2d,
     z_index: f32,
@@ -81,7 +84,8 @@ impl Layout for VerticalList {
     fn update(&mut self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, input: &Input, scroll_speed: f32) -> UpdateTargetCollection {
         let mut update_targets = UpdateTargetCollection::default();
 
-        self.update_scroll(&mut update_targets, element_registry, widget_registry, input, scroll_speed);
+        let new_scroll_amount = self.calculate_new_scroll_amount(&element_registry, input, scroll_speed);
+        self.update_scroll(new_scroll_amount, &mut update_targets, element_registry, widget_registry, input);
 
         update_targets
     }
@@ -173,12 +177,43 @@ impl Layout for VerticalList {
 }
 
 impl VerticalList {
-    fn update_scroll(&mut self, update_target_collection: &mut UpdateTargetCollection, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, input: &Input, scroll_speed: f32) {
+    fn calculate_new_scroll_amount(&mut self, element_registry: &ElementRegistry, input: &Input, scroll_speed: f32) -> f32 {
+        let scrollbar_element_id = {
+            match self.scrollbar_element_id {
+                Some(scrollbar_element_id) => scrollbar_element_id,
+                None => return self.calculate_new_scroll_amount_from_scroll(input, scroll_speed),
+            }
+        };
+
+        match element_registry.get_ui_element_by_id(&scrollbar_element_id) {
+            Some(element) => {
+                if element.world_data().event_handlers.mouse_left_drag_handler.is_handling() {
+                    if element.world_data().event_handlers.mouse_left_drag_handler.did_drag_start() {
+                        self.scroll_on_start_scrollbar_drag = self.current_scroll;
+                    }
+
+                    let amount_moved = input.get_mouse_position_y() as f32 - element.world_data().event_handlers.mouse_left_drag_handler.get_drag_start_position().y;
+                    let extra_scroll = (amount_moved / self.max_height) * (self.max_scroll + self.max_height);
+                    return (self.scroll_on_start_scrollbar_drag + extra_scroll).clamp(0.0, self.max_scroll);
+                }
+            },
+            None => {
+                log::engine_warn(format!("VerticalList failed to check scroll from drag because scrollbar with id {} was not found", scrollbar_element_id.id()));
+            },
+        }
+
+        return self.calculate_new_scroll_amount_from_scroll(input, scroll_speed);
+    }
+
+    fn calculate_new_scroll_amount_from_scroll(&self, input: &Input, scroll_speed: f32) -> f32 {
+        (self.current_scroll - input.get_scroll_y() as f32 * scroll_speed).clamp(0.0, self.max_scroll)
+    }
+
+    fn update_scroll(&mut self, new_scroll_amount: f32, update_target_collection: &mut UpdateTargetCollection, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, input: &Input) {
         if !self.should_update_scroll(element_registry, input) {
             return;
         }
 
-        let new_scroll_amount = (self.current_scroll - input.get_scroll_y() as f32 * scroll_speed).clamp(0.0, self.max_scroll);
         if self.current_scroll == new_scroll_amount {
             return;
         }
@@ -204,7 +239,12 @@ impl VerticalList {
             },
         }
 
-        false
+        match self.scrollbar_element_id {
+            Some(scrollbar_element_id) => {
+                return element_registry.is_element_dragged(&scrollbar_element_id, MouseButton::Left);
+            },
+            None => return false,
+        }
     }
 
     fn update_scroll_for_widgets(&self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry) -> UpdateTargetCollection {
@@ -371,6 +411,7 @@ impl VerticalListBuilder {
             max_height: self.max_height,
             current_scroll: 0.0,
             max_scroll: 0.0, // Will be set after the widget position have been set because only after that we can calculate the maximum scroll
+            scroll_on_start_scrollbar_drag: 0.0,
             padding: self.padding.clone(),
             draw_bounds: calculate_draw_bounds(layout_position, Vec2::new(background_width, background_height)),
             z_index: self.z_index,

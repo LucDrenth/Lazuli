@@ -123,7 +123,7 @@ impl Slider {
 
         match element_registry.get_ui_element_by_id(&self.background_element_id) {
             Some(background_element) => {
-                if !background_element.world_data().event_handlers.mouse_left_drag_handler.did_handle() {
+                if !background_element.world_data().event_handlers.mouse_left_drag_handler.is_handling() {
                     return None;
                 }
 
