@@ -1,6 +1,6 @@
 use std::any::TypeId;
 
-use crate::{graphics::ui::{element::ui_element::UiElement, UiElementId}, ResourceId};
+use crate::{graphics::ui::{element::ui_element::UiElement, UiElementId}, input::Input, ResourceId};
 
 static mut CURRENT_ID: u32 = 0;
 pub fn generate_id() -> u32 {
@@ -97,9 +97,9 @@ impl<T: UiElement + 'static> ElementList<T> {
         }
     }
 
-    pub fn reset_event_handlers(&mut self) {
+    pub fn reset_event_handlers(&mut self, input: &Input) {
         for i in 0..self.elements.len() {
-            self.elements[i].element.mut_world_data().event_handlers.reset();
+            self.elements[i].element.mut_world_data().event_handlers.reset(input);
         }
     }
 }

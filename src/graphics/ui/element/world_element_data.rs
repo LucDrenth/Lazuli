@@ -2,7 +2,7 @@ use glam::Vec2;
 
 use crate::graphics::ui::{ElementRegistry, bounds_2d::Bounds2d};
 
-use super::{Position, AnchorElementData, input_handlers::InputEventHandlers};
+use super::{input_events::InputEventHandlers, AnchorElementData, Position};
 
 /// World space data about size and positioning of a UI element
 #[derive(Clone, Copy)]

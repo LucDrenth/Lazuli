@@ -2,7 +2,7 @@ use std::any::TypeId;
 
 use glam::Vec2;
 
-use crate::{asset_manager::AssetManager, input::{Input, MouseButton, InputAction}, graphics::{font::Font, ui::{element::{ui_element::UiElement, AnchorElementData, world_element_data::WorldElementData, InputEvent}, Text, TextBuilder, shapes::{RectangleBuilder, Rectangle}, Position, bounds_2d::Bounds2d, UiElementId}, Color, shader::CustomShaderValues}, log, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{font::Font, shader::CustomShaderValues, ui::{bounds_2d::Bounds2d, element::{ui_element::UiElement, world_element_data::WorldElementData, AnchorElementData, InputEvent}, shapes::{Rectangle, RectangleBuilder}, Position, Text, TextBuilder, UiElementId}, Color}, input::{Input, InputAction, MouseButton}, log, ResourceId};
 
 use super::{interface, element_list::{ElementList, OrderedElementsItem, self}, anchor_tree::{AnchorTree, AnchorElementIdentifier}};
 
@@ -22,8 +22,6 @@ pub struct ElementRegistry {
     window_size: Vec2,
     pixel_density: f32,
 
-    dragged_element_id: Option<ResourceId<UiElementId>>, // element that is currently being dragged. Will be set to None on left mouse button up
-
     anchor_tree: AnchorTree,
 }
 
@@ -37,23 +35,17 @@ impl ElementRegistry {
             window_size,
             pixel_density,
 
-            dragged_element_id: None,
-
             anchor_tree: AnchorTree::new(),
         }
     }
 
     pub fn update(&mut self, _asset_manager: &mut AssetManager, input: &Input) {
-        if input.is_mouse_button_up(MouseButton::Left) {
-            self.dragged_element_id = None;
-        }
-
         self.handle_inputs_events(input);
     }
 
     fn handle_inputs_events(&mut self, input: &Input) {
-        self.text_elements.reset_event_handlers();
-        self.rectangle_elements.reset_event_handlers();
+        self.text_elements.reset_event_handlers(input);
+        self.rectangle_elements.reset_event_handlers(input);
 
         self.handle_input_event(InputEvent::Hover, input);
 
@@ -63,6 +55,7 @@ impl ElementRegistry {
 
         if input.is_mouse_button_down(MouseButton::Left) {
             self.handle_input_event(InputEvent::MouseLeftDown, input);
+            self.handle_input_event(InputEvent::MouseLeftDrag, input);
         } else if input.is_mouse_button_up(MouseButton::Left) {
             self.handle_input_event(InputEvent::MouseLeftUp, input);
         }
@@ -77,7 +70,7 @@ impl ElementRegistry {
 
             match self.get_mut_ui_element_by_index(element_type, element_index) {
                 Some(element) => {                    
-                    if element.world_data().show && element.world_data().is_within(mouse_position) && element.mut_world_data().event_handlers.register_event(event) {
+                    if element.world_data().show && element.world_data().is_within(mouse_position) && element.mut_world_data().event_handlers.register_event(event, input) {
                         break;
                     }
                 },
@@ -351,6 +344,26 @@ impl ElementRegistry {
             },
             None => {
                 log::engine_warn(format!("ElementRegistry.is_element_clicked for element id {:?} returned false because element was not found", element_id));
+                false
+            },
+        }
+    }
+
+    pub fn is_element_dragged(&self, element_id: &ResourceId<UiElementId>, mouse_button: MouseButton) -> bool {
+        match self.get_ui_element_by_id(element_id) {
+            Some(element) => {
+                match mouse_button {
+                    MouseButton::Left => {
+                        return element.world_data().event_handlers.mouse_left_drag_handler.did_handle();
+                    },
+                    _ => {
+                        log::engine_warn(format!("ElementRegistry.is_element_dragged for element id {} returns false because mouse button {:?} is not handled", element_id.id(), mouse_button));
+                        false
+                    },
+                }
+            },
+            None => {
+                log::engine_warn(format!("ElementRegistry.is_element_dragged for element id {} returned false because element was not found", element_id.id()));
                 false
             },
         }
@@ -633,32 +646,6 @@ impl ElementRegistry {
             x: input.get_mouse_position_x() as f32 - self.window_size.x / 2.0,
             y: -(input.get_mouse_position_y() as f32 - self.window_size.y / 2.0),
         }
-    }
-
-    // If there is not an element currently being dragged, set it to the given element
-    pub fn try_set_dragged_element(&mut self, element_id: &ResourceId<UiElementId>) -> bool {
-        let mut did_update = false;
-
-        self.dragged_element_id = match self.dragged_element_id {
-            Some(already_active) => { Some(already_active) },
-            None => {
-                did_update = true;
-                Some(element_id.clone())
-            },
-        };
-
-        did_update
-    }
-
-    pub fn is_element_dragged(&self, element_id: &ResourceId<UiElementId>) -> bool {
-        match self.dragged_element_id {
-            Some(dragged_element_id) => dragged_element_id.equals(element_id),
-            None => false,
-        }
-    }
-
-    pub fn is_any_element_dragged(&self) -> bool {
-       self.dragged_element_id.is_some()
     }
 
     pub fn print_anchor_tree(&self) {

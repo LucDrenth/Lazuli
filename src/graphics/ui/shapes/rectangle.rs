@@ -254,7 +254,7 @@ impl RectangleBuilder {
             element_registry
         );
         world_data.show = self.is_visible;
-        world_data.event_handlers.scroll_handler.set_handle(self.handle_scroll);
+        world_data.event_handlers.scroll_handler.set_does_handle(self.handle_scroll);
 
         Ok(Rectangle { 
             vao, 

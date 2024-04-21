@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{asset_manager::AssetManager, graphics::{font::PlainBitmapBuilder, ui::{self, bounds_2d::Bounds2d, element::{ui_element::UiElement, AnchorPoint}, interface::{self, is_valid_z_index, WidgetRegistry}, widget::UiWidget, ElementRegistry, Position, TextBuilder, UiElementId, UiLayoutId, UiUpdateTargets, UiWidgetId, UpdateTargetCollection}, Color}, input::{Input, InputAction, MouseButton}, log::{self}, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{font::PlainBitmapBuilder, ui::{self, bounds_2d::Bounds2d, element::{ui_element::UiElement, AnchorPoint}, interface::{self, is_valid_z_index, WidgetRegistry}, widget::UiWidget, ElementRegistry, Position, TextBuilder, UiElementId, UiLayoutId, UiUpdateTargets, UiWidgetId, UpdateTargetCollection}, Color}, input::Input, log::{self}, ResourceId};
 
 #[derive(Clone, Copy, Debug)]
 pub enum SliderProgressBarAlignment {
@@ -25,7 +25,6 @@ pub struct Slider {
     minimum_value: f32,
     maximum_value: f32,
     decimals: usize,
-    id: ResourceId<UiElementId>,
     scale: Vec2,
     z_index: f32,
     direction: SliderDirection,
@@ -120,10 +119,20 @@ impl UiWidget for Slider {
 impl Slider {
     /// Returns Some if there is a change by dragging the slider
     pub fn update(&mut self, input: &Input, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Option<SliderUpdateResult> {
-        let did_start_drag = self.check_activate_drag(element_registry);
+        let did_start_drag: bool;
 
-        if !element_registry.is_element_dragged(&self.id) {
-            return None;
+        match element_registry.get_ui_element_by_id(&self.background_element_id) {
+            Some(background_element) => {
+                if !background_element.world_data().event_handlers.mouse_left_drag_handler.did_handle() {
+                    return None;
+                }
+
+                did_start_drag = background_element.world_data().event_handlers.mouse_left_drag_handler.did_drag_start();
+            },
+            None => {
+                log::engine_warn(format!("returning None for slider update because we could not find background element with id {}", self.background_element_id.id()));
+                return None;
+            },
         }
 
         let old_value = self.value;
@@ -134,15 +143,6 @@ impl Slider {
             new_value: self.value,
             did_start_drag,
         })
-    }
-
-    /// Check if we should enable dragging
-    fn check_activate_drag(&self, element_registry: &mut ElementRegistry) -> bool {
-        if element_registry.is_element_clicked(&self.background_element_id, MouseButton::Left, &InputAction::Down) {
-            return element_registry.try_set_dragged_element(&self.id);
-        }
-
-        false
     }
 
     fn handle_drag(&mut self, input: &Input, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) {
@@ -301,8 +301,7 @@ impl SliderBuilder {
             .with_scale(Vec2::new(self.initial_value / (self.maximum_value - self.minimum_value), 1.0) * self.scale)
             .with_visibility(self.is_visible)
             .build(asset_manager, element_registry)?;
-        progress_rectangle.mut_world_data().event_handlers.mouse_left_down_handler.set_capture(false);
-        progress_rectangle.mut_world_data().event_handlers.mouse_left_up_handler.set_capture(false);
+        progress_rectangle.mut_world_data().event_handlers.set_handle(false);
         let progress_element_id = element_registry.add_rectangle(progress_rectangle);
 
         let text = TextBuilder::new()
@@ -324,7 +323,6 @@ impl SliderBuilder {
             minimum_value: self.minimum_value,
             maximum_value: self.maximum_value,
             decimals: self.decimals,
-            id: ResourceId::new(element_registry.generate_element_id()),
             scale: self.scale,
             z_index: self.z_index,
             direction: self.direction,

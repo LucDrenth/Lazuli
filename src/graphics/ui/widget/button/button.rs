@@ -92,7 +92,7 @@ impl Button {
     }
 
     pub fn is_clicked(&self, element_registry: &ElementRegistry) -> bool {
-        !element_registry.is_any_element_dragged() && element_registry.is_element_clicked(
+        element_registry.is_element_clicked(
             &self.background_element_id, 
             self.mouse_button_to_activate,
             &self.mouse_action_to_activate, 

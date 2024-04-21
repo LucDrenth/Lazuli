@@ -10,8 +10,5 @@ pub use anchor_point::AnchorPoint;
 mod anchor_element_data;
 pub use anchor_element_data::AnchorElementData;
 
-mod event_handler;
-pub use event_handler::*;
-
-mod input_handlers;
-pub use input_handlers::InputEvent;
+mod input_events;
+pub use input_events::InputEvent;
