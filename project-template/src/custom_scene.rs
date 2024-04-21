@@ -1,4 +1,4 @@
-use lazuli::{graphics::scene::Scene, glam::Vec2, asset_manager::AssetManager, event::EventSystem, input::Input};
+use lazuli::{asset_manager::AssetManager, event::EventSystem, glam::Vec2, graphics::{scene::Scene, ui::Interface}, input::Input};
 
 pub struct CustomScene {}
 
