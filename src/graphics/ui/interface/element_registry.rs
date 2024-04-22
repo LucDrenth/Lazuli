@@ -244,7 +244,7 @@ impl ElementRegistry {
         self.ordered_elements = ordered_elements;
     }
 
-    pub fn register_in_anchor_tree(&mut self, type_id: TypeId, element_id: ResourceId<UiElementId>, position: &Position) {
+    fn register_in_anchor_tree(&mut self, type_id: TypeId, element_id: ResourceId<UiElementId>, position: &Position) {
         match position {
             Position::Fixed(_, _) => self.anchor_tree.add_fixed_anchor(type_id, element_id),
             Position::ScreenAnchor(_) => self.anchor_tree.add_screen_anchor(type_id, element_id),
@@ -473,7 +473,7 @@ impl ElementRegistry {
         }
     }
 
-    pub fn update_anchor_tree(&mut self, element_id: &ResourceId<UiElementId>) {
+    fn update_anchor_tree(&mut self, element_id: &ResourceId<UiElementId>) {
         let parent = self.anchor_tree.get_by_id(element_id).unwrap().identifier().clone();
         self.update_anchor_element_position(&parent);
 
@@ -640,7 +640,7 @@ impl ElementRegistry {
         }
     }
 
-    // map mouse position to screen coordinates (in pixels) so that (0, 0) is the center
+    /// Map mouse position to screen coordinates (in pixels) so that (0, 0) is the center
     pub fn map_mouse_position(&self, input: &Input) -> Vec2 {
         Vec2 {
             x: input.get_mouse_position_x() as f32 - self.window_size.x / 2.0,
@@ -648,6 +648,7 @@ impl ElementRegistry {
         }
     }
 
+    /// For debugging
     pub fn print_anchor_tree(&self) {
         self.anchor_tree.print();
     }
