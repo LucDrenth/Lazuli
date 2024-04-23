@@ -88,6 +88,36 @@ impl AnchoredElement {
         None
     }
 
+    /// Returns `None` if the child element is not found
+    pub fn get_parent(&self, child_id: &ResourceId<UiElementId>) -> Option<&Self> {
+        for element in self.anchored_elements.iter() {
+            if element.identifier.element_id.equals(child_id) {
+                return Some(&self);
+            }
+
+            if let Some(parent) = element.get_parent(child_id) {
+                return Some(parent);
+            }
+        }
+
+        None
+    }
+
+    /// Returns `None` if the child element is not found
+    pub fn get_parent_id(&mut self, child_id: &ResourceId<UiElementId>) -> Option<ResourceId<UiElementId>> {
+        for i in 0..self.anchored_elements.len() {
+            if self.anchored_elements[i].identifier.element_id.equals(child_id) {
+                return Some(self.anchored_elements[i].identifier.element_id.clone());
+            }
+
+            if let Some(parent) = self.anchored_elements[i].get_parent_id(child_id) {
+                return Some(parent);
+            }
+        }
+
+        None
+    }
+
     /// Recursively tries to find the element with the given element_id and remove it.
     /// 
     /// Returns wether the element was removed from the children:
@@ -236,6 +266,30 @@ impl AnchorTree {
         None
     }
 
+    fn get_parent_from_tree(child_id: ResourceId<UiElementId>, tree: &Vec<AnchoredElement>) -> Option<&AnchoredElement> {
+        for root_element in tree.iter() {
+            match root_element.get_parent(&child_id) {
+                Some(parent_element) => return Some(&parent_element),
+                None => (),
+            }
+        }
+
+        None
+    }
+
+    fn get_mut_parent_from_tree(child_id: ResourceId<UiElementId>, tree: &mut Vec<AnchoredElement>) -> Option<&mut AnchoredElement> {
+        for root_element in tree.iter_mut() {
+            match root_element.get_parent_id(&child_id) {
+                Some(parent_id) => {
+                    return root_element.get_mut_by_id(&parent_id)
+                },
+                None => (),
+            }
+        }
+
+        None
+    }
+
     pub fn get_mut_by_id(&mut self, element_id: &ResourceId<UiElementId>) -> Option<&mut AnchoredElement> {
         for tree in self.mut_trees() {
             if let Some(element) = Self::get_mut_by_id_from_tree(element_id.duplicate(), tree) {
@@ -275,9 +329,33 @@ impl AnchorTree {
         result
     }
 
+    /// * Returns `Some` if the parent was found
+    /// * Returns `None` if the child is a root element, thus has no parent
+    pub fn get_parent(&self, child_id: &ResourceId<UiElementId>) -> Option<&AnchoredElement> {
+        for tree in self.trees() {
+            if let Some(element) = Self::get_parent_from_tree(child_id.duplicate(), tree) {
+                return Some(element);
+            }
+        }
+
+        None
+    }
+
+    /// * Returns `Some` if the parent was found
+    /// * Returns `None` if the child is a root element, thus has no parent
+    pub fn get_mut_parent(&mut self, child_id: &ResourceId<UiElementId>) -> Option<&mut AnchoredElement> {
+        for tree in self.mut_trees() {
+            if let Some(element) = Self::get_mut_parent_from_tree(child_id.duplicate(), tree) {
+                return Some(element);
+            }
+        }
+
+        None
+    }
+
     /// Returns wether the element was unregistered from the anchor tree:
-    /// `Some` - The removed element, if the element was found
-    /// `None` if the element was not found, thus does not exist in the anchor tree
+    /// * `Some` - Contains the removed element, if the element was found
+    /// * `None` - The element was not found, thus does not exist in the anchor tree
     pub fn remove_element_by_id(&mut self, element_id: &ResourceId<UiElementId>) -> Option<AnchoredElement> {
         for tree in self.mut_trees() {
             if let Some(removed_element) = Self::remove_tree_element_by_id(element_id, tree) {

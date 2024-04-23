@@ -10,15 +10,20 @@ pub struct HelloUi {
     dropdown_id: ResourceId<UiWidgetId>,
     layout_id: ResourceId<UiLayoutId>,
     mouse_pos: ResourceId<UiElementId>,
+    rectangle_to_remove: ResourceId<UiElementId>,
 }
 
 impl Scene for HelloUi {
     fn new(_: &mut EventSystem, _: Vec2, _: f32, asset_manager: &mut AssetManager, interface: &mut Interface) -> Result<Self, String> 
     {
         let rectangle_id = interface.mut_element_registry().create_rectangle(&RectangleBuilder::new(), asset_manager)?;
-        let _ = interface.mut_element_registry().create_rectangle(&RectangleBuilder::new()
+        let second_rectangle_id = interface.mut_element_registry().create_rectangle(&RectangleBuilder::new()
             .with_color(Color::Rgb(100, 5, 255))
             .with_position(Position::ElementAnchor(AnchorPoint::RightOutside(5.0), rectangle_id))
+        , asset_manager)?;
+        let _ = interface.mut_element_registry().create_rectangle(&RectangleBuilder::new()
+            .with_color(Color::Rgb(199, 65, 101))
+            .with_position(Position::ElementAnchor(AnchorPoint::RightOutside(2.5), second_rectangle_id))
         , asset_manager)?;
 
         
@@ -93,6 +98,7 @@ impl Scene for HelloUi {
             dropdown_id,
             layout_id,
             mouse_pos,
+            rectangle_to_remove: second_rectangle_id,
         })
     }
 
@@ -153,6 +159,12 @@ impl Scene for HelloUi {
 
         if input.is_key_down(Key::Space) {
             _ = interface.add_widget_to_layout(&self.height_slider_id, &self.layout_id);
+        }
+
+        if input.is_key_down(Key::Backspace) {
+            _ = interface.mut_element_registry().remove_element(&self.rectangle_to_remove).map_err(|err|{
+                log::err(format!("failed to remove element: {}", err))
+            });
         }
 
         let mouse_pos = input.get_mouse_position() - interface.size() / 2.0;

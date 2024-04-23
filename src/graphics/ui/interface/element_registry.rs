@@ -232,6 +232,25 @@ impl ElementRegistry {
         id
     }
 
+    pub fn remove_element(&mut self, element_id: &ResourceId<UiElementId>) -> Result<(), String> {
+        if !self.text_elements.remove(element_id) && !self.rectangle_elements.remove(element_id) {
+            return Err(format!("Element not found in element lists"));
+        }
+
+        self.update_ordered_elements();
+
+        let mut removed_element = match self.anchor_tree.remove_element_by_id(element_id) {
+            Some(removed_element) => Ok(removed_element),
+            None => Err("Element was not found in anchor tree"),
+        }?;
+
+        for child in removed_element.take_children() {
+            self.remove_element(&child.identifier().element_id)?;
+        }
+
+        Ok(())
+    }
+
     fn update_ordered_elements(&mut self) {
         let mut ordered_elements: Vec<OrderedElementsItem> = vec![];
         
@@ -312,7 +331,14 @@ impl ElementRegistry {
                     element.mut_world_data().calculate_position(window_size, None);
 
                     // update positions of the children of our current root element
-                    self.update_anchor_tree(&screen_tree_root_element.element_id);
+                    match self.update_anchor_tree(&screen_tree_root_element.element_id) {
+                        Ok(_) => {},
+                        Err(err) => {
+                            log::engine_err(
+                                format!("failed to handle window resize for screen anchored root element with id {:?}: {}", screen_tree_root_element.element_id, err)
+                            );
+                        },
+                    }
                 },
                 None => log::engine_err(
                     format!("failed to handle window resize for screen anchored root element with id {:?}", screen_tree_root_element.element_id)
@@ -418,7 +444,7 @@ impl ElementRegistry {
         match self.get_mut_ui_element_by_id(element_id) {
             Some(element) => {
                 element.mut_world_data().position_transform = position_transform;
-                Ok(self.update_anchor_tree(element_id))
+                return self.update_anchor_tree(element_id);
             },
             None => Err(format!("failed to set element position_transform because element with id {:?} was not found", element_id)),
         }
@@ -442,7 +468,7 @@ impl ElementRegistry {
         match self.get_mut_ui_element_by_id(element_id) {
             Some(element) => {
                 element.mut_world_data().set_position(position, window_size, anchor_element_data);
-                Ok(self.update_anchor_tree(element_id))
+                return self.update_anchor_tree(element_id);
             },
             None => Err(format!("failed to set element position because element with id {:?} was not found", element_id)),
         }
@@ -466,25 +492,26 @@ impl ElementRegistry {
         match self.get_mut_ui_element_by_id(element_id) {
             Some(element) => {
                 element.mut_world_data().set_scale(scale, window_size, anchor_element_data);
-                self.update_anchor_tree(element_id);
-                Ok(())
+                return self.update_anchor_tree(element_id);
             },
             None => Err(format!("failed to set scale because element with id {:?} was not found", element_id)),
         }
     }
 
-    fn update_anchor_tree(&mut self, element_id: &ResourceId<UiElementId>) {
+    fn update_anchor_tree(&mut self, element_id: &ResourceId<UiElementId>) -> Result<(), String> {
         let parent = self.anchor_tree.get_by_id(element_id).unwrap().identifier().clone();
-        self.update_anchor_element_position(&parent);
+        self.update_anchor_element_position(&parent)?;
 
         let children = self.anchor_tree.get_children(element_id);
         for child in children.iter() {
-            self.update_anchor_element_position(&child);
+            self.update_anchor_element_position(&child)?;
         }
+
+        Ok(())
     }
 
-    fn update_anchor_element_position(&mut self, anchor_identifier: &AnchorElementIdentifier) {
-        let anchor_element_data = self.get_anchor_element_data(&anchor_identifier.element_id).unwrap();
+    fn update_anchor_element_position(&mut self, anchor_identifier: &AnchorElementIdentifier) -> Result<(), String> {
+        let anchor_element_data = self.get_anchor_element_data(&anchor_identifier.element_id)?;
 
         if anchor_identifier.type_id == TypeId::of::<Rectangle>() {
             self.rectangle_elements
@@ -497,8 +524,10 @@ impl ElementRegistry {
                 .mut_world_data()
                 .calculate_position(self.window_size.clone(), anchor_element_data);
         } else {
-            panic!("Unhandled element type")
+            return Err(format!("Unhnadled type {:?}", anchor_identifier.type_id));
         }
+
+        Ok(())
     }
 
     /// Get anchor element data of the anchor element of the given element
@@ -525,7 +554,7 @@ impl ElementRegistry {
             Some(element) => {
                 Ok(element.world_data().position_type().get_anchor_element_id())
             },
-            None => Err(format!("failed to get anchor element id because element with id {:?} was not found", element_id)),
+            None => Err(format!("failed to get anchor element id because element with id {} was not found", element_id.id())),
         }
     }
 
@@ -567,7 +596,7 @@ impl ElementRegistry {
         match self.text_elements.get_mut_by_id(text_element_id) {
             Some(text_element) => {
                 text_element.set_text(text, window_size, anchor_data, asset_manager)?;
-                Ok(self.update_anchor_tree(text_element_id))
+                return self.update_anchor_tree(text_element_id);
             },
             None => Err(format!("failed to set text because text element with id {:?} was not found", text_element_id)),
         }
@@ -580,7 +609,7 @@ impl ElementRegistry {
         match self.rectangle_elements.get_mut_by_id(rectangle_id) {
             Some(rectangle) => {
                 rectangle.set_width(new_width, window_size, anchor_data);
-                Ok(self.update_anchor_tree(rectangle_id))
+                return self.update_anchor_tree(rectangle_id);
             },
             None => Err(format!("failed to set rectangle width because rectanglei with id {:?} was not found", rectangle_id)),
         }
@@ -592,7 +621,7 @@ impl ElementRegistry {
         match self.rectangle_elements.get_mut_by_id(rectangle_id) {
             Some(rectangle) => {
                 rectangle.set_height(new_height, window_size, anchor_data);
-                Ok(self.update_anchor_tree(rectangle_id))
+                return self.update_anchor_tree(rectangle_id);
             },
             None => Err(format!("failed to set rectangle height because rectanglei with id {:?} was not found", rectangle_id)),
         }
@@ -604,7 +633,7 @@ impl ElementRegistry {
         match self.rectangle_elements.get_mut_by_id(rectangle_id) {
             Some(rectangle) => {
                 rectangle.set_size(new_size, window_size, anchor_data);
-                Ok(self.update_anchor_tree(rectangle_id))
+                return self.update_anchor_tree(rectangle_id);
             },
             None => Err(format!("failed to set rectangle size because rectanglei with id {:?} was not found", rectangle_id)),
         }

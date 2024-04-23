@@ -102,4 +102,15 @@ impl<T: UiElement + 'static> ElementList<T> {
             self.elements[i].element.mut_world_data().event_handlers.reset(input);
         }
     }
+
+    /// Return false if the element was not in the list
+    pub fn remove(&mut self, id: &ResourceId<UiElementId>) -> bool {
+        match self.elements.iter().position(|entry| entry.id.equals(id)) {
+            Some(index) => {
+                self.elements.remove(index);
+                return true;
+            },
+            None => false,
+        }
+    }
 }
