@@ -164,41 +164,35 @@ impl WidgetRegistry {
     // =========== Functions to get a UiWidget ============ \\
 
     pub fn get_widget_by_id(&self, widget_id: &ResourceId<UiWidgetId>) -> Option<Box<&dyn UiWidget>> {
-        for widget_entry in self.sliders.entries.iter() {
-            if widget_entry.id.equals(&widget_id) { return Some(Box::new(&widget_entry.widget)) }
+        macro_rules! get_widget {
+            ($list:expr) => {
+                if let Some(widget) = $list.get_widget(widget_id) {
+                    return Some(Box::new(widget));
+                }
+            };
         }
-
-        for widget_entry in self.buttons.entries.iter() {
-            if widget_entry.id.equals(&widget_id) { return Some(Box::new(&widget_entry.widget)) }
-        }
-
-        for widget_entry in self.dropdowns.entries.iter() {
-            if widget_entry.id.equals(&widget_id) { return Some(Box::new(&widget_entry.widget)) }
-        }
-
-        for widget_entry in self.icons.entries.iter() {
-            if widget_entry.id.equals(&widget_id) { return Some(Box::new(&widget_entry.widget)) }
-        }
-
+    
+        get_widget!(self.buttons);
+        get_widget!(self.sliders);
+        get_widget!(self.dropdowns);
+        get_widget!(self.icons);
+    
         None
     }
 
     pub fn get_mut_widget_by_id(&mut self, widget_id: &ResourceId<UiWidgetId>) -> Option<Box<&mut dyn UiWidget>> {
-        for widget_entry in self.sliders.entries.iter_mut() {
-            if widget_entry.id.equals(&widget_id) { return Some(Box::new(&mut widget_entry.widget)) }
+        macro_rules! get_widget {
+            ($list:expr) => {
+                if let Some(widget) = $list.get_mut_widget(widget_id) {
+                    return Some(Box::new(widget));
+                }
+            };
         }
 
-        for widget_entry in self.buttons.entries.iter_mut() {
-            if widget_entry.id.equals(&widget_id) { return Some(Box::new(&mut widget_entry.widget)) }
-        }
-
-        for widget_entry in self.dropdowns.entries.iter_mut() {
-            if widget_entry.id.equals(&widget_id) { return Some(Box::new(&mut widget_entry.widget)) }
-        }
-
-        for widget_entry in self.icons.entries.iter_mut() {
-            if widget_entry.id.equals(&widget_id) { return Some(Box::new(&mut widget_entry.widget)) }
-        }
+        get_widget!(self.buttons);
+        get_widget!(self.sliders);
+        get_widget!(self.dropdowns);
+        get_widget!(self.icons);
 
         None
     }
