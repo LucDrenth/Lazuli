@@ -4,7 +4,7 @@ use glam::Vec2;
 
 use crate::{asset_manager::AssetManager, graphics::{font::Font, shader::CustomShaderValues, ui::{bounds_2d::Bounds2d, element::{ui_element::UiElement, world_element_data::WorldElementData, AnchorElementData, InputEvent}, shapes::{Rectangle, RectangleBuilder}, Position, Text, TextBuilder, UiElementId}, Color}, input::{Input, InputAction, MouseButton}, log, ResourceId};
 
-use super::{interface, element_list::{ElementList, OrderedElementsItem, self}, anchor_tree::{AnchorTree, AnchorElementIdentifier}};
+use super::{interface, element_list::{ElementList, OrderedElementsItem, self}, anchor_tree::{AnchorTree, AnchoredElement, AnchorElementIdentifier}};
 
 pub const MIN_Z_INDEX: f32 = 1.0;
 pub const MAX_Z_INDEX: f32 = 10_000.0;
@@ -233,19 +233,39 @@ impl ElementRegistry {
     }
 
     pub fn remove_element(&mut self, element_id: &ResourceId<UiElementId>) -> Result<(), String> {
-        if !self.text_elements.remove(element_id) && !self.rectangle_elements.remove(element_id) {
+        if !self.remove_element_from_element_list(element_id) {
             return Err(format!("Element not found in element lists"));
         }
 
+        match self.anchor_tree.remove_element_by_id(element_id) {
+            Some(mut removed_element) => {
+                for child in removed_element.take_children() {
+                    self.remove_anchored_element(child)?;
+                }
+            },
+            None => {
+                return Err(format!("Element not found in element lists"));
+            }, 
+        };
+
         self.update_ordered_elements();
 
-        let mut removed_element = match self.anchor_tree.remove_element_by_id(element_id) {
-            Some(removed_element) => Ok(removed_element),
-            None => Err("Element was not found in anchor tree"),
-        }?;
+        Ok(())
+    }
 
-        for child in removed_element.take_children() {
-            self.remove_element(&child.identifier().element_id)?;
+    fn remove_element_from_element_list(&mut self, element_id: &ResourceId<UiElementId>) -> bool {
+        return self.text_elements.remove(element_id) 
+            || self.rectangle_elements.remove(element_id);
+    }
+
+    /// Recursively remove the element of the anchored element from the element lists
+    fn remove_anchored_element(&mut self, mut anchored_element: AnchoredElement) -> Result<(), String> {
+        if !self.remove_element_from_element_list(&anchored_element.identifier().element_id) {
+            return Err(format!("Element not found in element lists"));
+        }
+
+        for child in anchored_element.take_children() {
+            self.remove_anchored_element(child)?;
         }
 
         Ok(())
