@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, Triangle, shader::{PATH_MOVING_TRIANGLE_VERT, PATH_MOVING_TRIANGLE_FRAG, ShaderBuilder, ShaderProgram}, Shape, ui::Interface}, event::EventSystem, input::Input, asset_manager::AssetManager, ResourceId};
+use crate::{asset_manager::{AssetManager, AssetManagerTrait}, event::EventSystem, graphics::{scene::Scene, shader::{ShaderBuilder, ShaderProgram, PATH_MOVING_TRIANGLE_FRAG, PATH_MOVING_TRIANGLE_VERT}, ui::Interface, Shape, Triangle}, input::Input, ResourceId};
 
 pub struct HelloTriangle {
     shader_id: ResourceId<ShaderProgram>,

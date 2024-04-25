@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, shader::{PATH_TEXTURED_VERT, PATH_TEXTURED_FRAG, ShaderBuilder}, Rectangle, Shape, material::Material, ui::Interface}, event::EventSystem, input::Input, asset_manager::AssetManager, ResourceId};
+use crate::{asset_manager::{AssetManager, AssetManagerTrait}, event::EventSystem, graphics::{material::Material, scene::Scene, shader::{ShaderBuilder, PATH_TEXTURED_FRAG, PATH_TEXTURED_VERT}, ui::Interface, Rectangle, Shape}, input::Input, ResourceId};
 
 pub struct HelloTexture {
     material_id: ResourceId<Material>,

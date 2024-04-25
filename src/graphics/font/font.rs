@@ -1,6 +1,6 @@
 use std::{fs::File, io::Read, collections::HashMap};
 
-use crate::{graphics::{texture::ImageType, shader::ShaderProgram, material::Material}, asset_manager::AssetManager, log, ResourceId};
+use crate::{asset_manager::{AssetManager, AssetManagerTrait}, graphics::{material::Material, shader::ShaderProgram, texture::ImageType}, log, ResourceId};
 
 use super::{BitmapCharacter, Bitmap, bitmap::BitmapBuilder, bitmap_cache};
 

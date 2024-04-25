@@ -1,19 +1,45 @@
+use std::os::raw::c_uint;
+
 use gl::types::GLenum;
-use image::{RgbaImage, GrayImage, EncodableLayout};
+use image::{EncodableLayout, GrayImage, RgbaImage};
 
 use super::ImageType;
 
-pub struct TextureImage {
+pub trait TextureImage {
+    fn width(&self) -> u32;
+    fn height(&self) -> u32;
+    fn bytes(&self) -> *const u8;
+    fn format(&self) -> c_uint;
+}
+
+pub struct GlTextureImage {
     pub width: u32,
     pub height: u32,
     pub bytes: *const u8,
     pub format: GLenum,
 }
 
-// TODO abstractiate this
-impl From<&RgbaImage> for TextureImage {
+impl TextureImage for GlTextureImage {
+    fn width(&self) -> u32 {
+        self.width
+    }
+
+    fn height(&self) -> u32 {
+        self.width
+    }
+
+    fn format(&self) -> c_uint {
+        return self.format
+    }
+
+    fn bytes(&self) -> *const u8 {
+        self.bytes
+    }
+}
+
+impl From<&RgbaImage> for GlTextureImage {
     fn from(img: &RgbaImage) -> Self {
-        TextureImage {
+        Self {
             width: img.width(),
             height: img.height(),
             bytes: img.as_bytes().as_ptr(),
@@ -21,9 +47,9 @@ impl From<&RgbaImage> for TextureImage {
         }
     }
 }
-impl From<&GrayImage> for TextureImage {
+impl From<&GrayImage> for GlTextureImage {
     fn from(img: &GrayImage) -> Self {
-        TextureImage {
+        Self {
             width: img.width(),
             height: img.height(),
             bytes: img.as_bytes().as_ptr(),
@@ -31,7 +57,7 @@ impl From<&GrayImage> for TextureImage {
         }
     }
 }
-impl From<&ImageType> for TextureImage {
+impl From<&ImageType> for GlTextureImage {
     fn from(img: &ImageType) -> Self {
         match img {
             ImageType::RgbaImage(img) => {

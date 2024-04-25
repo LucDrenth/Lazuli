@@ -1,8 +1,10 @@
 mod texture;
 pub use texture::Texture;
+pub use texture::GlTexture;
 
 mod texture_image;
 pub use texture_image::TextureImage;
+pub use texture_image::GlTextureImage;
 
 mod downsample;
 pub use downsample::downsample_gray_image;

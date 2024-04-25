@@ -1,10 +1,10 @@
-use crate::{asset_manager::AssetManager, ResourceId};
+use crate::{asset_manager::{AssetManager, AssetManagerTrait}, ResourceId};
 
 use super::{shader::ShaderProgram, texture::Texture};
 
 pub struct Material {
     pub shader_id: ResourceId<ShaderProgram>,
-    texture_ids: Vec<ResourceId<Texture>>,
+    texture_ids: Vec<ResourceId<Box<dyn Texture>>>,
 }
 
 impl Material {
@@ -15,7 +15,7 @@ impl Material {
         }
     }
 
-    pub fn add_texture(&mut self, texture_id: ResourceId<Texture>, asset_manager: &mut AssetManager) {
+    pub fn add_texture(&mut self, texture_id: ResourceId<Box<dyn Texture>>, asset_manager: &mut AssetManager) {
         asset_manager.get_shader_by_id(&self.shader_id).unwrap().set_uniform(
             format!("texture{}", self.texture_ids.len()).as_str(), 
             self.texture_ids.len() as i32
@@ -24,7 +24,7 @@ impl Material {
         self.texture_ids.push(texture_id);
     }
 
-    pub fn push_texture_id(&mut self, texture_id: ResourceId<Texture>) {
+    pub fn push_texture_id(&mut self, texture_id: ResourceId<Box<dyn Texture>>) {
         self.texture_ids.push(texture_id);
     }
 
@@ -40,8 +40,8 @@ impl Material {
         asset_manager.get_shader_by_id(&self.shader_id)
     }
 
-    pub fn texture_ids_copy(&self) -> Vec<ResourceId<Texture>> {
-        let mut texture_ids_clone: Vec<ResourceId<Texture>> = Vec::with_capacity(self.texture_ids.len());
+    pub fn texture_ids_copy(&self) -> Vec<ResourceId<Box<dyn Texture>>> {
+        let mut texture_ids_clone: Vec<ResourceId<Box<dyn Texture>>> = Vec::with_capacity(self.texture_ids.len());
 
         for texture_id in self.texture_ids.iter() {
             texture_ids_clone.push(texture_id.duplicate())

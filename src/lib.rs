@@ -29,6 +29,9 @@ pub use resource_id::ResourceId;
 
 mod app;
 
+#[cfg(test)]
+mod tests;
+
 pub fn run_scene<T: Scene + 'static>(window_builder: WindowBuilder) {
     App::new::<T>(window_builder);
 }

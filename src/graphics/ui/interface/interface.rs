@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{event::{EventReader, WindowResizeEvent, EventSystem, PixelDensityChangeEvent}, asset_manager::AssetManager, input::Input, graphics::{ui::{widget::{SliderBuilder, SliderUpdateResult, ButtonBuilder, DropdownBuilder, IconBuilder}, Position, bounds_2d::Bounds2d, UiWidgetId, UiElementId, UiLayoutId, layout::LayoutBuilder, UiUpdateTargets, UpdateTargetCollection, LayoutUpdateTarget}, font::{Font, PlainBitmapBuilder}, Color}, ResourceId, log};
+use crate::{asset_manager::{AssetManager, AssetManagerTrait}, event::{EventReader, EventSystem, PixelDensityChangeEvent, WindowResizeEvent}, graphics::{font::{Font, PlainBitmapBuilder}, ui::{bounds_2d::Bounds2d, layout::LayoutBuilder, widget::{ButtonBuilder, DropdownBuilder, IconBuilder, SliderBuilder, SliderUpdateResult}, LayoutUpdateTarget, Position, UiElementId, UiLayoutId, UiUpdateTargets, UiWidgetId, UpdateTargetCollection}, Color}, input::Input, log, ResourceId};
 
 use super::{ElementRegistry, widget_registry::{WidgetRegistry, WidgetRegistryUdpateResult}, layout_registry::LayoutRegistry};
 

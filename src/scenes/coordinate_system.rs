@@ -3,7 +3,7 @@ use std::f32::consts::{PI, TAU};
 use glam::{Vec3, Vec2};
 use rand::{Rng, rngs::ThreadRng};
 
-use crate::{graphics::{scene::Scene, Cube, shader::{PATH_COLORED_FRAG, ShaderBuilder}, Transform, Camera, Shape, material::Material, ui::Interface}, event::{EventSystem, self}, input::{Input, Key}, time, asset_manager::AssetManager, ResourceId};
+use crate::{asset_manager::{AssetManager, AssetManagerTrait}, event::{self, EventSystem}, graphics::{material::Material, scene::Scene, shader::{ShaderBuilder, PATH_COLORED_FRAG}, ui::Interface, Camera, Cube, Shape, Transform}, input::{Input, Key}, time, ResourceId};
 
 pub struct CoordinateSystem {
     material_id: ResourceId<Material>,

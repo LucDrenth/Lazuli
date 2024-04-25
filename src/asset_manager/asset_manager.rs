@@ -1,11 +1,26 @@
 use std::{collections::hash_map::DefaultHasher, hash::{Hash, Hasher}};
 
-use crate::{graphics::{texture::{Texture, TextureImage}, font::{Font, BitmapBuilder}, shader::{ShaderBuilder, ShaderProgram}, material::Material}, ResourceId};
+use crate::{graphics::{font::{BitmapBuilder, Font}, material::Material, shader::{ShaderBuilder, ShaderProgram}, texture::{GlTexture, Texture, TextureImage}}, ResourceId};
 
 use super::asset_collection::AssetCollection;
 
+pub trait AssetManagerTrait {
+    fn load_texture(&mut self, path: impl Into<String>) -> Result<ResourceId<Box<dyn Texture>>, String>;
+    fn load_texture_from_image<T: Into<Box<dyn TextureImage>>>(&mut self, img: T) -> Result<ResourceId<Box<dyn Texture>>, String>;
+    fn get_texture_by_id(&mut self, id: &ResourceId<Box<dyn Texture>>) -> Option<&Box<dyn Texture>>;
+    fn load_font(&mut self, bitmap_builder: impl BitmapBuilder, shader_builder: Option<ShaderBuilder>) -> Result<ResourceId<Font>, String>;
+    fn get_font_by_id(&mut self, id: &ResourceId<Font>) -> Option<&Font>;
+    fn load_shader(&mut self, shader_builder: ShaderBuilder) -> Result<ResourceId<ShaderProgram>, String>;
+    fn get_shader_by_id(&mut self, id: &ResourceId<ShaderProgram>) -> Option<&ShaderProgram>;
+    fn load_material(&mut self, shader_id: &ResourceId<ShaderProgram>) -> Result<ResourceId<Material>, String>;
+    fn get_material_by_id(&mut self, id: &ResourceId<Material>) -> Option<&mut Material>;
+    fn add_material_texture(&mut self, material_id: &ResourceId<Material>, texture_id: &ResourceId<Box<dyn Texture>>);
+    fn activate_material(&mut self, material_id: &ResourceId<Material>);
+    fn get_material_shader(&mut self, material_id: &ResourceId<Material>) -> Option<&ShaderProgram>;
+}
+
 pub struct AssetManager {
-    textures: AssetCollection<Texture, Option<String>>,
+    textures: AssetCollection<Box<dyn Texture>, Option<String>>,
     fonts: AssetCollection<Font, u64>,
     shaders: AssetCollection<ShaderProgram, u64>,
     materials: AssetCollection<Material, u64>,
@@ -20,8 +35,10 @@ impl AssetManager {
             materials: AssetCollection::new(),
         }
     }
+}
 
-    pub fn load_texture(&mut self, path: impl Into<String>) -> Result<ResourceId<Texture>, String> {
+impl AssetManagerTrait for AssetManager {
+    fn load_texture(&mut self, path: impl Into<String>) -> Result<ResourceId<Box<dyn Texture>>, String> {
         let path_string = path.into();
 
         let some_path = Some(path_string.clone());
@@ -33,24 +50,25 @@ impl AssetManager {
             None => (),
         }
 
-        match Texture::new_from_path(path_string) {
-            Ok(texture) => self.textures.add(texture, some_path),
+        match GlTexture::new_from_path(path_string) {
+            Ok(texture) => self.textures.add(Box::new(texture), some_path),
             Err(err) => Err(err),
         }
     }
 
-    pub fn load_texture_from_image<T: Into<TextureImage>>(&mut self, img: T) -> Result<ResourceId<Texture>, String> {
-        match Texture::new_from_image(img) {
-            Ok(texture) => self.textures.add(texture, None),
+    fn load_texture_from_image<T: Into<Box<dyn TextureImage>>>(&mut self, img: T) -> Result<ResourceId<Box<dyn Texture>>, String> {
+        let t = img.into();
+        match GlTexture::new_from_image(img) {
+            Ok(texture) => self.textures.add(Box::new(texture), None),
             Err(err) => Err(err),
         }
     }
 
-    pub fn get_texture_by_id(&mut self, id: &ResourceId<Texture>) -> Option<&Texture> {
-        self.textures.get_asset_by_id(id)
+    fn get_texture_by_id(&mut self, id: &ResourceId<Box<dyn Texture>>) -> Option<&Box<dyn Texture>> {
+       self.textures.get_asset_by_id(id)
     }
 
-    pub fn load_font(&mut self, bitmap_builder: impl BitmapBuilder, shader_builder: Option<ShaderBuilder>) -> Result<ResourceId<Font>, String> {
+    fn load_font(&mut self, bitmap_builder: impl BitmapBuilder, shader_builder: Option<ShaderBuilder>) -> Result<ResourceId<Font>, String> {
         let shader_builder_to_use: ShaderBuilder = match shader_builder {
             Some(builder) => builder,
             None => bitmap_builder.default_shader_builder(),
@@ -72,11 +90,11 @@ impl AssetManager {
         self.fonts.add(font, hash)
     }
 
-    pub fn get_font_by_id(&mut self, id: &ResourceId<Font>) -> Option<&Font> {
+    fn get_font_by_id(&mut self, id: &ResourceId<Font>) -> Option<&Font> {
         self.fonts.get_asset_by_id(id)
     }
 
-    pub fn load_shader(&mut self, shader_builder: ShaderBuilder) -> Result<ResourceId<ShaderProgram>, String> {
+    fn load_shader(&mut self, shader_builder: ShaderBuilder) -> Result<ResourceId<ShaderProgram>, String> {
         let hash = shader_builder.hash()?;
 
         match self.shaders.get_by_builder_hash(&hash) {
@@ -89,7 +107,7 @@ impl AssetManager {
         self.shaders.add(shader, hash)
     }
 
-    pub fn get_shader_by_id(&mut self, id: &ResourceId<ShaderProgram>) -> Option<&ShaderProgram> {
+    fn get_shader_by_id(&mut self, id: &ResourceId<ShaderProgram>) -> Option<&ShaderProgram> {
         self.shaders.get_asset_by_id(id)
     }
 
@@ -98,16 +116,16 @@ impl AssetManager {
     /// 
     /// If we want to have a builder hash in the feature, we probably want to add all parameters to it, which
     /// is only the shader_id at the time of writing.
-    pub fn load_material(&mut self, shader_id: &ResourceId<ShaderProgram>) -> Result<ResourceId<Material>, String> {
+    fn load_material(&mut self, shader_id: &ResourceId<ShaderProgram>) -> Result<ResourceId<Material>, String> {
         let material = Material::new(shader_id.duplicate());
         self.materials.add(material, 0)
     }
 
-    pub fn get_material_by_id(&mut self, id: &ResourceId<Material>) -> Option<&mut Material> {
+    fn get_material_by_id(&mut self, id: &ResourceId<Material>) -> Option<&mut Material> {
         self.materials.get_mut_asset_by_id(id)
     }
 
-    pub fn add_material_texture(&mut self, material_id: &ResourceId<Material>, texture_id: &ResourceId<Texture>) {
+    fn add_material_texture(&mut self, material_id: &ResourceId<Material>, texture_id: &ResourceId<Box<dyn Texture>>) {
         {
             let textures_length = self.get_material_by_id(material_id).unwrap().number_of_textures();
             let shader_id = self.get_material_by_id(material_id).unwrap().shader_id.duplicate();
@@ -122,7 +140,7 @@ impl AssetManager {
         self.get_material_by_id(material_id).unwrap().push_texture_id(texture_id.duplicate());
     }
 
-    pub fn activate_material(&mut self, material_id: &ResourceId<Material>) {
+    fn activate_material(&mut self, material_id: &ResourceId<Material>) {
         // apply shader
         self.get_material_shader(material_id).unwrap().apply();
 
@@ -134,7 +152,7 @@ impl AssetManager {
         }
     }
 
-    pub fn get_material_shader(&mut self, material_id: &ResourceId<Material>) -> Option<&ShaderProgram> {
+    fn get_material_shader(&mut self, material_id: &ResourceId<Material>) -> Option<&ShaderProgram> {
         let shader_id;
 
         match self.get_material_by_id(material_id) {

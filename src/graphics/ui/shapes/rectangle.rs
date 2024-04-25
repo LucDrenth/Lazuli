@@ -1,6 +1,6 @@
 use glam::{Vec2, Vec4, Vec3};
 
-use crate::{graphics::{renderer::buffer::{Buffer, Vao}, shader::{ShaderBuilder, CustomShaderValues}, ui::{interface::{is_valid_z_index, map_z_index_for_shader}, element::{world_element_data::WorldElementData, ui_element::UiElement, AnchorPoint, AnchorElementData}, Position, ElementRegistry, bounds_2d::Bounds2d, UiTexture}, material::Material, Color}, set_attribute, error::opengl, asset_manager::AssetManager, log, ResourceId};
+use crate::{asset_manager::{AssetManager, AssetManagerTrait}, error::opengl, graphics::{material::Material, renderer::buffer::{Buffer, Vao}, shader::{CustomShaderValues, ShaderBuilder}, ui::{bounds_2d::Bounds2d, element::{ui_element::UiElement, world_element_data::WorldElementData, AnchorElementData, AnchorPoint}, interface::{is_valid_z_index, map_z_index_for_shader}, ElementRegistry, Position, UiTexture}, Color}, log, set_attribute, ResourceId};
 use crate::graphics::shapes::RECTANGLE_INDICES;
 
 use super::rectangle_border::{Border, BorderSize, BorderRadius};

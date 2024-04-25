@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{TextBuilder, ElementRegistry, self, interface::{is_valid_z_index, self, WidgetRegistry}, Position, element::{AnchorPoint, ui_element::UiElement}, widget::UiWidget, UiElementId, text::TextAlign, Padding, bounds_2d::Bounds2d, UiUpdateTargets, UpdateTargetCollection, UiLayoutId, UiWidgetId}, font::PlainBitmapBuilder, Color}, asset_manager::AssetManager, input::{InputAction, MouseButton}, log, ResourceId};
+use crate::{asset_manager::{AssetManager, AssetManagerTrait}, graphics::{font::PlainBitmapBuilder, ui::{self, bounds_2d::Bounds2d, element::{ui_element::UiElement, AnchorPoint}, interface::{self, is_valid_z_index, WidgetRegistry}, text::TextAlign, widget::UiWidget, ElementRegistry, Padding, Position, TextBuilder, UiElementId, UiLayoutId, UiUpdateTargets, UiWidgetId, UpdateTargetCollection}, Color}, input::{InputAction, MouseButton}, log, ResourceId};
 
 pub struct Button {
     text_element_id: ResourceId<UiElementId>,

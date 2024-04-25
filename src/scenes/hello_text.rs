@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{scene::Scene, font::PlainBitmapBuilder, ui::{TextBuilder, Interface}, Color}, event::EventSystem, input::Input, asset_manager::AssetManager};
+use crate::{asset_manager::{AssetManager, AssetManagerTrait}, event::EventSystem, graphics::{font::PlainBitmapBuilder, scene::Scene, ui::{Interface, TextBuilder}, Color}, input::Input};
 
 pub struct HelloText {
 }

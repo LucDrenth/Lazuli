@@ -2,7 +2,7 @@ use std::any::TypeId;
 
 use glam::Vec2;
 
-use crate::{asset_manager::AssetManager, graphics::{font::Font, shader::CustomShaderValues, ui::{bounds_2d::Bounds2d, element::{ui_element::UiElement, world_element_data::WorldElementData, AnchorElementData, InputEvent}, shapes::{Rectangle, RectangleBuilder}, Position, Text, TextBuilder, UiElementId}, Color}, input::{Input, InputAction, MouseButton}, log, ResourceId};
+use crate::{asset_manager::{AssetManager, AssetManagerTrait}, graphics::{font::Font, shader::CustomShaderValues, ui::{bounds_2d::Bounds2d, element::{ui_element::UiElement, world_element_data::WorldElementData, AnchorElementData, InputEvent}, shapes::{Rectangle, RectangleBuilder}, Position, Text, TextBuilder, UiElementId}, Color}, input::{Input, InputAction, MouseButton}, log, ResourceId};
 
 use super::{interface, element_list::{ElementList, OrderedElementsItem, self}, anchor_tree::{AnchorTree, AnchoredElement, AnchorElementIdentifier}};
 

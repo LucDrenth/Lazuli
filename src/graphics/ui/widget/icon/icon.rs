@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::{ui::{ElementRegistry, UiElementId, shapes::{RectangleBuilder, Rectangle}, UiTexture, Position, interface::{is_valid_z_index, self, WidgetRegistry}, widget::UiWidget, bounds_2d::Bounds2d, UiUpdateTargets, UpdateTargetCollection, UiLayoutId, UiWidgetId}, Color, shader::ShaderBuilder, texture::Texture}, asset_manager::AssetManager, ResourceId, log};
+use crate::{asset_manager::{AssetManager, AssetManagerTrait}, graphics::{shader::ShaderBuilder, texture::Texture, ui::{bounds_2d::Bounds2d, interface::{self, is_valid_z_index, WidgetRegistry}, shapes::{Rectangle, RectangleBuilder}, widget::UiWidget, ElementRegistry, Position, UiElementId, UiLayoutId, UiTexture, UiUpdateTargets, UiWidgetId, UpdateTargetCollection}, Color}, log, ResourceId};
 
 pub struct Icon {
     rectangle_element_id: ResourceId<UiElementId>,
@@ -76,7 +76,7 @@ enum IconSize {
     Fixed(Vec2),
 }
 impl IconSize {
-    fn to_fixed(&self, texture: &Texture) -> Vec2 {
+    fn to_fixed(&self, texture: &Box<dyn Texture>) -> Vec2 {
         match self {
             IconSize::Width(width) => Vec2::new(
                 *width, 

@@ -3,14 +3,22 @@ use glam::Vec2;
 
 use crate::{error::opengl, log};
 
-use super::TextureImage;
+use super::{texture_image::GlTextureImage, TextureImage};
 
-pub struct Texture {
+pub trait Texture {
+    fn activate(&self, unit: usize);
+    fn bind(&self);
+    fn size(&self) -> Vec2;
+    fn width(&self) -> f32;
+    fn height(&self) -> f32;
+}
+
+pub struct GlTexture {
     pub id: GLuint,
     original_size: Vec2,
 }
 
-impl Texture {
+impl GlTexture {
     fn create() -> Self {
         let mut id: GLuint = 0;
 
@@ -43,7 +51,7 @@ impl Texture {
     }
 
     // Currently always returns Ok, but returns a Result to keep consistent with new_from_path
-    pub fn new_from_image<T: Into<TextureImage>>(img: T) -> Result<Texture, String> {
+    pub fn new_from_image<T: Into<GlTextureImage>>(img: T) -> Result<Self, String> {
         let mut texture = Self::create();
         texture.bind();
 
@@ -53,36 +61,20 @@ impl Texture {
         Ok(texture)
     }
 
-    pub fn activate(&self, unit: usize) {
-        unsafe {
-            gl::ActiveTexture(to_gl_texture_unit(unit as u32));
-        }
-
-        self.bind();
-    }
-
-    pub fn bind(&self) {
-        unsafe {
-            gl::BindTexture(gl::TEXTURE_2D, self.id);
-        }
-
-        opengl::gl_check_errors();
-    }
-
-    fn upload<T: Into<TextureImage>>(texture_image: T) -> Vec2 {
-        let img: TextureImage = texture_image.into();
+    fn upload<T: Into<GlTextureImage>>(texture_image: T) -> Vec2 {
+        let img = texture_image.into();
 
         unsafe {
             gl::TexImage2D(
                 gl::TEXTURE_2D,
                 0,
-                img.format as i32,
-                img.width as i32,
-                img.height as i32,
+                img.format() as i32,
+                img.width() as i32,
+                img.height() as i32,
                 0,
-                img.format,
+                img.format(),
                 gl::UNSIGNED_BYTE,
-                img.bytes as *const _,
+                img.bytes() as *const _,
             );
             
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
@@ -105,12 +97,30 @@ impl Texture {
             
         opengl::gl_check_errors();
 
-        Vec2 { x: img.width as f32, y: img.height as f32 }
+        Vec2 { x: img.width() as f32, y: img.height() as f32 }
+    }
+}
+
+impl Texture for GlTexture {
+    fn activate(&self, unit: usize) {
+        unsafe {
+            gl::ActiveTexture(to_gl_texture_unit(unit as u32));
+        }
+
+        self.bind();
     }
 
-    pub fn size(&self) -> Vec2 { self.original_size }
-    pub fn width(&self) -> f32 { self.size().x }
-    pub fn height(&self) -> f32 { self.size().y }
+    fn bind(&self) {
+        unsafe {
+            gl::BindTexture(gl::TEXTURE_2D, self.id);
+        }
+
+        opengl::gl_check_errors();
+    }
+
+    fn size(&self) -> Vec2 { self.original_size }
+    fn width(&self) -> f32 { self.size().x }
+    fn height(&self) -> f32 { self.size().y }
 }
 
 fn to_gl_texture_unit(unit: u32) -> GLenum {
@@ -126,7 +136,7 @@ fn to_gl_texture_unit(unit: u32) -> GLenum {
     return lowest + unit;
 }
 
-impl Drop for Texture {
+impl Drop for GlTexture {
     fn drop(&mut self) {
         unsafe {
             gl::DeleteTextures(1, [self.id].as_ptr())
