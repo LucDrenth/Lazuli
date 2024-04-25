@@ -1,15 +1,13 @@
 use crate::{asset_manager::AssetManagerTrait, graphics::{font, material::Material, shader::{ShaderBuilder, ShaderProgram}, texture::{Texture, TextureImage}}, ResourceId};
 
-pub struct MockAssetManager {
-    
-}
+pub struct MockAssetManager {}
 
 impl AssetManagerTrait for MockAssetManager {
     fn load_texture(&mut self, path: impl Into<String>) -> Result<ResourceId<Box<dyn Texture>>, String> {
         todo!()
     }
 
-    fn load_texture_from_image<T: Into<Box<dyn TextureImage>>>(&mut self, img: T) -> Result<ResourceId<Box<dyn Texture>>, String> {
+    fn load_texture_from_image(&mut self, texture_image: &dyn TextureImage) -> Result<ResourceId<Box<dyn Texture>>, String> {
         todo!()
     }
 

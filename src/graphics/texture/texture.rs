@@ -1,5 +1,6 @@
 use gl::types::{GLuint, GLenum};
 use glam::Vec2;
+use image::RgbaImage;
 
 use crate::{error::opengl, log};
 
@@ -39,7 +40,10 @@ impl GlTexture {
             Ok(img) => {
                 texture.bind();
 
-                let image_size = Self::upload(&img.into_rgba8());
+                let rgba_image: RgbaImage = img.into_rgba8();
+                let texture_image: GlTextureImage = (&rgba_image).into();
+
+                let image_size = Self::upload(&texture_image);
                 texture.original_size = image_size;
 
                 Ok(texture)
@@ -51,7 +55,7 @@ impl GlTexture {
     }
 
     // Currently always returns Ok, but returns a Result to keep consistent with new_from_path
-    pub fn new_from_image<T: Into<GlTextureImage>>(img: T) -> Result<Self, String> {
+    pub fn new_from_image(img: &dyn TextureImage) -> Result<Self, String> {
         let mut texture = Self::create();
         texture.bind();
 
@@ -61,9 +65,7 @@ impl GlTexture {
         Ok(texture)
     }
 
-    fn upload<T: Into<GlTextureImage>>(texture_image: T) -> Vec2 {
-        let img = texture_image.into();
-
+    fn upload(img: &dyn TextureImage) -> Vec2 {
         unsafe {
             gl::TexImage2D(
                 gl::TEXTURE_2D,

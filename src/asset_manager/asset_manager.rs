@@ -6,7 +6,7 @@ use super::asset_collection::AssetCollection;
 
 pub trait AssetManagerTrait {
     fn load_texture(&mut self, path: impl Into<String>) -> Result<ResourceId<Box<dyn Texture>>, String>;
-    fn load_texture_from_image<T: Into<Box<dyn TextureImage>>>(&mut self, img: T) -> Result<ResourceId<Box<dyn Texture>>, String>;
+    fn load_texture_from_image(&mut self, texture_image: &dyn TextureImage) -> Result<ResourceId<Box<dyn Texture>>, String>;
     fn get_texture_by_id(&mut self, id: &ResourceId<Box<dyn Texture>>) -> Option<&Box<dyn Texture>>;
     fn load_font(&mut self, bitmap_builder: impl BitmapBuilder, shader_builder: Option<ShaderBuilder>) -> Result<ResourceId<Font>, String>;
     fn get_font_by_id(&mut self, id: &ResourceId<Font>) -> Option<&Font>;
@@ -56,9 +56,8 @@ impl AssetManagerTrait for AssetManager {
         }
     }
 
-    fn load_texture_from_image<T: Into<Box<dyn TextureImage>>>(&mut self, img: T) -> Result<ResourceId<Box<dyn Texture>>, String> {
-        let t = img.into();
-        match GlTexture::new_from_image(img) {
+    fn load_texture_from_image(&mut self, texture_image: &dyn TextureImage) -> Result<ResourceId<Box<dyn Texture>>, String> {
+        match GlTexture::new_from_image(texture_image) {
             Ok(texture) => self.textures.add(Box::new(texture), None),
             Err(err) => Err(err),
         }

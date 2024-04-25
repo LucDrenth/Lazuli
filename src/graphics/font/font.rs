@@ -1,29 +1,25 @@
 use std::{fs::File, io::Read, collections::HashMap};
 
-use crate::{asset_manager::{AssetManager, AssetManagerTrait}, graphics::{material::Material, shader::ShaderProgram, texture::ImageType}, log, ResourceId};
+use crate::{asset_manager::{AssetManager, AssetManagerTrait}, graphics::{material::Material, shader::ShaderProgram, texture::{GlTextureImage, ImageType}}, log, ResourceId};
 
 use super::{BitmapCharacter, Bitmap, bitmap::BitmapBuilder, bitmap_cache};
 
 pub struct Font {
     bitmap: Box<dyn Bitmap>,
 
-    /// The width of the space (' ') character. the space is relative to the line height. So 0.5 is halve the line height. 
+    /// The width of the space (' ') character. The space is relative to the line height. So 0.5 is halve the line height. 
     pub space_size: f32,
     pub material_id: ResourceId<Material>,
 }
 
-/// # Arguments
-/// 
-/// * `path` - Path to a .ttf file
-/// * `bitmap_builder` -
-/// * `shader` - None to use the default text shader
 impl Font {
     pub fn new(bitmap_builder: impl BitmapBuilder, shader_id: ResourceId<ShaderProgram>, asset_manager: &mut AssetManager) -> Result<Self, String> {
         match load_font(bitmap_builder.font_file_path()) {
             Ok(font) => {
                 let bitmap = Self::get_bitmap(font, bitmap_builder.font_file_path(), &bitmap_builder)?;
 
-                let texture_id = asset_manager.load_texture_from_image(bitmap.image())?.duplicate();
+                let texture_image: GlTextureImage = bitmap.image().into();
+                let texture_id = asset_manager.load_texture_from_image(&texture_image)?.duplicate();
                 let material_id = asset_manager.load_material(&shader_id)?.duplicate();
                 asset_manager.add_material_texture(&material_id, &texture_id);
 
