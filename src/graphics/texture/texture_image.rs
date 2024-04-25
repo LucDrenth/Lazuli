@@ -12,6 +12,7 @@ pub trait TextureImage {
     fn format(&self) -> c_uint;
 }
 
+#[derive(Debug)]
 pub struct GlTextureImage {
     pub width: u32,
     pub height: u32,
