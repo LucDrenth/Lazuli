@@ -6,7 +6,7 @@ mod asset_collection;
 pub use asset_collection::AssetCollection;
 
 
-pub mod mock_asset_manager;
+pub mod asset_manager_mock;
 
 #[cfg(test)]
 mod test_asset_collection;

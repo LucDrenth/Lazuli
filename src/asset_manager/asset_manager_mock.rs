@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{asset_manager::{AssetCollection, AssetManager}, graphics::{font::{self, Font}, material::Material, shader::{ShaderBuilder, ShaderProgram}, texture::{mock_texture::MockTexture, Texture, TextureImage}}, ResourceId};
+use crate::{asset_manager::{AssetCollection, AssetManager}, graphics::{font::{self, Font}, material::Material, shader::{ShaderBuilder, ShaderProgram}, texture::{texture_mock::MockTexture, Texture, TextureImage}}, ResourceId};
 
 pub struct MockAssetManager {
     textures: AssetCollection<Box<dyn Texture>, u32>,

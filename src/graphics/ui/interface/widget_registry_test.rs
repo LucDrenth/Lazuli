@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{asset_manager::mock_asset_manager::MockAssetManager, graphics::{ui::widget::ButtonBuilder, Color}};
+use crate::{asset_manager::asset_manager_mock::MockAssetManager, graphics::{ui::widget::ButtonBuilder, Color}};
 
 use super::{ElementRegistry, WidgetRegistry};
 

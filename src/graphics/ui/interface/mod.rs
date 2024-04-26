@@ -16,4 +16,4 @@ mod element_list;
 mod anchor_tree;
 
 #[cfg(test)]
-mod test_widget_registry;
+mod widget_registry_test;

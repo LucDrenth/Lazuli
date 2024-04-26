@@ -23,11 +23,9 @@ To start the engine locally, run `make run` from the root directory. The scene t
 ## Coding standards
 ### Rust
 #### Tests
-Tests are in its own [tests folder](./src/tests). This is done so we don't have to clutter the regular mod files with test modules.
+Test files should start with a `_test` suffix, follow by the module they test. For example: `feature_test.rs`. 
 
-Test files should start with a `test_` prefix, like `test_my_code.rs`. This helps to prevent them from showing up as top results when searching for files.
-
-Files with mocks should start with a `mock_` prefix, like `mock_my_code.rs`.
+Files with mocks should start with a `_mock` suffix, like `feature_mock.rs`.
 
 ### Shaders
 Local variables names use the snake_case convention. Variable qualifiers ('in', 'out', 'uniform' etc.) use the camelCase convention.
