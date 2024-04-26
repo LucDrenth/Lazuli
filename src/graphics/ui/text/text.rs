@@ -12,7 +12,7 @@ pub struct Text {
     pub color: Color,
     font_size: f32, // the font height in pixels
     world_data: WorldElementData,
-    pub font_id: ResourceId<Font>,
+    pub font_id: ResourceId<Box<dyn Font>>,
     material_id: ResourceId<Material>,
 
     custom_shader_values: CustomShaderValues,
@@ -72,10 +72,10 @@ impl Text {
 
         match asset_manager.get_font_by_id(&self.font_id) {
             Some(font) => {
-                font_space_size = font.space_size;
+                font_space_size = font.space_size();
                 bitmap_spread = (font.bitmap_spread() as f32) * 2.0 / font.line_height() as f32;
-                total_width = Self::get_total_width(&text, &font, self.letter_spacing, bitmap_spread);
-                bitmap_characters = font.bitmap_characters_copy()
+                total_width = Self::get_total_width(&text, font, self.letter_spacing, bitmap_spread);
+                bitmap_characters = font.atlas().characters().clone()
             },
             None => return Err(format!("Failed to get font by id {}", self.font_id.id())),
         }
@@ -119,12 +119,12 @@ impl Text {
     }
 
     /// Calculate the total width of the text, in local space, ignoring characters that do not have a glyph
-    fn get_total_width(text: &String, font: &Font, letter_spacing: f32, spread: f32) -> f32 {
+    fn get_total_width(text: &String, font: &Box<dyn Font>, letter_spacing: f32, spread: f32) -> f32 {
         let mut total_width = 0.0;
         let mut has_glyph_to_render = false;
         
         for character in text.chars() {
-            match font.get_bitmap_character(character) {
+            match font.atlas().characters().get(&character) {
                 Some(bitmap_character) => {
                     has_glyph_to_render = true;
                     total_width += bitmap_character.width + letter_spacing - spread;
@@ -132,7 +132,7 @@ impl Text {
                 None => {
                     if character == ' ' {
                         has_glyph_to_render = true;
-                        total_width += font.space_size;
+                        total_width += font.space_size();
                     } else {
                         // character will not be rendered
                     }
@@ -173,11 +173,11 @@ impl TextBuilder {
         }
     }
 
-    pub fn build(&self, text: impl Into<String>, font_id: &ResourceId<Font>, asset_manager: &mut dyn AssetManager, element_registry: &mut ElementRegistry) -> Result<Text, String> {
+    pub fn build(&self, text: impl Into<String>, font_id: &ResourceId<Box<dyn Font>>, asset_manager: &mut dyn AssetManager, element_registry: &mut ElementRegistry) -> Result<Text, String> {
         let font_material_id;
         match asset_manager.get_font_by_id(font_id) {
             Some(font) => {
-                font_material_id = font.material_id.duplicate();
+                font_material_id = font.get_material_id().duplicate();
             },
             None => return Err(format!("Failed to get font by id {}", font_id.id())),
         }

@@ -311,7 +311,7 @@ pub fn default_element_background_color() -> Color { Color::Rgb(56, 56, 56) }
 pub fn default_font_size() -> f32 {
     14.0
 }
-pub fn default_font(asset_manager: &mut dyn AssetManager) -> Result<ResourceId<Font>, String> {
+pub fn default_font(asset_manager: &mut dyn AssetManager) -> Result<ResourceId<Box<dyn Font>>, String> {
     let bitmap_builder = PlainBitmapBuilder::new()
         .with_font_file_path("./assets/fonts/roboto.ttf".to_string())
         .with_font_size(50.0)

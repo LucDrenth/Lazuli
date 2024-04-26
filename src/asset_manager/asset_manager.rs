@@ -1,6 +1,6 @@
 use std::{collections::hash_map::DefaultHasher, hash::{Hash, Hasher}};
 
-use crate::{graphics::{font::{BitmapBuilder, Font}, material::Material, shader::{ShaderBuilder, ShaderProgram}, texture::{GlTexture, Texture, TextureImage}}, ResourceId};
+use crate::{graphics::{font::{BitmapBuilder, Font, GlFont}, material::Material, shader::{ShaderBuilder, ShaderProgram}, texture::{GlTexture, Texture, TextureImage}}, ResourceId};
 
 use super::asset_collection::AssetCollection;
 
@@ -8,8 +8,8 @@ pub trait AssetManager {
     fn load_texture(&mut self, path: &String) -> Result<ResourceId<Box<dyn Texture>>, String>;
     fn load_texture_from_image(&mut self, texture_image: &dyn TextureImage) -> Result<ResourceId<Box<dyn Texture>>, String>;
     fn get_texture_by_id(&mut self, id: &ResourceId<Box<dyn Texture>>) -> Option<&Box<dyn Texture>>;
-    fn load_font(&mut self, bitmap_builder: &dyn BitmapBuilder, shader_builder: Option<ShaderBuilder>) -> Result<ResourceId<Font>, String>;
-    fn get_font_by_id(&mut self, id: &ResourceId<Font>) -> Option<&Font>;
+    fn load_font(&mut self, bitmap_builder: &dyn BitmapBuilder, shader_builder: Option<ShaderBuilder>) -> Result<ResourceId<Box<dyn Font>>, String>;
+    fn get_font_by_id(&mut self, id: &ResourceId<Box<dyn Font>>) -> Option<&Box<dyn Font>>;
     fn load_shader(&mut self, shader_builder: ShaderBuilder) -> Result<ResourceId<ShaderProgram>, String>;
     fn get_shader_by_id(&mut self, id: &ResourceId<ShaderProgram>) -> Option<&ShaderProgram>;
     fn load_material(&mut self, shader_id: &ResourceId<ShaderProgram>) -> Result<ResourceId<Material>, String>;
@@ -21,7 +21,7 @@ pub trait AssetManager {
 
 pub struct GlAssetManager {
     textures: AssetCollection<Box<dyn Texture>, Option<String>>,
-    fonts: AssetCollection<Font, u64>,
+    fonts: AssetCollection<Box<dyn Font>, u64>,
     shaders: AssetCollection<ShaderProgram, u64>,
     materials: AssetCollection<Material, u64>,
 }
@@ -65,7 +65,7 @@ impl AssetManager for GlAssetManager {
        self.textures.get_asset_by_id(id)
     }
 
-    fn load_font(&mut self, bitmap_builder: &dyn BitmapBuilder, shader_builder: Option<ShaderBuilder>) -> Result<ResourceId<Font>, String> {
+    fn load_font(&mut self, bitmap_builder: &dyn BitmapBuilder, shader_builder: Option<ShaderBuilder>) -> Result<ResourceId<Box<dyn Font>>, String> {
         let shader_builder_to_use: ShaderBuilder = match shader_builder {
             Some(builder) => builder,
             None => bitmap_builder.default_shader_builder(),
@@ -82,12 +82,12 @@ impl AssetManager for GlAssetManager {
         }
 
         let shader_id = self.load_shader(shader_builder_to_use)?;
-        let font = Font::new(bitmap_builder, shader_id, self)?;
+        let font = GlFont::new(bitmap_builder, shader_id, self)?;
 
-        self.fonts.add(font, hash)
+        self.fonts.add(Box::new(font), hash)
     }
 
-    fn get_font_by_id(&mut self, id: &ResourceId<Font>) -> Option<&Font> {
+    fn get_font_by_id(&mut self, id: &ResourceId<Box<dyn Font>>) -> Option<&Box<dyn Font>> {
         self.fonts.get_asset_by_id(id)
     }
 

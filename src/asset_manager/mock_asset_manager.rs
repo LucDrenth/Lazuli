@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{asset_manager::{AssetCollection, AssetManager}, graphics::{font, material::Material, shader::{ShaderBuilder, ShaderProgram}, texture::{mock_texture::MockTexture, Texture, TextureImage}}, ResourceId};
+use crate::{asset_manager::{AssetCollection, AssetManager}, graphics::{font::{self, Font}, material::Material, shader::{ShaderBuilder, ShaderProgram}, texture::{mock_texture::MockTexture, Texture, TextureImage}}, ResourceId};
 
 pub struct MockAssetManager {
     textures: AssetCollection<Box<dyn Texture>, u32>,
@@ -36,11 +36,11 @@ impl AssetManager for MockAssetManager {
         self.textures.get_asset_by_id(id)
     }
 
-    fn load_font(&mut self, _bitmap_builder: &dyn font::BitmapBuilder, _shader_builder: Option<ShaderBuilder>) -> Result<ResourceId<font::Font>, String> {
+    fn load_font(&mut self, _bitmap_builder: &dyn font::BitmapBuilder, _shader_builder: Option<ShaderBuilder>) -> Result<ResourceId<Box<dyn Font>>, String> {
         todo!()
     }
 
-    fn get_font_by_id(&mut self, _id: &ResourceId<font::Font>) -> Option<&font::Font> {
+    fn get_font_by_id(&mut self, _id: &ResourceId<Box<dyn Font>>) -> Option<&Box<dyn Font>> {
         todo!()
     }
 

@@ -1,7 +1,7 @@
 mod font;
 pub use font::Font;
+pub use font::GlFont;
 pub use font::load_font;
-
 
 mod bitmap;
 mod bitmap_cache;
