@@ -26,7 +26,7 @@ impl TextureImage for GlTextureImage {
     }
 
     fn height(&self) -> u32 {
-        self.width
+        self.height
     }
 
     fn format(&self) -> c_uint {
