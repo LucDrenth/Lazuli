@@ -1,6 +1,6 @@
 use glam::{Vec2, Vec4, Vec3};
 
-use crate::{asset_manager::{AssetManager, AssetManagerTrait}, error::opengl, graphics::{material::Material, renderer::buffer::{Buffer, Vao}, shader::{CustomShaderValues, ShaderBuilder}, ui::{bounds_2d::Bounds2d, element::{ui_element::UiElement, world_element_data::WorldElementData, AnchorElementData, AnchorPoint}, interface::{is_valid_z_index, map_z_index_for_shader}, ElementRegistry, Position, UiTexture}, Color}, log, set_attribute, ResourceId};
+use crate::{asset_manager::AssetManager, error::opengl, graphics::{material::Material, renderer::buffer::{Buffer, Vao}, shader::{CustomShaderValues, ShaderBuilder}, ui::{bounds_2d::Bounds2d, element::{ui_element::UiElement, world_element_data::WorldElementData, AnchorElementData, AnchorPoint}, interface::{is_valid_z_index, map_z_index_for_shader}, ElementRegistry, Position, UiTexture}, Color}, log, set_attribute, ResourceId};
 use crate::graphics::shapes::RECTANGLE_INDICES;
 
 use super::rectangle_border::{Border, BorderSize, BorderRadius};
@@ -25,7 +25,7 @@ pub struct Rectangle {
 }
 
 impl UiElement for Rectangle {
-    fn draw(&self, asset_manager: &mut AssetManager, window_size: &Vec2, pixel_density: f32) {
+    fn draw(&self, asset_manager: &mut dyn AssetManager, window_size: &Vec2, pixel_density: f32) {
         if !self.world_data.show {
             return
         }
@@ -169,7 +169,7 @@ impl Rectangle {
     }
 
     /// bind and activate resources
-    fn activate(&self, asset_manager: &mut AssetManager) {
+    fn activate(&self, asset_manager: &mut dyn AssetManager) {
         asset_manager.activate_material(&self.material_id);
         self.vao.bind();
     }
@@ -212,7 +212,7 @@ impl RectangleBuilder {
         }
     }
 
-    pub fn build(&self, asset_manager: &mut AssetManager, element_registry: &ElementRegistry) -> Result<Rectangle, String> {
+    pub fn build(&self, asset_manager: &mut dyn AssetManager, element_registry: &ElementRegistry) -> Result<Rectangle, String> {
         let shader_builder = match self.shader_builder.clone() {
             Some(custom_shader_self) => custom_shader_self,
             None => self.default_shader_builder(),

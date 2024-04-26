@@ -1,6 +1,6 @@
 use glam::{Vec2, Vec4, Vec3};
 
-use crate::{asset_manager::{AssetManager, AssetManagerTrait}, graphics::{font::Font, material::Material, shader::CustomShaderValues, ui::{element::{ui_element::UiElement, world_element_data::WorldElementData, AnchorElementData, AnchorPoint}, interface::{self, is_valid_z_index, map_z_index_for_shader}, ElementRegistry, Position}, Color, Transform}, log, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{font::Font, material::Material, shader::CustomShaderValues, ui::{element::{ui_element::UiElement, world_element_data::WorldElementData, AnchorElementData, AnchorPoint}, interface::{self, is_valid_z_index, map_z_index_for_shader}, ElementRegistry, Position}, Color, Transform}, log, ResourceId};
 
 use super::glyph::Glyph;
 
@@ -19,7 +19,7 @@ pub struct Text {
 }
 
 impl UiElement for Text {
-    fn draw(&self, asset_manager: &mut AssetManager, window_size: &Vec2, pixel_density: f32) {
+    fn draw(&self, asset_manager: &mut dyn AssetManager, window_size: &Vec2, pixel_density: f32) {
         if !self.world_data.show {
             return
         }
@@ -64,7 +64,7 @@ impl UiElement for Text {
 }
 
 impl Text {
-    pub fn set_text(&mut self, text: &String, window_size: Vec2, anchor_element_data: Option<AnchorElementData>, asset_manager: &mut AssetManager) -> Result<(), String> {
+    pub fn set_text(&mut self, text: &String, window_size: Vec2, anchor_element_data: Option<AnchorElementData>, asset_manager: &mut dyn AssetManager) -> Result<(), String> {
         let font_space_size;
         let bitmap_spread;
         let total_width;
@@ -173,7 +173,7 @@ impl TextBuilder {
         }
     }
 
-    pub fn build(&self, text: impl Into<String>, font_id: &ResourceId<Font>, asset_manager: &mut AssetManager, element_registry: &mut ElementRegistry) -> Result<Text, String> {
+    pub fn build(&self, text: impl Into<String>, font_id: &ResourceId<Font>, asset_manager: &mut dyn AssetManager, element_registry: &mut ElementRegistry) -> Result<Text, String> {
         let font_material_id;
         match asset_manager.get_font_by_id(font_id) {
             Some(font) => {

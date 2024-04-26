@@ -3,7 +3,7 @@ use glam::Vec2;
 use crate::{event::EventSystem, graphics::{renderer::Renderer, ui::Interface}, input::Input, asset_manager::AssetManager};
 
 pub trait Window {
-    fn run(self: Box<Self>, renderer: Renderer, event_system: EventSystem, lz_input: Input, asset_manager: AssetManager, interface: Interface);
+    fn run(self: Box<Self>, renderer: Renderer, event_system: EventSystem, lz_input: Input, asset_manager: Box<dyn AssetManager>, interface: Interface);
 
     /// in logical units (physical size / DPI)
     fn get_size(&self) -> Vec2;

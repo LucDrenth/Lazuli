@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{asset_manager::{AssetManager, AssetManagerTrait}, graphics::{font::PlainBitmapBuilder, ui::{self, bounds_2d::Bounds2d, element::{ui_element::UiElement, AnchorPoint}, interface::{self, is_valid_z_index, WidgetRegistry}, widget::UiWidget, ElementRegistry, Position, TextBuilder, UiElementId, UiLayoutId, UiUpdateTargets, UiWidgetId, UpdateTargetCollection}, Color}, input::Input, log, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{font::PlainBitmapBuilder, ui::{self, bounds_2d::Bounds2d, element::{ui_element::UiElement, AnchorPoint}, interface::{self, is_valid_z_index, WidgetRegistry}, widget::UiWidget, ElementRegistry, Position, TextBuilder, UiElementId, UiLayoutId, UiUpdateTargets, UiWidgetId, UpdateTargetCollection}, Color}, input::Input, log, ResourceId};
 
 #[derive(Clone, Copy, Debug)]
 pub enum SliderProgressBarAlignment {
@@ -118,7 +118,7 @@ impl UiWidget for Slider {
 
 impl Slider {
     /// Returns Some if there is a change by dragging the slider
-    pub fn update(&mut self, input: &Input, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Option<SliderUpdateResult> {
+    pub fn update(&mut self, input: &Input, element_registry: &mut ElementRegistry, asset_manager: &mut dyn AssetManager) -> Option<SliderUpdateResult> {
         let did_start_drag: bool;
 
         match element_registry.get_ui_element_by_id(&self.background_element_id) {
@@ -145,7 +145,7 @@ impl Slider {
         })
     }
 
-    fn handle_drag(&mut self, input: &Input, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) {
+    fn handle_drag(&mut self, input: &Input, element_registry: &mut ElementRegistry, asset_manager: &mut dyn AssetManager) {
         let element_size = element_registry.get_element_size(&self.background_element_id).unwrap();
         let element_position = element_registry.get_element_screen_position(&self.background_element_id).unwrap();
 
@@ -170,17 +170,17 @@ impl Slider {
 
     pub fn value(&self) -> f32 { self.value }
 
-    pub fn set_value(&mut self, value: f32, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) {
+    pub fn set_value(&mut self, value: f32, element_registry: &mut ElementRegistry, asset_manager: &mut dyn AssetManager) {
         self.value = value.clamp(self.minimum_value, self.maximum_value);
         self.update_progress_element(element_registry);
         self.update_text_element(element_registry, asset_manager)
     }
 
-    pub fn translate_value(&mut self, extra_value: f32, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) {
+    pub fn translate_value(&mut self, extra_value: f32, element_registry: &mut ElementRegistry, asset_manager: &mut dyn AssetManager) {
         self.set_value(self.value + extra_value, element_registry, asset_manager);
     }
 
-    pub fn set_normalised_value(&mut self, normalised_value: f32, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) {
+    pub fn set_normalised_value(&mut self, normalised_value: f32, element_registry: &mut ElementRegistry, asset_manager: &mut dyn AssetManager) {
         let value = (self.maximum_value - self.minimum_value) * normalised_value + self.minimum_value;
         self.set_value(value, element_registry, asset_manager);
     }
@@ -196,7 +196,7 @@ impl Slider {
         }
     }
 
-    fn update_text_element(&mut self, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) {
+    fn update_text_element(&mut self, element_registry: &mut ElementRegistry, asset_manager: &mut dyn AssetManager) {
         match element_registry.set_text(&self.text_element_id, &Self::value_string(self.value, self.decimals), asset_manager) {
             Ok(_) => (),
             Err(err) => {
@@ -269,9 +269,9 @@ impl SliderBuilder {
         }
     }
 
-    pub fn build(&self, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<Slider, String> {
+    pub fn build(&self, element_registry: &mut ElementRegistry, asset_manager: &mut dyn AssetManager) -> Result<Slider, String> {
         let font_id = match &self.font_path {
-            Some(font_path) => asset_manager.load_font(PlainBitmapBuilder::new()
+            Some(font_path) => asset_manager.load_font(&PlainBitmapBuilder::new()
                 .with_font_file_path(font_path.clone())
                 .with_font_size(50.0)
                 , None)?,

@@ -330,7 +330,7 @@ pub struct VerticalListBuilder {
 }
 
 impl LayoutBuilder for VerticalListBuilder {
-    fn build(&mut self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, asset_manager: &mut AssetManager) -> Result<(Box<dyn Layout>, UpdateTargetCollection), String> {
+    fn build(&mut self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, asset_manager: &mut dyn AssetManager) -> Result<(Box<dyn Layout>, UpdateTargetCollection), String> {
         let (layout, update_targets) = self.build(element_registry, widget_registry, asset_manager)?;
         Ok((Box::new(layout), update_targets))
     }
@@ -358,7 +358,7 @@ impl VerticalListBuilder {
         }
     }
 
-    pub fn build(&mut self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, asset_manager: &mut AssetManager) -> Result<(VerticalList, UpdateTargetCollection), String> {
+    pub fn build(&mut self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, asset_manager: &mut dyn AssetManager) -> Result<(VerticalList, UpdateTargetCollection), String> {
         let background_width = match self.width {
             Width::Fixed(width) => width,
             Width::MaxWidth(max_width) => { 

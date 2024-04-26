@@ -3,7 +3,7 @@ use std::f32::consts::{PI, TAU};
 use glam::{Vec3, Vec2};
 use rand::{Rng, rngs::ThreadRng};
 
-use crate::{asset_manager::{AssetManager, AssetManagerTrait}, event::{self, EventSystem}, graphics::{material::Material, scene::Scene, shader::{ShaderBuilder, PATH_COLORED_FRAG}, ui::Interface, Camera, Cube, Shape, Transform}, input::{Input, Key}, time, ResourceId};
+use crate::{asset_manager::AssetManager, event::{self, EventSystem}, graphics::{material::Material, scene::Scene, shader::{ShaderBuilder, PATH_COLORED_FRAG}, ui::Interface, Camera, Cube, Shape, Transform}, input::{Input, Key}, time, ResourceId};
 
 pub struct CoordinateSystem {
     material_id: ResourceId<Material>,
@@ -17,7 +17,7 @@ pub struct CoordinateSystem {
 }
 
 impl Scene for CoordinateSystem {
-    fn new(event_system: &mut EventSystem, window_size: Vec2, _pixel_density: f32, asset_manager: &mut AssetManager, _: &mut Interface) -> Result<Self, String> {
+    fn new(event_system: &mut EventSystem, window_size: Vec2, _pixel_density: f32, asset_manager: &mut dyn AssetManager, _: &mut Interface) -> Result<Self, String> {
         event_system.send(event::LockCursor{});
         event_system.send(event::HideCursor{});
 
@@ -75,7 +75,7 @@ impl Scene for CoordinateSystem {
         Ok(result)
     }
 
-    fn update(&mut self, _: &mut EventSystem, input: &Input, asset_manager: &mut AssetManager, _: &mut Interface) {
+    fn update(&mut self, _: &mut EventSystem, input: &Input, asset_manager: &mut dyn AssetManager, _: &mut Interface) {
         for i in 0..self.cubes.len() {
             self.transforms[i].rotate(&self.rotations[i]);
         }
@@ -95,7 +95,7 @@ impl Scene for CoordinateSystem {
         asset_manager.get_material_shader(&self.material_id).unwrap().set_uniform("view", self.camera.view_for_shader());
     }
 
-    unsafe fn draw(&self, asset_manager: &mut AssetManager) {
+    unsafe fn draw(&self, asset_manager: &mut dyn AssetManager) {
         let shader = asset_manager.get_material_shader(&self.material_id).unwrap();
 
         for i in 0..self.cubes.len() {
@@ -134,7 +134,7 @@ impl CoordinateSystem {
         }
     }
 
-    fn poll_zoom(&mut self, input: &Input, asset_manager: &mut AssetManager) {
+    fn poll_zoom(&mut self, input: &Input, asset_manager: &mut dyn AssetManager) {
         let scroll_y = input.get_scroll_y() as f32 * self.zoom_speed * time::DELTA;
 
         if scroll_y != 0.0 {

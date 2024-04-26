@@ -78,7 +78,7 @@ impl PlainBitmapCache {
 }
 
 
-pub fn load(font_path: &String, bitmap_builder: &impl BitmapBuilder) -> Option<Box<dyn Bitmap>> {
+pub fn load(font_path: &String, bitmap_builder: &dyn BitmapBuilder) -> Option<Box<dyn Bitmap>> {
     let bitmap_builder_hash: String;
     match bitmap_builder.get_hash() {
         Ok(hash) => bitmap_builder_hash = hash,
@@ -94,7 +94,7 @@ pub fn load(font_path: &String, bitmap_builder: &impl BitmapBuilder) -> Option<B
     return Some(bitmap_cache.build(texture));
 }
 
-pub fn save(font_path: &String, bitmap_builder: &impl BitmapBuilder, bitmap: &Box<dyn Bitmap>) -> Result<(), String> {
+pub fn save(font_path: &String, bitmap_builder: &dyn BitmapBuilder, bitmap: &Box<dyn Bitmap>) -> Result<(), String> {
     let bitmap_builder_hash = bitmap_builder.get_hash()?;
 
     bitmap.save(&format!("{}.{}-texture.png", font_path, bitmap_builder_hash))?;
@@ -119,7 +119,7 @@ fn get_bitmap_builder_hash(bitmap_builder: &SdfBitmapBuilder) -> Result<String, 
     }
 }
 
-fn read_character_data(bitmap_builder: &impl BitmapBuilder, font_path: &String, bitmap_builder_hash: &String) -> Option<Box<dyn BitmapCache>> {
+fn read_character_data(bitmap_builder: &dyn BitmapBuilder, font_path: &String, bitmap_builder_hash: &String) -> Option<Box<dyn BitmapCache>> {
     match fs::read_to_string(format!("{}.{}-data.json", font_path, bitmap_builder_hash)) {
         Ok(data) => {
             return bitmap_builder.cache_from_json(data);

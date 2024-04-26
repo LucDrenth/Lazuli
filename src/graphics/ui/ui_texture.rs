@@ -1,4 +1,4 @@
-use crate::{asset_manager::{AssetManager, AssetManagerTrait}, graphics::{material::Material, texture::Texture}, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{material::Material, texture::Texture}, ResourceId};
 
 #[derive(Clone)]
 pub enum UiTexture {
@@ -7,7 +7,7 @@ pub enum UiTexture {
 }
 
 impl UiTexture {
-    pub fn upload(&self, material_id: &ResourceId<Material>, asset_manager: &mut AssetManager) -> Result<ResourceId<Box<dyn Texture>>, String> {
+    pub fn upload(&self, material_id: &ResourceId<Material>, asset_manager: &mut dyn AssetManager) -> Result<ResourceId<Box<dyn Texture>>, String> {
         match self {
             UiTexture::Id(texture_id) => {
                 asset_manager.add_material_texture(&material_id, &texture_id);

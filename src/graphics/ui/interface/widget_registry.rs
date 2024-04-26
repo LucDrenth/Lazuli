@@ -36,7 +36,7 @@ impl WidgetRegistry {
         }
     }
 
-    pub fn update(&mut self, input: &Input, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> WidgetRegistryUdpateResult {
+    pub fn update(&mut self, input: &Input, element_registry: &mut ElementRegistry, asset_manager: &mut dyn AssetManager) -> WidgetRegistryUdpateResult {
         let mut result: WidgetRegistryUdpateResult = Default::default();
 
         // update sliders
@@ -117,7 +117,7 @@ impl WidgetRegistry {
     pub fn add_slider(&mut self, slider: Slider) -> ResourceId<UiWidgetId> {
         self.sliders.push(slider)
     }
-    pub fn create_slider(&mut self, builder: &SliderBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
+    pub fn create_slider(&mut self, builder: &SliderBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut dyn AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
         let slider = builder.build(element_registry, asset_manager)?;
         Ok(self.sliders.push(slider))
     }
@@ -125,7 +125,7 @@ impl WidgetRegistry {
     pub fn add_button(&mut self, button: Button) -> ResourceId<UiWidgetId> {
         self.buttons.push(button)
     }
-    pub fn create_button(&mut self, label: impl Into<String>, builder: &ButtonBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
+    pub fn create_button(&mut self, label: impl Into<String>, builder: &ButtonBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut dyn AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
         let button = builder.build(label, element_registry, asset_manager)?;
         Ok(self.buttons.push(button))
     }
@@ -133,7 +133,7 @@ impl WidgetRegistry {
     pub fn add_dropdown(&mut self, dropdown: Dropdown<u32>) -> ResourceId<UiWidgetId> {
         self.dropdowns.push(dropdown)
     }
-    pub fn create_dropdown(&mut self, builder: &DropdownBuilder<u32>, element_registry: &mut ElementRegistry, layout_registry: &mut LayoutRegistry, asset_manager: &mut AssetManager) -> Result<(ResourceId<UiWidgetId>, Vec<UpdateTargetCollection>), String> {
+    pub fn create_dropdown(&mut self, builder: &DropdownBuilder<u32>, element_registry: &mut ElementRegistry, layout_registry: &mut LayoutRegistry, asset_manager: &mut dyn AssetManager) -> Result<(ResourceId<UiWidgetId>, Vec<UpdateTargetCollection>), String> {
         let (dropdown, update_targets) = builder.build(element_registry, self, layout_registry, asset_manager)?;
         let id = self.dropdowns.push(dropdown);
 
@@ -143,7 +143,7 @@ impl WidgetRegistry {
     pub fn add_icon(&mut self, icon: Icon) -> ResourceId<UiWidgetId> {
         self.icons.push(icon)
     }
-    pub fn create_icon(&mut self, builder: &IconBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
+    pub fn create_icon(&mut self, builder: &IconBuilder, element_registry: &mut ElementRegistry, asset_manager: &mut dyn AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
         let icon = builder.build(element_registry, asset_manager)?;
         Ok(self.icons.push(icon))
     }
@@ -231,7 +231,7 @@ impl WidgetRegistry {
     // =================================================== \\
     // ============ Widget specific functions ============ \\
 
-    pub fn set_slider_value(&mut self, value: f32, slider_id: &ResourceId<UiWidgetId>, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) {
+    pub fn set_slider_value(&mut self, value: f32, slider_id: &ResourceId<UiWidgetId>, element_registry: &mut ElementRegistry, asset_manager: &mut dyn AssetManager) {
         match self.get_mut_slider(slider_id) {
             Some(slider) => slider.set_value(value, element_registry, asset_manager),
             None => log::engine_warn( format!("Failed to set slider value because slider with id {} was not found", slider_id.id()) ),

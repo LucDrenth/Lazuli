@@ -1,14 +1,14 @@
 use glam::Vec2;
 
-use crate::{asset_manager::{AssetManager, AssetManagerTrait}, event::EventSystem, graphics::{font::PlainBitmapBuilder, scene::Scene, ui::{Interface, TextBuilder}, Color}, input::Input};
+use crate::{asset_manager::AssetManager, event::EventSystem, graphics::{font::PlainBitmapBuilder, scene::Scene, ui::{Interface, TextBuilder}, Color}, input::Input};
 
 pub struct HelloText {
 }
 
 impl Scene for HelloText {
-    fn new(_: &mut EventSystem, _: Vec2, _: f32, asset_manager: &mut AssetManager, interface: &mut Interface) -> Result<Self, String> 
+    fn new(_: &mut EventSystem, _: Vec2, _: f32, asset_manager: &mut dyn AssetManager, interface: &mut Interface) -> Result<Self, String> 
     {
-        let plain_font_id = asset_manager.load_font(PlainBitmapBuilder::new()
+        let plain_font_id = asset_manager.load_font(&PlainBitmapBuilder::new()
             .with_font_size(50.0)
         , None)?;
         
@@ -43,9 +43,9 @@ impl Scene for HelloText {
         Ok(result)
     }
 
-    fn update(&mut self, _: &mut EventSystem, _: &Input, _: &mut AssetManager, _: &mut Interface) {
+    fn update(&mut self, _: &mut EventSystem, _: &Input, _: &mut dyn AssetManager, _: &mut Interface) {
     }
 
-    unsafe fn draw(&self, _: &mut AssetManager) {
+    unsafe fn draw(&self, _: &mut dyn AssetManager) {
     }
 }

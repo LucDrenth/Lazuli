@@ -24,7 +24,7 @@ impl Renderer {
         })
     }
 
-    pub fn draw(&mut self, asset_manager: &mut AssetManager, interface: &Interface) {
+    pub fn draw(&mut self, asset_manager: &mut dyn AssetManager, interface: &Interface) {
         unsafe {
             gl::ClearColor(0.45, 0.4, 0.6, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);

@@ -1,5 +1,12 @@
 mod asset_manager;
 pub use asset_manager::AssetManager;
-pub use asset_manager::AssetManagerTrait;
+pub use asset_manager::GlAssetManager;
 
 mod asset_collection;
+pub use asset_collection::AssetCollection;
+
+
+pub mod mock_asset_manager;
+
+#[cfg(test)]
+mod test_asset_collection;

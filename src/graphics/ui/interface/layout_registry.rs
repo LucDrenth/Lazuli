@@ -39,7 +39,7 @@ impl LayoutRegistry {
         builder: &mut impl LayoutBuilder, 
         element_registry: &mut ElementRegistry, 
         widget_registry: &mut WidgetRegistry, 
-        asset_manager: &mut AssetManager
+        asset_manager: &mut dyn AssetManager
     ) -> Result<(ResourceId<UiLayoutId>, UpdateTargetCollection), String> {
         let (layout, update_targets) = builder.build(element_registry, widget_registry, asset_manager)?;
         let layout_id = self.add_layout(layout);

@@ -1,4 +1,4 @@
-use crate::{asset_manager::{AssetManager, AssetManagerTrait}, ResourceId};
+use crate::{asset_manager::AssetManager, ResourceId};
 
 use super::{shader::ShaderProgram, texture::Texture};
 
@@ -15,7 +15,7 @@ impl Material {
         }
     }
 
-    pub fn add_texture(&mut self, texture_id: ResourceId<Box<dyn Texture>>, asset_manager: &mut AssetManager) {
+    pub fn add_texture(&mut self, texture_id: ResourceId<Box<dyn Texture>>, asset_manager: &mut dyn AssetManager) {
         asset_manager.get_shader_by_id(&self.shader_id).unwrap().set_uniform(
             format!("texture{}", self.texture_ids.len()).as_str(), 
             self.texture_ids.len() as i32
@@ -28,7 +28,7 @@ impl Material {
         self.texture_ids.push(texture_id);
     }
 
-    pub fn activate(&self, asset_manager: &mut AssetManager) {
+    pub fn activate(&self, asset_manager: &mut dyn AssetManager) {
         asset_manager.get_shader_by_id(&self.shader_id).unwrap().apply();
         
         for (index, texture_id) in self.texture_ids.iter().enumerate() {
@@ -36,7 +36,7 @@ impl Material {
         }
     }
 
-    pub fn shader<'a>(&'a self, asset_manager: &'a mut AssetManager) -> Option<&ShaderProgram> {
+    pub fn shader<'a>(&'a self, asset_manager: &'a mut dyn AssetManager) -> Option<&ShaderProgram> {
         asset_manager.get_shader_by_id(&self.shader_id)
     }
 

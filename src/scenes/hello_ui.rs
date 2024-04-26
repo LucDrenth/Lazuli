@@ -14,7 +14,7 @@ pub struct HelloUi {
 }
 
 impl Scene for HelloUi {
-    fn new(_: &mut EventSystem, _: Vec2, _: f32, asset_manager: &mut AssetManager, interface: &mut Interface) -> Result<Self, String> 
+    fn new(_: &mut EventSystem, _: Vec2, _: f32, asset_manager: &mut dyn AssetManager, interface: &mut Interface) -> Result<Self, String> 
     {
         let rectangle_id = interface.mut_element_registry().create_rectangle(&RectangleBuilder::new(), asset_manager)?;
         let second_rectangle_id = interface.mut_element_registry().create_rectangle(&RectangleBuilder::new()
@@ -102,7 +102,7 @@ impl Scene for HelloUi {
         })
     }
 
-    fn update(&mut self, _: &mut EventSystem, input: &Input, asset_manager: &mut AssetManager, interface: &mut Interface) {
+    fn update(&mut self, _: &mut EventSystem, input: &Input, asset_manager: &mut dyn AssetManager, interface: &mut Interface) {
         interface.slider_update_result(&self.width_slider_id).map(|result|{
             let y = interface.mut_element_registry().get_element_scale(&self.rectangle_id).unwrap().y;
             interface.mut_element_registry().set_element_scale(&self.rectangle_id, Vec2 { 
@@ -172,6 +172,6 @@ impl Scene for HelloUi {
         _ = interface.mut_element_registry().set_text(&self.mouse_pos, &mouse_pos_text, asset_manager);
     }
 
-    unsafe fn draw(&self, _: &mut AssetManager) {
+    unsafe fn draw(&self, _: &mut dyn AssetManager) {
     }
 }

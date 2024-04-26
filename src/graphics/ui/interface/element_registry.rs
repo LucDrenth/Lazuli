@@ -2,7 +2,7 @@ use std::any::TypeId;
 
 use glam::Vec2;
 
-use crate::{asset_manager::{AssetManager, AssetManagerTrait}, graphics::{font::Font, shader::CustomShaderValues, ui::{bounds_2d::Bounds2d, element::{ui_element::UiElement, world_element_data::WorldElementData, AnchorElementData, InputEvent}, shapes::{Rectangle, RectangleBuilder}, Position, Text, TextBuilder, UiElementId}, Color}, input::{Input, InputAction, MouseButton}, log, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{font::Font, shader::CustomShaderValues, ui::{bounds_2d::Bounds2d, element::{ui_element::UiElement, world_element_data::WorldElementData, AnchorElementData, InputEvent}, shapes::{Rectangle, RectangleBuilder}, Position, Text, TextBuilder, UiElementId}, Color}, input::{Input, InputAction, MouseButton}, log, ResourceId};
 
 use super::{interface, element_list::{ElementList, OrderedElementsItem, self}, anchor_tree::{AnchorTree, AnchoredElement, AnchorElementIdentifier}};
 
@@ -39,7 +39,7 @@ impl ElementRegistry {
         }
     }
 
-    pub fn update(&mut self, _asset_manager: &mut AssetManager, input: &Input) {
+    pub fn update(&mut self, _asset_manager: &mut dyn AssetManager, input: &Input) {
         self.handle_inputs_events(input);
     }
 
@@ -86,7 +86,7 @@ impl ElementRegistry {
         self.pixel_density = pixel_density;
     }
 
-    pub fn draw(&self, asset_manager: &mut AssetManager) {
+    pub fn draw(&self, asset_manager: &mut dyn AssetManager) {
         for ordered_item in self.ordered_elements.iter() {
             match self.get_ui_element_by_index(ordered_item.element_type, ordered_item.index) {
                 Some(element) => {
@@ -183,7 +183,7 @@ impl ElementRegistry {
         return None
     }
 
-    pub fn create_text(&mut self, text: impl Into<String>, font_id: Option<&ResourceId<Font>>, text_builder: &TextBuilder, asset_manager: &mut AssetManager) -> Result<ResourceId<UiElementId>, String> {
+    pub fn create_text(&mut self, text: impl Into<String>, font_id: Option<&ResourceId<Font>>, text_builder: &TextBuilder, asset_manager: &mut dyn AssetManager) -> Result<ResourceId<UiElementId>, String> {
         let font_id_to_use = match font_id {
             Some(id) => id.duplicate(),
             None => interface::default_font(asset_manager)?,
@@ -195,7 +195,7 @@ impl ElementRegistry {
         Ok(self.add_text(text_element))
     }
 
-    fn on_create_element(&self, element: &impl UiElement, asset_manager: &mut AssetManager) {
+    fn on_create_element(&self, element: &impl UiElement, asset_manager: &mut dyn AssetManager) {
         // TODO We only need to set this view uniform when the shader has been newly made.
         asset_manager.get_material_shader(element.material_id()).unwrap().set_uniform(
             "view", 
@@ -214,7 +214,7 @@ impl ElementRegistry {
         id
     }
 
-    pub fn create_rectangle(&mut self, builder: &RectangleBuilder, asset_manager: &mut AssetManager) -> Result<ResourceId<UiElementId>, String> {
+    pub fn create_rectangle(&mut self, builder: &RectangleBuilder, asset_manager: &mut dyn AssetManager) -> Result<ResourceId<UiElementId>, String> {
         let rectangle_element = builder.build(asset_manager, self)?;
         self.on_create_element(&rectangle_element, asset_manager);
 
@@ -311,7 +311,7 @@ impl ElementRegistry {
         }
     }
 
-    pub fn handle_window_resize(&mut self, window_size: Vec2, asset_manager: &mut AssetManager) {
+    pub fn handle_window_resize(&mut self, window_size: Vec2, asset_manager: &mut dyn AssetManager) {
         self.window_size = window_size.clone();
         let view_uniform = to_view_uniform(self.window_size.x, self.window_size.y);
 
@@ -609,7 +609,7 @@ impl ElementRegistry {
         }
     }
 
-    pub fn set_text(&mut self, text_element_id: &ResourceId<UiElementId>, text: &String, asset_manager: &mut AssetManager) -> Result<(), String> {
+    pub fn set_text(&mut self, text_element_id: &ResourceId<UiElementId>, text: &String, asset_manager: &mut dyn AssetManager) -> Result<(), String> {
         let window_size: Vec2 = self.window_size.clone();
         let anchor_data = self.get_anchor_element_data(text_element_id)?;
 

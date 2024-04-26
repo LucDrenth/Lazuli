@@ -231,7 +231,7 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
         }
     }
 
-    pub fn build(&self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, layout_registry: &mut LayoutRegistry, asset_manager: &mut AssetManager) -> Result<(Dropdown<T>, Vec<UpdateTargetCollection>), String> {
+    pub fn build(&self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, layout_registry: &mut LayoutRegistry, asset_manager: &mut dyn AssetManager) -> Result<(Dropdown<T>, Vec<UpdateTargetCollection>), String> {
         self.validate()?;
 
         let selected_value: Option<T>;

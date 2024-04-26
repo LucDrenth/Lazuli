@@ -20,7 +20,7 @@ pub struct GlutinWindow {
 }
 
 impl Window for GlutinWindow {
-    fn run(self: Box<Self>, mut renderer: Renderer, mut event_system: EventSystem, mut lz_input: Input, mut asset_manager: AssetManager, mut interface: Interface) {
+    fn run(self: Box<Self>, mut renderer: Renderer, mut event_system: EventSystem, mut lz_input: Input, mut asset_manager: Box<dyn AssetManager>, mut interface: Interface) {
         let mut next_frame_time: u128 = 0;
 
         // Move all properties of self in to their own variables because self will get moved by event_loop.run, and thus the properties
@@ -127,11 +127,11 @@ impl Window for GlutinWindow {
                         return;
                     }
 
-                    interface.update(&mut asset_manager, &lz_input);
-                    renderer.scene.update(&mut event_system, &lz_input, &mut asset_manager, &mut interface);
+                    interface.update(&mut *asset_manager, &lz_input);
+                    renderer.scene.update(&mut event_system, &lz_input, &mut *asset_manager, &mut interface);
                     Self::read_event_listeners(&mut event_listeners, &render_context.window());
 
-                    renderer.draw(&mut asset_manager, &mut interface);
+                    renderer.draw(&mut *asset_manager, &mut interface);
                     render_context.swap_buffers().expect("Failed to swap buffers");
 
                     lz_input.reset();

@@ -4,11 +4,11 @@ use crate::{graphics::{font::{BitmapBuilder, Font}, material::Material, shader::
 
 use super::asset_collection::AssetCollection;
 
-pub trait AssetManagerTrait {
-    fn load_texture(&mut self, path: impl Into<String>) -> Result<ResourceId<Box<dyn Texture>>, String>;
+pub trait AssetManager {
+    fn load_texture(&mut self, path: &String) -> Result<ResourceId<Box<dyn Texture>>, String>;
     fn load_texture_from_image(&mut self, texture_image: &dyn TextureImage) -> Result<ResourceId<Box<dyn Texture>>, String>;
     fn get_texture_by_id(&mut self, id: &ResourceId<Box<dyn Texture>>) -> Option<&Box<dyn Texture>>;
-    fn load_font(&mut self, bitmap_builder: impl BitmapBuilder, shader_builder: Option<ShaderBuilder>) -> Result<ResourceId<Font>, String>;
+    fn load_font(&mut self, bitmap_builder: &dyn BitmapBuilder, shader_builder: Option<ShaderBuilder>) -> Result<ResourceId<Font>, String>;
     fn get_font_by_id(&mut self, id: &ResourceId<Font>) -> Option<&Font>;
     fn load_shader(&mut self, shader_builder: ShaderBuilder) -> Result<ResourceId<ShaderProgram>, String>;
     fn get_shader_by_id(&mut self, id: &ResourceId<ShaderProgram>) -> Option<&ShaderProgram>;
@@ -19,14 +19,14 @@ pub trait AssetManagerTrait {
     fn get_material_shader(&mut self, material_id: &ResourceId<Material>) -> Option<&ShaderProgram>;
 }
 
-pub struct AssetManager {
+pub struct GlAssetManager {
     textures: AssetCollection<Box<dyn Texture>, Option<String>>,
     fonts: AssetCollection<Font, u64>,
     shaders: AssetCollection<ShaderProgram, u64>,
     materials: AssetCollection<Material, u64>,
 }
 
-impl AssetManager {
+impl GlAssetManager {
     pub fn new() -> Self {
         Self {
             textures: AssetCollection::new(),
@@ -37,11 +37,9 @@ impl AssetManager {
     }
 }
 
-impl AssetManagerTrait for AssetManager {
-    fn load_texture(&mut self, path: impl Into<String>) -> Result<ResourceId<Box<dyn Texture>>, String> {
-        let path_string = path.into();
-
-        let some_path = Some(path_string.clone());
+impl AssetManager for GlAssetManager {
+    fn load_texture(&mut self, path: &String) -> Result<ResourceId<Box<dyn Texture>>, String> {
+        let some_path = Some(path.clone());
 
         match self.textures.get_by_builder_hash(&some_path) {
             Some(existing) => {
@@ -50,7 +48,7 @@ impl AssetManagerTrait for AssetManager {
             None => (),
         }
 
-        match GlTexture::new_from_path(path_string) {
+        match GlTexture::new_from_path(path) {
             Ok(texture) => self.textures.add(Box::new(texture), some_path),
             Err(err) => Err(err),
         }
@@ -67,7 +65,7 @@ impl AssetManagerTrait for AssetManager {
        self.textures.get_asset_by_id(id)
     }
 
-    fn load_font(&mut self, bitmap_builder: impl BitmapBuilder, shader_builder: Option<ShaderBuilder>) -> Result<ResourceId<Font>, String> {
+    fn load_font(&mut self, bitmap_builder: &dyn BitmapBuilder, shader_builder: Option<ShaderBuilder>) -> Result<ResourceId<Font>, String> {
         let shader_builder_to_use: ShaderBuilder = match shader_builder {
             Some(builder) => builder,
             None => bitmap_builder.default_shader_builder(),

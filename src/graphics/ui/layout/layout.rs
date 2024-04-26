@@ -24,5 +24,5 @@ pub trait Layout {
 }
 
 pub trait LayoutBuilder {
-    fn build(&mut self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, asset_manager: &mut AssetManager) -> Result<(Box<dyn Layout>, UpdateTargetCollection), String>;
+    fn build(&mut self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, asset_manager: &mut dyn AssetManager) -> Result<(Box<dyn Layout>, UpdateTargetCollection), String>;
 }

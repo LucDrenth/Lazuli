@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{asset_manager::{AssetManager, AssetManagerTrait}, graphics::{font::PlainBitmapBuilder, ui::{self, bounds_2d::Bounds2d, element::{ui_element::UiElement, AnchorPoint}, interface::{self, is_valid_z_index, WidgetRegistry}, text::TextAlign, widget::UiWidget, ElementRegistry, Padding, Position, TextBuilder, UiElementId, UiLayoutId, UiUpdateTargets, UiWidgetId, UpdateTargetCollection}, Color}, input::{InputAction, MouseButton}, log, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{font::PlainBitmapBuilder, ui::{self, bounds_2d::Bounds2d, element::{ui_element::UiElement, AnchorPoint}, interface::{self, is_valid_z_index, WidgetRegistry}, text::TextAlign, widget::UiWidget, ElementRegistry, Padding, Position, TextBuilder, UiElementId, UiLayoutId, UiUpdateTargets, UiWidgetId, UpdateTargetCollection}, Color}, input::{InputAction, MouseButton}, log, ResourceId};
 
 pub struct Button {
     text_element_id: ResourceId<UiElementId>,
@@ -158,9 +158,9 @@ impl ButtonBuilder {
         }
     }
 
-    pub fn build(&self, label: impl Into<String>, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<Button, String> {
+    pub fn build(&self, label: impl Into<String>, element_registry: &mut ElementRegistry, asset_manager: &mut dyn AssetManager) -> Result<Button, String> {
         let font_id = match &self.font_path {
-            Some(font_path) => asset_manager.load_font(PlainBitmapBuilder::new()
+            Some(font_path) => asset_manager.load_font(&PlainBitmapBuilder::new()
                 .with_font_file_path(font_path.clone())
                 .with_font_size(50.0)
                 , None)?,

@@ -6,7 +6,7 @@ use super::world_element_data::WorldElementData;
 
 pub trait UiElement {
     fn material_id(&self) -> &ResourceId<Material>;
-    fn draw(&self, asset_manager: &mut AssetManager, window_size: &Vec2, pixel_density: f32);
+    fn draw(&self, asset_manager: &mut dyn AssetManager, window_size: &Vec2, pixel_density: f32);
     fn type_name(&self) -> &str;
     fn handle_window_resize(&mut self, new_window_size: &Vec2);
 

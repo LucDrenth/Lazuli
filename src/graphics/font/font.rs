@@ -1,6 +1,6 @@
 use std::{fs::File, io::Read, collections::HashMap};
 
-use crate::{asset_manager::{AssetManager, AssetManagerTrait}, graphics::{material::Material, shader::ShaderProgram, texture::{GlTextureImage, ImageType}}, log, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{material::Material, shader::ShaderProgram, texture::{GlTextureImage, ImageType}}, log, ResourceId};
 
 use super::{BitmapCharacter, Bitmap, bitmap::BitmapBuilder, bitmap_cache};
 
@@ -13,10 +13,10 @@ pub struct Font {
 }
 
 impl Font {
-    pub fn new(bitmap_builder: impl BitmapBuilder, shader_id: ResourceId<ShaderProgram>, asset_manager: &mut AssetManager) -> Result<Self, String> {
+    pub fn new(bitmap_builder: &dyn BitmapBuilder, shader_id: ResourceId<ShaderProgram>, asset_manager: &mut dyn AssetManager) -> Result<Self, String> {
         match load_font(bitmap_builder.font_file_path()) {
             Ok(font) => {
-                let bitmap = Self::get_bitmap(font, bitmap_builder.font_file_path(), &bitmap_builder)?;
+                let bitmap = Self::get_bitmap(font, bitmap_builder.font_file_path(), bitmap_builder)?;
 
                 let texture_image: GlTextureImage = bitmap.image().into();
                 let texture_id = asset_manager.load_texture_from_image(&texture_image)?;
@@ -64,7 +64,7 @@ impl Font {
     //     asset_manager.get_material_by_id(self.material_id)
     // }
 
-    fn get_bitmap(font: rusttype::Font<'static>, path: &String, bitmap_builder: &impl BitmapBuilder) -> Result<Box<dyn Bitmap>, String> {
+    fn get_bitmap(font: rusttype::Font<'static>, path: &String, bitmap_builder: &dyn BitmapBuilder) -> Result<Box<dyn Bitmap>, String> {
         if let Some(existing_bitmap) = bitmap_cache::load(&path, bitmap_builder) {
             return Ok(existing_bitmap)
         } else {

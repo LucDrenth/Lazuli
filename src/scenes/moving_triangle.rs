@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{asset_manager::{AssetManager, AssetManagerTrait}, event::EventSystem, graphics::{material::Material, scene::Scene, shader::{ShaderBuilder, PATH_MOVING_TRIANGLE_FRAG, PATH_MOVING_TRIANGLE_VERT}, ui::Interface, Shape, Triangle}, input::Input, ResourceId};
+use crate::{asset_manager::AssetManager, event::EventSystem, graphics::{material::Material, scene::Scene, shader::{ShaderBuilder, PATH_MOVING_TRIANGLE_FRAG, PATH_MOVING_TRIANGLE_VERT}, ui::Interface, Shape, Triangle}, input::Input, ResourceId};
 
 pub struct MovingTriangle {
     material_id: ResourceId<Material>,
@@ -10,7 +10,7 @@ pub struct MovingTriangle {
 }
 
 impl Scene for MovingTriangle {
-    fn new(_event_system: &mut EventSystem, _window_size: Vec2, _pixel_density: f32, asset_manager: &mut AssetManager, _: &mut Interface) -> Result<Self, String> {
+    fn new(_event_system: &mut EventSystem, _window_size: Vec2, _pixel_density: f32, asset_manager: &mut dyn AssetManager, _: &mut Interface) -> Result<Self, String> {
         let shader_id = asset_manager.load_shader(
             ShaderBuilder::new(PATH_MOVING_TRIANGLE_VERT, PATH_MOVING_TRIANGLE_FRAG)
         )?;
@@ -27,7 +27,7 @@ impl Scene for MovingTriangle {
         })
     }
 
-    fn update(&mut self, _: &mut EventSystem, _: &Input, asset_manager: &mut AssetManager, _: &mut Interface) {
+    fn update(&mut self, _: &mut EventSystem, _: &Input, asset_manager: &mut dyn AssetManager, _: &mut Interface) {
         self.triangle_offset_x += self.triangle_movement_velocity;
 
         if self.triangle_offset_x > 0.5 {
@@ -43,7 +43,7 @@ impl Scene for MovingTriangle {
         asset_manager.get_shader_by_id(&shader_id).unwrap().set_uniform("xPos", self.triangle_offset_x);
     }
 
-    unsafe fn draw(&self, asset_manager: &mut AssetManager) {
+    unsafe fn draw(&self, asset_manager: &mut dyn AssetManager) {
         let shader_id = asset_manager.get_material_by_id(&self.material_id).unwrap().shader_id.duplicate();
         self.triangle.draw(asset_manager.get_shader_by_id(&shader_id).unwrap());
     }

@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{asset_manager::{AssetManager, AssetManagerTrait}, graphics::{shader::ShaderBuilder, texture::Texture, ui::{bounds_2d::Bounds2d, interface::{self, is_valid_z_index, WidgetRegistry}, shapes::{Rectangle, RectangleBuilder}, widget::UiWidget, ElementRegistry, Position, UiElementId, UiLayoutId, UiTexture, UiUpdateTargets, UiWidgetId, UpdateTargetCollection}, Color}, log, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{shader::ShaderBuilder, texture::Texture, ui::{bounds_2d::Bounds2d, interface::{self, is_valid_z_index, WidgetRegistry}, shapes::{Rectangle, RectangleBuilder}, widget::UiWidget, ElementRegistry, Position, UiElementId, UiLayoutId, UiTexture, UiUpdateTargets, UiWidgetId, UpdateTargetCollection}, Color}, log, ResourceId};
 
 pub struct Icon {
     rectangle_element_id: ResourceId<UiElementId>,
@@ -120,7 +120,7 @@ impl IconBuilder {
         }
     }
 
-    pub fn build(&self, element_registry: &mut ElementRegistry, asset_manager: &mut AssetManager) -> Result<Icon, String> {
+    pub fn build(&self, element_registry: &mut ElementRegistry, asset_manager: &mut dyn AssetManager) -> Result<Icon, String> {
         // We need to upload the texture before building the rectangle because we need to know the texture size so we can
         // auto scale the size
         let shader_builder = match self.shader_builder.clone() {

@@ -9,7 +9,7 @@ pub struct HelloEventSystem {
 }
 
 impl Scene for HelloEventSystem {
-    fn new(event_system: &mut EventSystem, _window_size: Vec2, _pixel_density: f32, _: &mut AssetManager, _: &mut Interface) -> Result<Self, String> {
+    fn new(event_system: &mut EventSystem, _window_size: Vec2, _pixel_density: f32, _: &mut dyn AssetManager, _: &mut Interface) -> Result<Self, String> {
         let listener1 = event_system.register::<WindowResizeEvent>();
         let listener2 = event_system.register::<WindowResizeEvent>();
         
@@ -20,7 +20,7 @@ impl Scene for HelloEventSystem {
         })
     }
 
-    fn update(&mut self, _: &mut EventSystem, _: &Input, _: &mut AssetManager, _: &mut Interface) {
+    fn update(&mut self, _: &mut EventSystem, _: &Input, _: &mut dyn AssetManager, _: &mut Interface) {
         for event in self.window_resize_listener1.read().iter() {
             log::engine_info(format!("(1) Window resize event: {} / {}", event.width, event.height));
         }
@@ -37,5 +37,5 @@ impl Scene for HelloEventSystem {
         }
     }
 
-    unsafe fn draw(&self, _: &mut AssetManager) {}
+    unsafe fn draw(&self, _: &mut dyn AssetManager) {}
 }

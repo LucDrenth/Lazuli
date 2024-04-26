@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{asset_manager::{AssetManager, AssetManagerTrait}, event::EventSystem, graphics::{scene::Scene, shader::{ShaderBuilder, ShaderProgram, PATH_MOVING_TRIANGLE_FRAG, PATH_MOVING_TRIANGLE_VERT}, ui::Interface, Shape, Triangle}, input::Input, ResourceId};
+use crate::{asset_manager::AssetManager, event::EventSystem, graphics::{scene::Scene, shader::{ShaderBuilder, ShaderProgram, PATH_MOVING_TRIANGLE_FRAG, PATH_MOVING_TRIANGLE_VERT}, ui::Interface, Shape, Triangle}, input::Input, ResourceId};
 
 pub struct HelloTriangle {
     shader_id: ResourceId<ShaderProgram>,
@@ -8,7 +8,7 @@ pub struct HelloTriangle {
 }
 
 impl Scene for HelloTriangle {
-    fn new(_event_system: &mut EventSystem, _window_size: Vec2, _pixel_density: f32, asset_manager: &mut AssetManager, _: &mut Interface) -> Result<Self, String> {
+    fn new(_event_system: &mut EventSystem, _window_size: Vec2, _pixel_density: f32, asset_manager: &mut dyn AssetManager, _: &mut Interface) -> Result<Self, String> {
         let shader_id = asset_manager.load_shader(
             ShaderBuilder::new(PATH_MOVING_TRIANGLE_VERT, PATH_MOVING_TRIANGLE_FRAG)
         )?;
@@ -23,9 +23,9 @@ impl Scene for HelloTriangle {
         Ok(result)
     }
 
-    fn update(&mut self, _: &mut EventSystem, _: &Input, _: &mut AssetManager, _: &mut Interface) {}
+    fn update(&mut self, _: &mut EventSystem, _: &Input, _: &mut dyn AssetManager, _: &mut Interface) {}
 
-    unsafe fn draw(&self, asset_manager: &mut AssetManager) {
+    unsafe fn draw(&self, asset_manager: &mut dyn AssetManager) {
         self.triangle.draw(asset_manager.get_shader_by_id(&self.shader_id).unwrap())
     }
 }

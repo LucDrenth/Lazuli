@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{asset_manager::{AssetManager, AssetManagerTrait}, event::{EventReader, EventSystem, PixelDensityChangeEvent, WindowResizeEvent}, graphics::{font::{Font, PlainBitmapBuilder}, ui::{bounds_2d::Bounds2d, layout::LayoutBuilder, widget::{ButtonBuilder, DropdownBuilder, IconBuilder, SliderBuilder, SliderUpdateResult}, LayoutUpdateTarget, Position, UiElementId, UiLayoutId, UiUpdateTargets, UiWidgetId, UpdateTargetCollection}, Color}, input::Input, log, ResourceId};
+use crate::{asset_manager::AssetManager, event::{EventReader, EventSystem, PixelDensityChangeEvent, WindowResizeEvent}, graphics::{font::{Font, PlainBitmapBuilder}, ui::{bounds_2d::Bounds2d, layout::LayoutBuilder, widget::{ButtonBuilder, DropdownBuilder, IconBuilder, SliderBuilder, SliderUpdateResult}, LayoutUpdateTarget, Position, UiElementId, UiLayoutId, UiUpdateTargets, UiWidgetId, UpdateTargetCollection}, Color}, input::Input, log, ResourceId};
 
 use super::{ElementRegistry, widget_registry::{WidgetRegistry, WidgetRegistryUdpateResult}, layout_registry::LayoutRegistry};
 
@@ -29,7 +29,7 @@ impl Interface {
         }
     }
 
-    pub fn update(&mut self, asset_manager: &mut AssetManager, input: &Input) {
+    pub fn update(&mut self, asset_manager: &mut dyn AssetManager, input: &Input) {
         // We update widget_registry before element_registry so that we won't activate any mouse_up
         // events while we were still dragging an element (which gets reset by element_registry.update)
         let widget_registry_update_result = &self.widget_registry.update(input, &mut self.element_registry, asset_manager);
@@ -54,7 +54,7 @@ impl Interface {
         }
     }
 
-    pub fn handle_widget_registry_update_result(&mut self, update_result: &WidgetRegistryUdpateResult, asset_manager: &mut AssetManager) {
+    pub fn handle_widget_registry_update_result(&mut self, update_result: &WidgetRegistryUdpateResult, asset_manager: &mut dyn AssetManager) {
         self.handle_ui_update_targets_visibility(update_result.update_targets_visibility.clone());
 
         for target in &update_result.buttons_to_change_text {
@@ -77,7 +77,7 @@ impl Interface {
         }
     }
 
-    pub fn draw(&self, asset_manager: &mut AssetManager) {
+    pub fn draw(&self, asset_manager: &mut dyn AssetManager) {
         self.element_registry.draw(asset_manager);
     }
 
@@ -121,7 +121,7 @@ impl Interface {
     }
 
     // button specific functions
-    pub fn create_button(&mut self, label: impl Into<String>, builder: &ButtonBuilder, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
+    pub fn create_button(&mut self, label: impl Into<String>, builder: &ButtonBuilder, asset_manager: &mut dyn AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
         self.widget_registry.create_button(label, builder, &mut self.element_registry, asset_manager)
     }
     pub fn is_button_clicked(&self, button_id: &ResourceId<UiWidgetId>) -> bool {
@@ -135,18 +135,18 @@ impl Interface {
     }
 
     // slider specific functions
-    pub fn create_slider(&mut self, builder: &SliderBuilder, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
+    pub fn create_slider(&mut self, builder: &SliderBuilder, asset_manager: &mut dyn AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
         self.widget_registry.create_slider(builder, &mut self.element_registry, asset_manager)
     }
     pub fn slider_update_result(&self, slider_id: &ResourceId<UiWidgetId>) -> Option<SliderUpdateResult> {
         self.widget_registry.slider_update_result(slider_id)
     }
-    pub fn set_slider_value(&mut self, value: f32, slider_id: &ResourceId<UiWidgetId>, asset_manager: &mut AssetManager) {
+    pub fn set_slider_value(&mut self, value: f32, slider_id: &ResourceId<UiWidgetId>, asset_manager: &mut dyn AssetManager) {
         self.widget_registry.set_slider_value(value, slider_id, &mut self.element_registry, asset_manager);
     }
 
     // dropdown specific functions
-    pub fn create_dropdown(&mut self, builder: &DropdownBuilder<u32>, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
+    pub fn create_dropdown(&mut self, builder: &DropdownBuilder<u32>, asset_manager: &mut dyn AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
         let (id, update_target_collections) = self.widget_registry.create_dropdown(builder, &mut self.element_registry, &mut self.layout_registry, asset_manager)?;
         for update_target_collection in update_target_collections {
             self.handle_ui_update_targets_collection(update_target_collection);
@@ -158,7 +158,7 @@ impl Interface {
     }
 
     // icon specific functions
-    pub fn create_icon(&mut self, builder: &IconBuilder, asset_manager: &mut AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
+    pub fn create_icon(&mut self, builder: &IconBuilder, asset_manager: &mut dyn AssetManager) -> Result<ResourceId<UiWidgetId>, String> {
         self.widget_registry.create_icon(builder, &mut self.element_registry, asset_manager)
     }
     pub fn set_icon_padding(&mut self, padding: f32, icon_id: &ResourceId<UiWidgetId>) -> Result<(), String> {
@@ -172,7 +172,7 @@ impl Interface {
     }
 
     // layout specific functions
-    pub fn create_layout(&mut self, builder: &mut impl LayoutBuilder, asset_manager: &mut AssetManager) -> Result<ResourceId<UiLayoutId>, String> {
+    pub fn create_layout(&mut self, builder: &mut impl LayoutBuilder, asset_manager: &mut dyn AssetManager) -> Result<ResourceId<UiLayoutId>, String> {
         let (id, update_targets) = self.layout_registry.create_layout(builder, &mut self.element_registry, &mut self.widget_registry, asset_manager)?;
         self.handle_ui_update_targets_collection(update_targets);
         self.layout_registry.get_mut_layout(&id).unwrap().update_max_scroll(&mut self.element_registry, &self.widget_registry);
@@ -311,11 +311,13 @@ pub fn default_element_background_color() -> Color { Color::Rgb(56, 56, 56) }
 pub fn default_font_size() -> f32 {
     14.0
 }
-pub fn default_font(asset_manager: &mut AssetManager) -> Result<ResourceId<Font>, String> {
-    asset_manager.load_font(PlainBitmapBuilder::new()
+pub fn default_font(asset_manager: &mut dyn AssetManager) -> Result<ResourceId<Font>, String> {
+    let bitmap_builder = PlainBitmapBuilder::new()
         .with_font_file_path("./assets/fonts/roboto.ttf".to_string())
         .with_font_size(50.0)
-    , None)
+    ;
+
+    asset_manager.load_font(&bitmap_builder, None)
 }
 pub fn minimum_scrollbar_size() -> f32 {
     15.0
