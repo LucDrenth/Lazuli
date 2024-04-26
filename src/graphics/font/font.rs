@@ -19,8 +19,8 @@ impl Font {
                 let bitmap = Self::get_bitmap(font, bitmap_builder.font_file_path(), &bitmap_builder)?;
 
                 let texture_image: GlTextureImage = bitmap.image().into();
-                let texture_id = asset_manager.load_texture_from_image(&texture_image)?.duplicate();
-                let material_id = asset_manager.load_material(&shader_id)?.duplicate();
+                let texture_id = asset_manager.load_texture_from_image(&texture_image)?;
+                let material_id = asset_manager.load_material(&shader_id)?;
                 asset_manager.add_material_texture(&material_id, &texture_id);
 
                 Ok(Self { 
