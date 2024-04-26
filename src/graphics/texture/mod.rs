@@ -16,3 +16,4 @@ pub use image_type::ImageType;
 pub mod vertex_coordinates;
 
 pub mod texture_mock;
+pub mod texture_image_mock;

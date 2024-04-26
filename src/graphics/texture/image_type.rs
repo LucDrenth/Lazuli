@@ -1,6 +1,7 @@
 pub enum ImageType {
     RgbaImage (image::RgbaImage),
     GrayImage (image::GrayImage),
+    Mock(),
 }
 
 impl ImageType {
@@ -17,6 +18,7 @@ impl ImageType {
                     format!("Failed to save GrayImage instance: {}", err)
                 })
             },
+            ImageType::Mock() => Ok(()),
         }
     }
 }

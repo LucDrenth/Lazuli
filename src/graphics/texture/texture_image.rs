@@ -67,6 +67,7 @@ impl From<&ImageType> for GlTextureImage {
             ImageType::GrayImage(img) => {
                 return Self::from(img);
             },
+            ImageType::Mock() => panic!("Can not convert ImageType Mock to GlTextureImage"),
         }
     }
 }

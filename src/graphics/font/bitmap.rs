@@ -9,7 +9,7 @@ pub trait Bitmap {
     fn save(&self, path: &String) -> Result<(), String>;
     fn characters(&self) -> &HashMap<char, BitmapCharacter>;
     fn line_height(&self) -> f32;
-    fn spread(&self) -> u8; // TODO rename to something more general
+    fn spread(&self) -> u8;
     fn to_json_cache(&self) -> Result<String, String>;
 }
 
