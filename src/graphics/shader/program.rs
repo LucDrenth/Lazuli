@@ -6,12 +6,74 @@ use crate::{error::opengl, log};
 
 use super::{shader::Shader, uniform::UniformValue};
 
+pub trait ShaderProgram {
+    fn apply(&self);
+    fn set_uniform(&self, name: &str, value: &UniformValue);
+    fn get_uniform_location(&self, name: &str) -> i32;
+    fn get_attribute_location(&self, attribute: &str) -> Result<GLuint, String>;
+}
+
 #[derive(Debug)]
-pub struct ShaderProgram {
+pub struct GlShaderProgram {
     pub id: GLuint
 }
 
-impl ShaderProgram {
+impl ShaderProgram for GlShaderProgram {
+    fn apply(&self) {
+        unsafe {
+            gl::UseProgram(self.id);
+            opengl::gl_check_errors();
+        }
+    }
+
+    fn set_uniform(&self, name: &str, value: &UniformValue) {
+        self.apply();
+
+        let location = self.get_uniform_location(name);
+        
+        if location < 0 {
+            log::engine_warn(format!("Can not find uniform location of: {}", name));
+            return;
+        }
+        
+        value.set_uniform(location);
+        opengl::gl_check_errors();
+    }
+
+    fn get_uniform_location(&self, name: &str) -> i32 {
+        match CString::new(name) {
+            Ok(cstring) => unsafe {
+                return gl::GetUniformLocation(self.id, cstring.as_ptr());
+            }
+            Err(err) => {
+                log::engine_warn(format!("Failed to create CString from uniform name {:?}: {}", name, err));
+                return -1;
+            },
+        }
+    }
+
+    fn get_attribute_location(&self, attribute: &str) -> Result<GLuint, String> {
+        let attribute_as_cstring = CString::new(attribute).map_err(|err| {
+            format!("failed to creating CString from attribute [{}]: {}", attribute, err.to_string())
+        })?;
+
+        unsafe {
+            let result = gl::GetAttribLocation(self.id, attribute_as_cstring.as_ptr());
+            
+            if result == -1 {
+                log::engine_err(format!("Could not find attribute location of \"{}\"", attribute));
+                opengl::gl_clear_errors();
+                return Err(format!("Could not find attribute location of {}", attribute));
+            }
+            
+            opengl::gl_check_errors();
+            
+            Ok(result as GLuint)
+        }
+    }
+}
+
+impl GlShaderProgram {
     pub fn new(path_vert: &String, path_frag: &String) -> Result<Self, String> {
         let vertex_shader = Shader::new(path_vert, gl::VERTEX_SHADER)?;
         let fragment_shader = Shader::new(path_frag, gl::FRAGMENT_SHADER)?;
@@ -47,33 +109,6 @@ impl ShaderProgram {
         }
     }
 
-    pub fn apply(&self) {
-        unsafe {
-            gl::UseProgram(self.id);
-            opengl::gl_check_errors();
-        }
-    }
-
-    pub fn get_attribute_location(&self, attribute: &str) -> Result<GLuint, String> {
-        let attribute_as_cstring = CString::new(attribute).map_err(|err| {
-            format!("failed to creating CString from attribute [{}]: {}", attribute, err.to_string())
-        })?;
-
-        unsafe {
-            let result = gl::GetAttribLocation(self.id, attribute_as_cstring.as_ptr());
-            
-            if result == -1 {
-                log::engine_err(format!("Could not find attribute location of \"{}\"", attribute));
-                opengl::gl_clear_errors();
-                return Err(format!("Could not find attribute location of {}", attribute));
-            }
-            
-            opengl::gl_check_errors();
-            
-            Ok(result as GLuint)
-        }
-    }
-
     unsafe fn get_shader_program_error(&self) -> String {
         let mut error_log_size: GLint = 0;
         gl::GetProgramiv(self.id, gl::INFO_LOG_LENGTH, &mut error_log_size);
@@ -96,36 +131,9 @@ impl ShaderProgram {
             Err(e) => panic!("{}", e),
         }
     }
-
-    pub fn set_uniform<T>(&self, name: &str, value: T) where T: Into<UniformValue>, {
-        self.apply();
-
-        let location = self.get_uniform_location(name);
-        
-        if location < 0 {
-            log::engine_warn(format!("Can not find uniform location of: {}", name));
-            return;
-        }
-        
-        let uniform_value: UniformValue = value.into();
-        uniform_value.set_uniform(location);
-        opengl::gl_check_errors();
-    }
-
-    fn get_uniform_location(&self, name: &str) -> i32 {
-        match CString::new(name) {
-            Ok(cstring) => unsafe {
-                return gl::GetUniformLocation(self.id, cstring.as_ptr());
-            }
-            Err(err) => {
-                log::engine_warn(format!("Failed to create CString from uniform name {:?}: {}", name, err));
-                return -1;
-            },
-        }
-    }
 }
 
-impl Drop for ShaderProgram {
+impl Drop for GlShaderProgram {
     fn drop(&mut self) {
         unsafe {
             gl::DeleteProgram(self.id)

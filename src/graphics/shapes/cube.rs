@@ -56,7 +56,7 @@ pub struct Cube {
 }
 
 impl Cube {
-    pub fn new_colored(program: &ShaderProgram) -> Self {
+    pub fn new_colored(program: &Box<dyn ShaderProgram>) -> Self {
         let vao = Vao::new();
         vao.bind();
         
@@ -83,7 +83,7 @@ impl Cube {
 }
 
 impl Shape for Cube {
-    fn draw(&self, program: &ShaderProgram) {
+    fn draw(&self, program: &Box<dyn ShaderProgram>) {
         program.apply();
         self.vao.bind();
 

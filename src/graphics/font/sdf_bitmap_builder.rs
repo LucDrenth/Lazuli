@@ -2,7 +2,7 @@ use std::{collections::hash_map::DefaultHasher, hash::{Hash, Hasher}};
 
 use serde::Serialize;
 
-use crate::{graphics::shader::ShaderBuilder, log};
+use crate::{graphics::shader::{GlShaderBuilder, ShaderBuilder}, log};
 
 use super::{bitmap::BitmapBuilder, Bitmap, sdf_bitmap::SdfBitmap, bitmap_cache::{SdfBitmapCache, self}};
 
@@ -55,8 +55,10 @@ impl BitmapBuilder for SdfBitmapBuilder {
         }
     }
 
-    fn default_shader_builder(&self) -> ShaderBuilder {
-        ShaderBuilder::new("./assets/shaders/ui/text.vert", "./assets/shaders/ui/text-sdf.frag")
+    fn default_shader_builder(&self) -> Box<dyn ShaderBuilder> {
+        Box::new(
+            GlShaderBuilder::new("./assets/shaders/ui/text.vert", "./assets/shaders/ui/text-sdf.frag")
+        )
     }
 
     fn font_file_path(&self) -> &String {

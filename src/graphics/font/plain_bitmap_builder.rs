@@ -2,7 +2,7 @@ use std::{collections::hash_map::DefaultHasher, hash::{Hash, Hasher}};
 
 use serde::Serialize;
 
-use crate::{graphics::shader::ShaderBuilder, log};
+use crate::{graphics::shader::{GlShaderBuilder, ShaderBuilder}, log};
 
 use super::{bitmap::BitmapBuilder, Bitmap, plain_bitmap::PlainBitmap, bitmap_cache::PlainBitmapCache};
 
@@ -55,8 +55,10 @@ impl BitmapBuilder for PlainBitmapBuilder {
         }
     }
 
-    fn default_shader_builder(&self) -> ShaderBuilder {
-        ShaderBuilder::new("./assets/shaders/ui/text.vert", "./assets/shaders/ui/text-plain.frag")
+    fn default_shader_builder(&self) -> Box<dyn ShaderBuilder> {
+        Box::new(
+            GlShaderBuilder::new("./assets/shaders/ui/text.vert", "./assets/shaders/ui/text-plain.frag")
+        )
     }
 
     fn font_file_path(&self) -> &String {

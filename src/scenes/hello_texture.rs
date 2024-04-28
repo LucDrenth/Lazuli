@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{asset_manager::AssetManager, event::EventSystem, graphics::{material::Material, scene::Scene, shader::{ShaderBuilder, PATH_TEXTURED_FRAG, PATH_TEXTURED_VERT}, ui::Interface, Rectangle, Shape}, input::Input, ResourceId};
+use crate::{asset_manager::AssetManager, event::EventSystem, graphics::{material::Material, scene::Scene, shader::{GlShaderBuilder, PATH_TEXTURED_FRAG, PATH_TEXTURED_VERT}, ui::Interface, Rectangle, Shape}, input::Input, ResourceId};
 
 pub struct HelloTexture {
     material_id: ResourceId<Material>,
@@ -10,7 +10,7 @@ pub struct HelloTexture {
 impl Scene for HelloTexture {
     fn new(_event_system: &mut EventSystem, _window_size: Vec2, _pixel_density: f32, asset_manager: &mut dyn AssetManager, _: &mut Interface) -> Result<Self, String> {
         let shader_id = asset_manager.load_shader(
-            ShaderBuilder::new(PATH_TEXTURED_VERT, PATH_TEXTURED_FRAG)
+            Box::new(GlShaderBuilder::new(PATH_TEXTURED_VERT, PATH_TEXTURED_FRAG))
         )?;
         let material_id = asset_manager.load_material(&shader_id)?;
         let texture_id = asset_manager.load_texture(&format!("./assets/images/pattern.png"))?;

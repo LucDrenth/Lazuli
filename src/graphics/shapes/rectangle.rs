@@ -28,7 +28,7 @@ pub struct Rectangle {
 }
 
 impl Rectangle {    
-    pub fn new_colored(program: &ShaderProgram) -> Self {
+    pub fn new_colored(program: &dyn ShaderProgram) -> Self {
         let vao = Vao::new();
         vao.bind();
         
@@ -53,7 +53,7 @@ impl Rectangle {
         }
     }
 
-    pub fn new_textured(program: &ShaderProgram) -> Self {
+    pub fn new_textured(program: &Box<dyn ShaderProgram>) -> Self {
         let mut vbo = Buffer::new_vbo();
         vbo.set_data(&TEXTURED_RECTANGLE_VERTICES, gl::STATIC_DRAW);
 
@@ -80,7 +80,7 @@ impl Rectangle {
 }
 
 impl Shape for Rectangle {
-    fn draw(&self, program: &ShaderProgram) {
+    fn draw(&self, program: &Box<dyn ShaderProgram>) {
         program.apply();
         self.vao.bind();
 

@@ -1,6 +1,6 @@
 use glam::{Vec2, Vec4, Vec3};
 
-use crate::{asset_manager::AssetManager, error::opengl, graphics::{material::Material, renderer::buffer::{Buffer, Vao}, shader::{CustomShaderValues, ShaderBuilder}, ui::{bounds_2d::Bounds2d, element::{ui_element::UiElement, world_element_data::WorldElementData, AnchorElementData, AnchorPoint}, interface::{is_valid_z_index, map_z_index_for_shader}, ElementRegistry, Position, UiTexture}, Color}, log, set_attribute, ResourceId};
+use crate::{asset_manager::AssetManager, error::opengl, graphics::{material::Material, renderer::buffer::{Buffer, Vao}, shader::{CustomShaderValues, GlShaderBuilder, UniformValue}, ui::{bounds_2d::Bounds2d, element::{ui_element::UiElement, world_element_data::WorldElementData, AnchorElementData, AnchorPoint}, interface::{is_valid_z_index, map_z_index_for_shader}, ElementRegistry, Position, UiTexture}, Color}, log, set_attribute, ResourceId};
 use crate::graphics::shapes::RECTANGLE_INDICES;
 
 use super::rectangle_border::{Border, BorderSize, BorderRadius};
@@ -51,18 +51,18 @@ impl UiElement for Rectangle {
             -fragment_shader_size.x / 2.0 + shader_position.x,
         );
 
-        shader.set_uniform("color", self.color.to_normalised_rgba_tuple());
-        shader.set_uniform("scale", (self.world_data.scale().x, self.world_data.scale().y));
-        shader.set_uniform("zIndex", map_z_index_for_shader(self.world_data.z_index));
-        shader.set_uniform("worldPosition", shader_position);
-        shader.set_uniform("drawBounds", self.world_data.draw_bounds.for_fragment_shader(window_size, pixel_density));
+        shader.set_uniform("color", &UniformValue::from(self.color.to_normalised_rgba_tuple()));
+        shader.set_uniform("scale", &UniformValue::from((self.world_data.scale().x, self.world_data.scale().y)));
+        shader.set_uniform("zIndex", &UniformValue::from(map_z_index_for_shader(self.world_data.z_index)));
+        shader.set_uniform("worldPosition", &UniformValue::from(shader_position));
+        shader.set_uniform("drawBounds",&UniformValue::from(self.world_data.draw_bounds.for_fragment_shader(window_size, pixel_density)));
 
-        shader.set_uniform("elementBounds", element_bounds.for_fragment_shader(window_size, pixel_density));
-        shader.set_uniform("borderRadius", self.border.radius.to_vec() * pixel_density);
+        shader.set_uniform("elementBounds", &UniformValue::from(element_bounds.for_fragment_shader(window_size, pixel_density)));
+        shader.set_uniform("borderRadius", &UniformValue::from(self.border.radius.to_vec() * pixel_density));
 
-        shader.set_uniform("borderColor", self.border.color.to_normalised_rgba_tuple());
-        shader.set_uniform("borderBounds", border_bounds.for_fragment_shader(&window_size, pixel_density));
-        shader.set_uniform("borderSize", self.border.size.vec4() * pixel_density);
+        shader.set_uniform("borderColor", &UniformValue::from(self.border.color.to_normalised_rgba_tuple()));
+        shader.set_uniform("borderBounds", &UniformValue::from(border_bounds.for_fragment_shader(&window_size, pixel_density)));
+        shader.set_uniform("borderSize", &UniformValue::from(self.border.size.vec4() * pixel_density));
 
         self.custom_shader_values.upload(shader);
 
@@ -96,15 +96,15 @@ impl UiElement for Rectangle {
 }
 
 impl Rectangle {
-    pub fn default_shader_builder() -> ShaderBuilder {
-        ShaderBuilder::new(
+    pub fn default_shader_builder() -> GlShaderBuilder {
+        GlShaderBuilder::new(
             "./assets/shaders/ui/rectangle.vert", 
             "./assets/shaders/ui/rectangle.frag"
         )
     }
 
-    pub fn default_textured_shader_builder() -> ShaderBuilder {
-        ShaderBuilder::new(
+    pub fn default_textured_shader_builder() -> GlShaderBuilder {
+        GlShaderBuilder::new(
             "./assets/shaders/ui/rectangle-textured.vert", 
             "./assets/shaders/ui/rectangle-textured.frag"
         )
@@ -178,7 +178,7 @@ impl Rectangle {
 pub struct RectangleBuilder {
     color: Color,
     position: Position,
-    shader_builder: Option<ShaderBuilder>,
+    shader_builder: Option<GlShaderBuilder>,
     size: Vec2,
     z_index: f32,
     scale: Vec2,
@@ -218,7 +218,7 @@ impl RectangleBuilder {
             None => self.default_shader_builder(),
         };
 
-        let shader_id = asset_manager.load_shader(shader_builder)?;
+        let shader_id = asset_manager.load_shader(Box::new(shader_builder))?;
         let material_id = asset_manager.load_material(&shader_id)?;
 
         if let Some(texture_mode) = &self.texture {
@@ -269,7 +269,7 @@ impl RectangleBuilder {
         })
     }
 
-    fn default_shader_builder(&self) -> ShaderBuilder {
+    fn default_shader_builder(&self) -> GlShaderBuilder {
         match self.texture {
             Some(_) => Rectangle::default_textured_shader_builder(),
             None => Rectangle::default_shader_builder(),
@@ -290,7 +290,7 @@ impl RectangleBuilder {
         self
     }
 
-    pub fn with_shader_builder(mut self, shader_builder: ShaderBuilder) -> Self {
+    pub fn with_shader_builder(mut self, shader_builder: GlShaderBuilder) -> Self {
         self.shader_builder = Some(shader_builder);
         self
     }

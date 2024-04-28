@@ -6,7 +6,9 @@ mod custom_shader_values;
 
 pub use shader::Shader;
 pub use program::ShaderProgram;
+pub use uniform::UniformValue;
 pub use shader_builder::ShaderBuilder;
+pub use shader_builder::GlShaderBuilder;
 pub use custom_shader_values::CustomShaderValues;
 
 pub use shader::PATH_COLORED_VERT;

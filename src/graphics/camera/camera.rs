@@ -1,4 +1,6 @@
-use glam::{Mat4, Vec3};
+use glam::Vec3;
+
+use crate::graphics::shader::UniformValue;
 
 use super::{projection::Projection, view::View, LookDirectionLimits};
 
@@ -15,11 +17,11 @@ impl Camera {
         }
     }
 
-    pub fn projection_for_shader(&self) -> Mat4 {
-        return self.projection.for_shader();
+    pub fn projection_for_shader(&self) -> UniformValue {
+        return UniformValue::from(self.projection.for_shader())
     }
-    pub fn view_for_shader(&self) -> Mat4 {
-        return self.view.for_shader()
+    pub fn view_for_shader(&self) -> UniformValue {
+        return UniformValue::from(self.view.for_shader())
     }
 
     pub fn look_at(&mut self, direction: Vec3) {

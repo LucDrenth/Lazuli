@@ -1,6 +1,6 @@
 use glam::{Vec2, Vec4, Vec3};
 
-use crate::{asset_manager::AssetManager, graphics::{font::Font, material::Material, shader::CustomShaderValues, ui::{element::{ui_element::UiElement, world_element_data::WorldElementData, AnchorElementData, AnchorPoint}, interface::{self, is_valid_z_index, map_z_index_for_shader}, ElementRegistry, Position}, Color, Transform}, log, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{font::Font, material::Material, shader::{CustomShaderValues, UniformValue}, ui::{element::{ui_element::UiElement, world_element_data::WorldElementData, AnchorElementData, AnchorPoint}, interface::{self, is_valid_z_index, map_z_index_for_shader}, ElementRegistry, Position}, Color, Transform}, log, ResourceId};
 
 use super::glyph::Glyph;
 
@@ -28,11 +28,11 @@ impl UiElement for Text {
 
         let shader = asset_manager.get_material_shader(&self.material_id).unwrap();
 
-        shader.set_uniform("color", self.color.to_normalised_rgb_tuple());
-        shader.set_uniform("scale", (self.world_data.scale().x, self.world_data.scale().y));
-        shader.set_uniform("zIndex", map_z_index_for_shader(self.world_data.z_index));
-        shader.set_uniform("worldPosition", self.world_data.shader_position());
-        shader.set_uniform("drawBounds", self.world_data.draw_bounds.for_fragment_shader(window_size, pixel_density));
+        shader.set_uniform("color", &UniformValue::from(self.color.to_normalised_rgb_tuple()));
+        shader.set_uniform("scale", &UniformValue::from((self.world_data.scale().x, self.world_data.scale().y)));
+        shader.set_uniform("zIndex", &UniformValue::from(map_z_index_for_shader(self.world_data.z_index)));
+        shader.set_uniform("worldPosition", &UniformValue::from(self.world_data.shader_position()));
+        shader.set_uniform("drawBounds", &UniformValue::from(self.world_data.draw_bounds.for_fragment_shader(window_size, pixel_density)));
 
         self.custom_shader_values.upload(shader);
 

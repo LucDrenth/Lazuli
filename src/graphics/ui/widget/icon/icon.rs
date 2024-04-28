@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{asset_manager::AssetManager, graphics::{shader::ShaderBuilder, texture::Texture, ui::{bounds_2d::Bounds2d, interface::{self, is_valid_z_index, WidgetRegistry}, shapes::{Rectangle, RectangleBuilder}, widget::UiWidget, ElementRegistry, Position, UiElementId, UiLayoutId, UiTexture, UiUpdateTargets, UiWidgetId, UpdateTargetCollection}, Color}, log, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{shader::GlShaderBuilder, texture::Texture, ui::{bounds_2d::Bounds2d, interface::{self, is_valid_z_index, WidgetRegistry}, shapes::{Rectangle, RectangleBuilder}, widget::UiWidget, ElementRegistry, Position, UiElementId, UiLayoutId, UiTexture, UiUpdateTargets, UiWidgetId, UpdateTargetCollection}, Color}, log, ResourceId};
 
 pub struct Icon {
     rectangle_element_id: ResourceId<UiElementId>,
@@ -98,7 +98,7 @@ pub struct IconBuilder {
     size: IconSize,
     z_index: f32,
     position: Position,
-    shader_builder: Option<ShaderBuilder>,
+    shader_builder: Option<GlShaderBuilder>,
     padding: f32,
     is_visible: bool,
     debug: bool,
@@ -127,7 +127,7 @@ impl IconBuilder {
             Some(custom_shader_self) => custom_shader_self,
             None => Rectangle::default_textured_shader_builder(),
         };
-        let shader_id = asset_manager.load_shader(shader_builder)?;
+        let shader_id = asset_manager.load_shader(Box::new(shader_builder))?;
         let material_id = asset_manager.load_material(&shader_id)?;
         let texture_id = self.texture.upload(&material_id, asset_manager)?;
 
@@ -147,7 +147,7 @@ impl IconBuilder {
         match &self.color {
             Some(color) => {
                 rectangle_builder = rectangle_builder
-                    .with_shader_builder(ShaderBuilder::new("./assets/shaders/ui/rectangle-icon.vert", "./assets/shaders/ui/rectangle-icon.frag"))
+                    .with_shader_builder(GlShaderBuilder::new("./assets/shaders/ui/rectangle-icon.vert", "./assets/shaders/ui/rectangle-icon.frag"))
                     .with_custom_shader_value_vec4("iconColor", color.to_normalised_rgba_vec4())
             },
             None => (),
@@ -219,7 +219,7 @@ impl IconBuilder {
     }
 
     /// Use a custom shader
-    pub fn with_shader_builder(mut self, shader_builder: ShaderBuilder) -> Self {
+    pub fn with_shader_builder(mut self, shader_builder: GlShaderBuilder) -> Self {
         self.shader_builder = Some(shader_builder);
         self
     }

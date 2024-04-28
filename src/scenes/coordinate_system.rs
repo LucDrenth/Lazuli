@@ -3,7 +3,7 @@ use std::f32::consts::{PI, TAU};
 use glam::{Vec3, Vec2};
 use rand::{Rng, rngs::ThreadRng};
 
-use crate::{asset_manager::AssetManager, event::{self, EventSystem}, graphics::{material::Material, scene::Scene, shader::{ShaderBuilder, PATH_COLORED_FRAG}, ui::Interface, Camera, Cube, Shape, Transform}, input::{Input, Key}, time, ResourceId};
+use crate::{asset_manager::AssetManager, event::{self, EventSystem}, graphics::{material::Material, scene::Scene, shader::{GlShaderBuilder, PATH_COLORED_FRAG}, ui::Interface, Camera, Cube, Shape, Transform}, input::{Input, Key}, time, ResourceId};
 
 pub struct CoordinateSystem {
     material_id: ResourceId<Material>,
@@ -22,7 +22,7 @@ impl Scene for CoordinateSystem {
         event_system.send(event::HideCursor{});
 
         let shader_id = asset_manager.load_shader(
-            ShaderBuilder::new("./assets/shaders/with-camera.vert", PATH_COLORED_FRAG.to_string())
+            Box::new(GlShaderBuilder::new("./assets/shaders/with-camera.vert", PATH_COLORED_FRAG.to_string()))
         ).unwrap();
         let material_id = asset_manager.load_material(&shader_id).unwrap();
 
@@ -57,8 +57,8 @@ impl Scene for CoordinateSystem {
 
         {
             let shader = asset_manager.get_shader_by_id(&shader_id).unwrap();
-            shader.set_uniform("projection", camera.projection_for_shader());
-            shader.set_uniform("view", camera.view_for_shader());
+            shader.set_uniform("projection", &camera.projection_for_shader());
+            shader.set_uniform("view", &camera.view_for_shader());
         }
 
         let result = Self { 
@@ -92,14 +92,14 @@ impl Scene for CoordinateSystem {
             self.camera.look_at(self.transforms[0].position);
         }
 
-        asset_manager.get_material_shader(&self.material_id).unwrap().set_uniform("view", self.camera.view_for_shader());
+        asset_manager.get_material_shader(&self.material_id).unwrap().set_uniform("view", &self.camera.view_for_shader());
     }
 
     unsafe fn draw(&self, asset_manager: &mut dyn AssetManager) {
         let shader = asset_manager.get_material_shader(&self.material_id).unwrap();
 
         for i in 0..self.cubes.len() {
-            shader.set_uniform("model", self.transforms[i].for_shader());
+            shader.set_uniform("model", &self.transforms[i].for_shader());
             self.cubes[i].draw(shader);
         }
     }
@@ -139,7 +139,7 @@ impl CoordinateSystem {
 
         if scroll_y != 0.0 {
             self.camera.zoom(scroll_y);
-            asset_manager.get_material_shader(&self.material_id).unwrap().set_uniform("projection", self.camera.projection_for_shader());
+            asset_manager.get_material_shader(&self.material_id).unwrap().set_uniform("projection", &self.camera.projection_for_shader());
         }
     }
 }

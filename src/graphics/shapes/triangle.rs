@@ -14,7 +14,7 @@ pub struct Triangle {
 }
 
 impl Triangle {
-    pub fn new(program: &ShaderProgram) -> Self {
+    pub fn new(program: &Box<dyn ShaderProgram>) -> Self {
         let mut vbo = Buffer::new_vbo();
         vbo.set_data(&TRIANGLE_VERTICES, gl::STATIC_DRAW);
 
@@ -36,7 +36,7 @@ impl Triangle {
 }
 
 impl Shape for Triangle {
-    fn draw(&self, program: &ShaderProgram) {
+    fn draw(&self, program: &Box<dyn ShaderProgram>) {
         program.apply();
         self.vao.bind();
 

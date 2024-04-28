@@ -1,6 +1,6 @@
 use std::{collections::hash_map::DefaultHasher, hash::{Hash, Hasher}};
 
-use crate::{graphics::{font::{BitmapBuilder, Font, GlFont}, material::Material, shader::{ShaderBuilder, ShaderProgram}, texture::{GlTexture, Texture, TextureImage}}, ResourceId};
+use crate::{graphics::{font::{BitmapBuilder, Font, GlFont}, material::Material, shader::{ShaderBuilder, ShaderProgram, UniformValue}, texture::{GlTexture, Texture, TextureImage}}, ResourceId};
 
 use super::asset_collection::AssetCollection;
 
@@ -8,21 +8,21 @@ pub trait AssetManager {
     fn load_texture(&mut self, path: &String) -> Result<ResourceId<Box<dyn Texture>>, String>;
     fn load_texture_from_image(&mut self, texture_image: &dyn TextureImage) -> Result<ResourceId<Box<dyn Texture>>, String>;
     fn get_texture_by_id(&mut self, id: &ResourceId<Box<dyn Texture>>) -> Option<&Box<dyn Texture>>;
-    fn load_font(&mut self, bitmap_builder: &dyn BitmapBuilder, shader_builder: Option<ShaderBuilder>) -> Result<ResourceId<Box<dyn Font>>, String>;
+    fn load_font(&mut self, bitmap_builder: &dyn BitmapBuilder, shader_builder: Option<Box<dyn ShaderBuilder>>) -> Result<ResourceId<Box<dyn Font>>, String>;
     fn get_font_by_id(&mut self, id: &ResourceId<Box<dyn Font>>) -> Option<&Box<dyn Font>>;
-    fn load_shader(&mut self, shader_builder: ShaderBuilder) -> Result<ResourceId<ShaderProgram>, String>;
-    fn get_shader_by_id(&mut self, id: &ResourceId<ShaderProgram>) -> Option<&ShaderProgram>;
-    fn load_material(&mut self, shader_id: &ResourceId<ShaderProgram>) -> Result<ResourceId<Material>, String>;
+    fn load_shader(&mut self, shader_builder: Box<dyn ShaderBuilder>) -> Result<ResourceId<Box<dyn ShaderProgram>>, String>;
+    fn get_shader_by_id(&mut self, id: &ResourceId<Box<dyn ShaderProgram>>) -> Option<&Box<dyn ShaderProgram>>;
+    fn load_material(&mut self, shader_id: &ResourceId<Box<dyn ShaderProgram>>) -> Result<ResourceId<Material>, String>;
     fn get_material_by_id(&mut self, id: &ResourceId<Material>) -> Option<&mut Material>;
     fn add_material_texture(&mut self, material_id: &ResourceId<Material>, texture_id: &ResourceId<Box<dyn Texture>>);
     fn activate_material(&mut self, material_id: &ResourceId<Material>);
-    fn get_material_shader(&mut self, material_id: &ResourceId<Material>) -> Option<&ShaderProgram>;
+    fn get_material_shader(&mut self, material_id: &ResourceId<Material>) -> Option<&Box<dyn ShaderProgram>>;
 }
 
 pub struct GlAssetManager {
     textures: AssetCollection<Box<dyn Texture>, Option<String>>,
     fonts: AssetCollection<Box<dyn Font>, u64>,
-    shaders: AssetCollection<ShaderProgram, u64>,
+    shaders: AssetCollection<Box< dyn ShaderProgram>, u64>,
     materials: AssetCollection<Material, u64>,
 }
 
@@ -65,11 +65,10 @@ impl AssetManager for GlAssetManager {
        self.textures.get_asset_by_id(id)
     }
 
-    fn load_font(&mut self, bitmap_builder: &dyn BitmapBuilder, shader_builder: Option<ShaderBuilder>) -> Result<ResourceId<Box<dyn Font>>, String> {
-        let shader_builder_to_use: ShaderBuilder = match shader_builder {
-            Some(builder) => builder,
-            None => bitmap_builder.default_shader_builder(),
-        };
+    fn load_font(&mut self, bitmap_builder: &dyn BitmapBuilder, shader_builder: Option<Box<dyn ShaderBuilder>>) -> Result<ResourceId<Box<dyn Font>>, String> {
+        let shader_builder_to_use = shader_builder.unwrap_or(
+            bitmap_builder.default_shader_builder()
+        );
 
         let mut hasher = DefaultHasher::new();
         shader_builder_to_use.hash().hash(&mut hasher);
@@ -91,7 +90,7 @@ impl AssetManager for GlAssetManager {
         self.fonts.get_asset_by_id(id)
     }
 
-    fn load_shader(&mut self, shader_builder: ShaderBuilder) -> Result<ResourceId<ShaderProgram>, String> {
+    fn load_shader(&mut self, shader_builder: Box<dyn ShaderBuilder>) -> Result<ResourceId<Box<dyn ShaderProgram>>, String> {
         let hash = shader_builder.hash()?;
 
         match self.shaders.get_by_builder_hash(&hash) {
@@ -104,7 +103,7 @@ impl AssetManager for GlAssetManager {
         self.shaders.add(shader, hash)
     }
 
-    fn get_shader_by_id(&mut self, id: &ResourceId<ShaderProgram>) -> Option<&ShaderProgram> {
+    fn get_shader_by_id(&mut self, id: &ResourceId<Box<dyn ShaderProgram>>) -> Option<&Box<dyn ShaderProgram>> {
         self.shaders.get_asset_by_id(id)
     }
 
@@ -113,7 +112,7 @@ impl AssetManager for GlAssetManager {
     /// 
     /// If we want to have a builder hash in the feature, we probably want to add all parameters to it, which
     /// is only the shader_id at the time of writing.
-    fn load_material(&mut self, shader_id: &ResourceId<ShaderProgram>) -> Result<ResourceId<Material>, String> {
+    fn load_material(&mut self, shader_id: &ResourceId<Box<dyn ShaderProgram>>) -> Result<ResourceId<Material>, String> {
         let material = Material::new(shader_id.duplicate());
         self.materials.add(material, 0)
     }
@@ -130,7 +129,7 @@ impl AssetManager for GlAssetManager {
             
             shader.set_uniform(
                 format!("texture{}", textures_length).as_str(), 
-                textures_length as i32
+                &UniformValue::from(textures_length as i32)
             );
         }
 
@@ -149,7 +148,7 @@ impl AssetManager for GlAssetManager {
         }
     }
 
-    fn get_material_shader(&mut self, material_id: &ResourceId<Material>) -> Option<&ShaderProgram> {
+    fn get_material_shader(&mut self, material_id: &ResourceId<Material>) -> Option<&Box<dyn ShaderProgram>> {
         let shader_id;
 
         match self.get_material_by_id(material_id) {

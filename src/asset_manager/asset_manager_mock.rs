@@ -7,15 +7,17 @@ use crate::{asset_manager::{AssetCollection, AssetManager}, graphics::{font::{se
 pub struct MockAssetManager {
     textures: AssetCollection<Box<dyn Texture>, u32>,
     fonts: AssetCollection<Box<dyn Font>, u32>,
+    shaders: AssetCollection<Box<dyn ShaderProgram>, u32>,
     builder_hash_counter: u32,
 }
 
 impl MockAssetManager {
     pub fn new() -> Self {
-        Self { 
-            textures: AssetCollection::new(), 
-            fonts: AssetCollection::new(), 
-            builder_hash_counter: 0 
+        Self {
+            textures: AssetCollection::new(),
+            fonts: AssetCollection::new(),
+            shaders: AssetCollection::new(),
+            builder_hash_counter: 0,
         }
     }
 }
@@ -43,7 +45,7 @@ impl AssetManager for MockAssetManager {
         self.textures.get_asset_by_id(id)
     }
 
-    fn load_font(&mut self, _bitmap_builder: &dyn font::BitmapBuilder, _shader_builder: Option<ShaderBuilder>) -> Result<ResourceId<Box<dyn Font>>, String> {
+    fn load_font(&mut self, _bitmap_builder: &dyn font::BitmapBuilder, _shader_builder: Option<Box<dyn ShaderBuilder>>) -> Result<ResourceId<Box<dyn Font>>, String> {
         let atlas = MockBitmap {
             characters: HashMap::new(),
             line_height: 5.0,
@@ -67,15 +69,17 @@ impl AssetManager for MockAssetManager {
         self.fonts.get_asset_by_id(id)
     }
 
-    fn load_shader(&mut self, _shader_builder: ShaderBuilder) -> Result<ResourceId<ShaderProgram>, String> {
-        todo!()
+    fn load_shader(&mut self, shader_builder: Box<dyn ShaderBuilder>) -> Result<ResourceId<Box<dyn ShaderProgram>>, String> {
+        let shader = shader_builder.build()?;
+        let hash = self.new_hash();
+        self.shaders.add(shader, hash)
     }
 
-    fn get_shader_by_id(&mut self, _id: &ResourceId<ShaderProgram>) -> Option<&ShaderProgram> {
-        todo!()
+    fn get_shader_by_id(&mut self, id: &ResourceId<Box<dyn ShaderProgram>>) -> Option<&Box<dyn ShaderProgram>> {
+        self.shaders.get_asset_by_id(id)
     }
 
-    fn load_material(&mut self, _shader_id: &ResourceId<ShaderProgram>) -> Result<ResourceId<Material>, String> {
+    fn load_material(&mut self, _shader_id: &ResourceId<Box< dyn ShaderProgram>>) -> Result<ResourceId<Material>, String> {
         todo!()
     }
 
@@ -91,7 +95,7 @@ impl AssetManager for MockAssetManager {
         todo!()
     }
 
-    fn get_material_shader(&mut self, _material_id: &ResourceId<Material>) -> Option<&ShaderProgram> {
+    fn get_material_shader(&mut self, _material_id: &ResourceId<Material>) -> Option<&Box<dyn ShaderProgram>> {
         todo!()
     }
 }

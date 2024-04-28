@@ -2,7 +2,7 @@ use std::any::TypeId;
 
 use glam::Vec2;
 
-use crate::{asset_manager::AssetManager, graphics::{font::Font, shader::CustomShaderValues, ui::{bounds_2d::Bounds2d, element::{ui_element::UiElement, world_element_data::WorldElementData, AnchorElementData, InputEvent}, shapes::{Rectangle, RectangleBuilder}, Position, Text, TextBuilder, UiElementId}, Color}, input::{Input, InputAction, MouseButton}, log, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{font::Font, shader::{CustomShaderValues, UniformValue}, ui::{bounds_2d::Bounds2d, element::{ui_element::UiElement, world_element_data::WorldElementData, AnchorElementData, InputEvent}, shapes::{Rectangle, RectangleBuilder}, Position, Text, TextBuilder, UiElementId}, Color}, input::{Input, InputAction, MouseButton}, log, ResourceId};
 
 use super::{interface, element_list::{ElementList, OrderedElementsItem, self}, anchor_tree::{AnchorTree, AnchoredElement, AnchorElementIdentifier}};
 
@@ -199,7 +199,7 @@ impl ElementRegistry {
         // TODO We only need to set this view uniform when the shader has been newly made.
         asset_manager.get_material_shader(element.material_id()).unwrap().set_uniform(
             "view", 
-            to_view_uniform(self.window_size.x, self.window_size.y)
+            &to_view_uniform(self.window_size.x, self.window_size.y)
         );
     }
 
@@ -333,7 +333,7 @@ impl ElementRegistry {
                         None => continue,
                     }
 
-                    asset_manager.get_shader_by_id(&shader_id).unwrap().set_uniform("view", view_uniform);
+                    asset_manager.get_shader_by_id(&shader_id).unwrap().set_uniform("view", &view_uniform);
                 },
                 None => {
                     log::engine_warn(format!("Failed to handle ElementRegistry window resize for element because we could not get it from ordered item {:?}"
@@ -707,8 +707,10 @@ impl ElementRegistry {
     pub fn height(&self) -> f32 { self.window_size.y }
 }
 
-fn to_view_uniform(window_width: f32, window_height: f32) -> (f32, f32) {
-    (2.0 / window_width, 2.0 / window_height) // 0.5 because the world coordinates for the UI range from (-size / 2) to (size / 2)
+fn to_view_uniform(window_width: f32, window_height: f32) -> UniformValue {
+    UniformValue::from(
+        (2.0 / window_width, 2.0 / window_height) // 0.5 because the world coordinates for the UI range from (-size / 2) to (size / 2)
+    )
 }
 
 pub fn is_valid_z_index(z: f32) -> bool {

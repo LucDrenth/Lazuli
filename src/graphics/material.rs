@@ -1,14 +1,14 @@
 use crate::{asset_manager::AssetManager, ResourceId};
 
-use super::{shader::ShaderProgram, texture::Texture};
+use super::{shader::{ShaderProgram, UniformValue}, texture::Texture};
 
 pub struct Material {
-    pub shader_id: ResourceId<ShaderProgram>,
+    pub shader_id: ResourceId<Box<dyn ShaderProgram>>,
     texture_ids: Vec<ResourceId<Box<dyn Texture>>>,
 }
 
 impl Material {
-    pub fn new(shader_id: ResourceId<ShaderProgram>) -> Self {
+    pub fn new(shader_id: ResourceId<Box<dyn ShaderProgram>>) -> Self {
         Self {
             shader_id,
             texture_ids: vec![],
@@ -18,7 +18,7 @@ impl Material {
     pub fn add_texture(&mut self, texture_id: ResourceId<Box<dyn Texture>>, asset_manager: &mut dyn AssetManager) {
         asset_manager.get_shader_by_id(&self.shader_id).unwrap().set_uniform(
             format!("texture{}", self.texture_ids.len()).as_str(), 
-            self.texture_ids.len() as i32
+            &UniformValue::from(self.texture_ids.len() as i32)
         );
 
         self.texture_ids.push(texture_id);
@@ -36,7 +36,7 @@ impl Material {
         }
     }
 
-    pub fn shader<'a>(&'a self, asset_manager: &'a mut dyn AssetManager) -> Option<&ShaderProgram> {
+    pub fn shader<'a>(&'a self, asset_manager: &'a mut dyn AssetManager) -> Option<&Box<dyn ShaderProgram>> {
         asset_manager.get_shader_by_id(&self.shader_id)
     }
 

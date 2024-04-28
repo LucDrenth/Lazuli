@@ -43,7 +43,7 @@ impl Font for GlFont {
 }
 
 impl GlFont {
-    pub fn new(bitmap_builder: &dyn BitmapBuilder, shader_id: ResourceId<ShaderProgram>, asset_manager: &mut dyn AssetManager) -> Result<Self, String> {
+    pub fn new(bitmap_builder: &dyn BitmapBuilder, shader_id: ResourceId<Box<dyn ShaderProgram>>, asset_manager: &mut dyn AssetManager) -> Result<Self, String> {
         match load_font(bitmap_builder.font_file_path()) {
             Ok(font) => {
                 let atlas = Self::get_bitmap(font, bitmap_builder.font_file_path(), bitmap_builder)?;

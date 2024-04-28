@@ -1,5 +1,7 @@
 use glam::{Vec3, Mat4};
 
+use super::shader::UniformValue;
+
 pub struct Transform {
     pub position: Vec3,
     pub rotation: Vec3, // A Vec3 of radians. TODO use a quaternion instead.
@@ -103,8 +105,8 @@ impl Transform {
         self.scale.z = scale.z;
     }
 
-    pub fn for_shader(&self) -> Mat4 {
-        return self.get_scale_matrix() * self.get_position_matrix() * self.get_rotation_matrix();
+    pub fn for_shader(&self) -> UniformValue {
+        return UniformValue::from(self.get_scale_matrix() * self.get_position_matrix() * self.get_rotation_matrix());
     }
 
     pub fn get_position_matrix(&self) -> Mat4 {

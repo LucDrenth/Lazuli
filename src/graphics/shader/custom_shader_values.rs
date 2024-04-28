@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use glam::{Vec4, Vec3, Vec2};
 
-use super::ShaderProgram;
+use super::{uniform::UniformValue, ShaderProgram};
 
 #[derive(Clone)]
 pub struct CustomShaderValues {
@@ -27,19 +27,19 @@ impl CustomShaderValues {
         self.uniforms_f32.insert(name.into(), value);
     }
 
-    pub fn upload(&self, shader: &ShaderProgram) {
+    pub fn upload(&self, shader: &Box<dyn ShaderProgram>) {
         for (name, value) in self.uniforms_vec2.iter() {
-            shader.set_uniform(name, *value);
+            shader.set_uniform(name, &UniformValue::from(*value));
         }
         for (name, value) in self.uniforms_vec3.iter() {
-            shader.set_uniform(name, *value);
+            shader.set_uniform(name, &UniformValue::from(*value));
         }
         for (name, value) in self.uniforms_vec4.iter() {
-            shader.set_uniform(name, *value);
+            shader.set_uniform(name, &UniformValue::from(*value));
         }
 
         for (name, value) in self.uniforms_f32.iter() {
-            shader.set_uniform(name, *value);
+            shader.set_uniform(name, &UniformValue::from(*value));
         }
     }
 }
