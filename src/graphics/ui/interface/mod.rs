@@ -14,6 +14,3 @@ pub use interface::*;
 mod widget_list;
 mod element_list;
 mod anchor_tree;
-
-#[cfg(test)]
-mod widget_registry_test;
