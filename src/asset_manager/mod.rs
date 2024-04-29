@@ -9,4 +9,4 @@ pub use asset_collection::AssetCollection;
 pub mod asset_manager_mock;
 
 #[cfg(test)]
-mod test_asset_collection;
+mod asset_collection_test;

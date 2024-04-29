@@ -184,7 +184,7 @@ impl ButtonBuilder {
             None => text.world_data().height() + self.padding.vertical(),
         };
 
-        let background = ui::shapes::RectangleBuilder::new()
+        let background_element_id = element_registry.create_rectangle(&ui::shapes::RectangleBuilder::new()
             .with_width(button_width)
             .with_height(button_height)
             .with_color(self.background_color.clone())
@@ -192,8 +192,7 @@ impl ButtonBuilder {
             .with_position(self.position)
             .with_scale(self.scale)
             .with_visibility(self.is_visible)
-            .build(asset_manager, element_registry)?;
-        let background_element_id = element_registry.add_rectangle(background);
+        , asset_manager)?;
 
         let window_size = element_registry.size().clone();
         let anchor_element_data = element_registry.get_anchor_data(&background_element_id)?;

@@ -5,6 +5,7 @@ use crate::{asset_manager::asset_manager_mock::MockAssetManager, graphics::{ui::
 use super::{ElementRegistry, WidgetRegistry};
 
 #[test]
+/// TODO this fails because the widgets create shapes with a opengl context
 fn test_button_widget() -> Result<(), String> {
     let mut element_registry = ElementRegistry::new(Vec2{x: 1280.0, y: 780.0}, 1.0);
     let mut widget_registry = WidgetRegistry::new();
