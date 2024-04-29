@@ -4,7 +4,7 @@ use gl::types::{GLuint, GLint};
 
 use crate::{error::opengl, log};
 
-use super::{shader::Shader, uniform::UniformValue};
+use super::{shader::GlShader, uniform::UniformValue};
 
 pub trait ShaderProgram {
     fn apply(&self);
@@ -75,12 +75,12 @@ impl ShaderProgram for GlShaderProgram {
 
 impl GlShaderProgram {
     pub fn new(path_vert: &String, path_frag: &String) -> Result<Self, String> {
-        let vertex_shader = Shader::new(path_vert, gl::VERTEX_SHADER)?;
-        let fragment_shader = Shader::new(path_frag, gl::FRAGMENT_SHADER)?;
+        let vertex_shader = GlShader::new(path_vert, gl::VERTEX_SHADER)?;
+        let fragment_shader = GlShader::new(path_frag, gl::FRAGMENT_SHADER)?;
         return Self::from_shaders(&[vertex_shader, fragment_shader]);
     }
 
-    pub fn from_shaders(shaders: &[Shader]) -> Result<Self, String> {
+    pub fn from_shaders(shaders: &[GlShader]) -> Result<Self, String> {
         unsafe {
             let program = Self {
                 id: gl::CreateProgram()

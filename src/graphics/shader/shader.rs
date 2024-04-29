@@ -14,11 +14,13 @@ pub const PATH_HELLO_TRANFORM_VERT: &str = "./assets/shaders/hello-transform.ver
 pub const PATH_MOVING_TRIANGLE_VERT: &str = "./assets/shaders/moving-triangle.vert";
 pub const PATH_MOVING_TRIANGLE_FRAG: &str = "./assets/shaders/moving-triangle.frag";
 
-pub struct Shader {
+pub trait Shader {}
+
+pub struct GlShader {
     pub id: GLuint,
 }
 
-impl Shader {
+impl GlShader {
     pub fn new(path: &String, shader_type: GLenum) -> Result<Self, String> {
         let source_code = load_shader_source(path)?;
 
@@ -69,7 +71,7 @@ impl Shader {
     }
 }
 
-impl Drop for Shader {
+impl Drop for GlShader {
     fn drop(&mut self) {
         unsafe {
             gl::DeleteShader(self.id);

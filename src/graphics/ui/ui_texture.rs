@@ -10,13 +10,13 @@ impl UiTexture {
     pub fn upload(&self, material_id: &ResourceId<Material>, asset_manager: &mut dyn AssetManager) -> Result<ResourceId<Box<dyn Texture>>, String> {
         match self {
             UiTexture::Id(texture_id) => {
-                asset_manager.add_material_texture(&material_id, &texture_id);
+                asset_manager.add_material_texture(&material_id, &texture_id)?;
                 Ok(texture_id.duplicate())
             },
             UiTexture::Path(texture_path) => {
                 match asset_manager.load_texture(texture_path) {
                     Ok(texture_id) => {
-                        asset_manager.add_material_texture(&material_id, &texture_id);
+                        asset_manager.add_material_texture(&material_id, &texture_id)?;
                         Ok(texture_id)
                     },
                     Err(err) => {

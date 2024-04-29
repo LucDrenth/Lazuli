@@ -14,8 +14,8 @@ pub trait AssetManager {
     fn get_shader_by_id(&mut self, id: &ResourceId<Box<dyn ShaderProgram>>) -> Option<&Box<dyn ShaderProgram>>;
     fn load_material(&mut self, shader_id: &ResourceId<Box<dyn ShaderProgram>>) -> Result<ResourceId<Material>, String>;
     fn get_material_by_id(&mut self, id: &ResourceId<Material>) -> Option<&mut Material>;
-    fn add_material_texture(&mut self, material_id: &ResourceId<Material>, texture_id: &ResourceId<Box<dyn Texture>>);
-    fn activate_material(&mut self, material_id: &ResourceId<Material>);
+    fn add_material_texture(&mut self, material_id: &ResourceId<Material>, texture_id: &ResourceId<Box<dyn Texture>>) -> Result<(), String>;
+    fn activate_material(&mut self, material_id: &ResourceId<Material>) -> Result<(), String>;
     fn get_material_shader(&mut self, material_id: &ResourceId<Material>) -> Option<&Box<dyn ShaderProgram>>;
 }
 
@@ -23,7 +23,7 @@ pub struct GlAssetManager {
     textures: AssetCollection<Box<dyn Texture>, Option<String>>,
     fonts: AssetCollection<Box<dyn Font>, u64>,
     shaders: AssetCollection<Box< dyn ShaderProgram>, u64>,
-    materials: AssetCollection<Material, u64>,
+    materials: AssetCollection<Material, bool>,
 }
 
 impl GlAssetManager {
@@ -114,38 +114,67 @@ impl AssetManager for GlAssetManager {
     /// is only the shader_id at the time of writing.
     fn load_material(&mut self, shader_id: &ResourceId<Box<dyn ShaderProgram>>) -> Result<ResourceId<Material>, String> {
         let material = Material::new(shader_id.duplicate());
-        self.materials.add(material, 0)
+        self.materials.add(material, false)
     }
 
     fn get_material_by_id(&mut self, id: &ResourceId<Material>) -> Option<&mut Material> {
         self.materials.get_mut_asset_by_id(id)
     }
 
-    fn add_material_texture(&mut self, material_id: &ResourceId<Material>, texture_id: &ResourceId<Box<dyn Texture>>) {
-        {
-            let textures_length = self.get_material_by_id(material_id).unwrap().number_of_textures();
-            let shader_id = self.get_material_by_id(material_id).unwrap().shader_id.duplicate();
-            let shader = self.get_shader_by_id(&shader_id).unwrap();
-            
-            shader.set_uniform(
-                format!("texture{}", textures_length).as_str(), 
-                &UniformValue::from(textures_length as i32)
-            );
+    fn add_material_texture(&mut self, material_id: &ResourceId<Material>, texture_id: &ResourceId<Box<dyn Texture>>) -> Result<(), String> {
+        let textures_length: usize;
+        let shader_id;
+        match self.get_material_by_id(material_id) {
+            Some(material) => {
+                textures_length = material.number_of_textures();
+                shader_id = material.shader_id.duplicate();
+                material.push_texture_id(texture_id.duplicate());
+
+            },
+            None => return Err(format!("Material {} not found", material_id.id())),
+        }
+        
+        match self.get_shader_by_id(&shader_id) {
+            Some(shader) => {
+                shader.set_uniform(
+                    format!("texture{}", textures_length).as_str(), 
+                    &UniformValue::from(textures_length as i32)
+                );
+            },
+            None => return Err(format!("Shader {} from material {} was not found", shader_id.id(), material_id.id())),
         }
 
-        self.get_material_by_id(material_id).unwrap().push_texture_id(texture_id.duplicate());
+        Ok(())
     }
 
-    fn activate_material(&mut self, material_id: &ResourceId<Material>) {
+    fn activate_material(&mut self, material_id: &ResourceId<Material>) -> Result<(), String> {
         // apply shader
-        self.get_material_shader(material_id).unwrap().apply();
+        match self.get_material_shader(material_id) {
+            Some(material) => {
+                material.apply();
+            },
+            None => return Err(format!("Shader for material {} not found", material_id.id())),
+        }
 
         // activate textures
-        let texture_ids = self.get_material_by_id(material_id).unwrap().texture_ids_copy();
-
-        for (index, texture_id) in texture_ids.iter().enumerate() {
-            self.get_texture_by_id(texture_id).unwrap().activate(index);
+        let texture_ids;
+        match self.get_material_by_id(material_id) {
+            Some(material) => {
+                texture_ids = material.texture_ids_copy();
+            },
+            None => return Err(format!("Material {} not found", material_id.id())),
         }
+
+        for (unit, texture_id) in texture_ids.iter().enumerate() {
+            match self.get_texture_by_id(texture_id) {
+                Some(texture) => {
+                    texture.activate(unit)
+                },
+                None => return Err(format!("Texture {} from material {} was not found", texture_id.id(), material_id.id())),
+            }
+        }
+    
+        Ok(())
     }
 
     fn get_material_shader(&mut self, material_id: &ResourceId<Material>) -> Option<&Box<dyn ShaderProgram>> {

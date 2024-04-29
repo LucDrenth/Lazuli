@@ -51,7 +51,7 @@ impl GlFont {
                 let texture_image: GlTextureImage = atlas.image().into();
                 let texture_id = asset_manager.load_texture_from_image(&texture_image)?;
                 let material_id = asset_manager.load_material(&shader_id)?;
-                asset_manager.add_material_texture(&material_id, &texture_id);
+                asset_manager.add_material_texture(&material_id, &texture_id)?;
 
                 Ok(Self { 
                     atlas,

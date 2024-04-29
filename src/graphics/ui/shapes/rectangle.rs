@@ -170,7 +170,13 @@ impl Rectangle {
 
     /// bind and activate resources
     fn activate(&self, asset_manager: &mut dyn AssetManager) {
-        asset_manager.activate_material(&self.material_id);
+        match asset_manager.activate_material(&self.material_id) {
+            Ok(_) => (),
+            Err(err) => {
+                log::engine_err(format!("rectangle.activate failed to activate: {err}"))
+            },
+        }
+
         self.vao.bind();
     }
 }

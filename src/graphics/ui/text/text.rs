@@ -1,6 +1,6 @@
 use glam::{Vec2, Vec4, Vec3};
 
-use crate::{asset_manager::AssetManager, graphics::{font::Font, material::Material, shader::{CustomShaderValues, UniformValue}, ui::{element::{ui_element::UiElement, world_element_data::WorldElementData, AnchorElementData, AnchorPoint}, interface::{self, is_valid_z_index, map_z_index_for_shader}, ElementRegistry, Position}, Color, Transform}, log, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{font::Font, material::Material, shader::{CustomShaderValues, UniformValue}, ui::{element::{ui_element::UiElement, world_element_data::WorldElementData, AnchorElementData, AnchorPoint}, interface::{self, is_valid_z_index, map_z_index_for_shader}, ElementRegistry, Position}, Color, Transform}, log::{self}, ResourceId};
 
 use super::glyph::Glyph;
 
@@ -24,7 +24,13 @@ impl UiElement for Text {
             return
         }
 
-        asset_manager.activate_material(&self.material_id);
+        match asset_manager.activate_material(&self.material_id){
+            Ok(_) => (),
+            Err(err) => {
+                log::engine_err(format!("Text.draw failed to activate material: {}", err));
+                return;
+            },
+        }
 
         let shader = asset_manager.get_material_shader(&self.material_id).unwrap();
 

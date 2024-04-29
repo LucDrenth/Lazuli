@@ -14,7 +14,7 @@ impl Scene for HelloTexture {
         )?;
         let material_id = asset_manager.load_material(&shader_id)?;
         let texture_id = asset_manager.load_texture(&format!("./assets/images/pattern.png"))?;
-        asset_manager.add_material_texture(&material_id, &texture_id);
+        asset_manager.add_material_texture(&material_id, &texture_id)?;
 
         let shape = Rectangle::new_textured(asset_manager.get_shader_by_id(&shader_id).unwrap());
 

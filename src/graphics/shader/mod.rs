@@ -20,3 +20,7 @@ pub use shader::PATH_TEXTURE_MASK_FRAG;
 pub use shader::PATH_HELLO_TRANFORM_VERT;
 pub use shader::PATH_MOVING_TRIANGLE_VERT;
 pub use shader::PATH_MOVING_TRIANGLE_FRAG;
+
+pub mod shader_builder_mock;
+pub mod shader_mock;
+pub mod program_mock;
