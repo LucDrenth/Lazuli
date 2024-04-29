@@ -38,6 +38,21 @@ impl WorldElementData {
         result
     }
 
+    /// Useful for tests
+    pub fn new_mock() -> Self {
+        Self {
+            size: Vec2::ZERO,
+            position: Vec2::ZERO,
+            position_type: Position::Fixed(0., 0.),
+            position_transform: Vec2::ZERO,
+            z_index: 0.,
+            scale: Vec2::ZERO,
+            show: true,
+            draw_bounds: Bounds2d::none(),
+            event_handlers: InputEventHandlers::new(),
+        }
+    }
+
     pub fn shader_position(&self) -> Vec2 {
         self.position + self.position_transform
     }
