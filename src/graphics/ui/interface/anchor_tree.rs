@@ -163,10 +163,10 @@ impl AnchorTree {
         }
     }
 
-    pub fn trees(&self) -> Vec<&Vec<AnchoredElement>> {
+    fn trees(&self) -> Vec<&Vec<AnchoredElement>> {
         return vec![&self.screen_tree, &self.fixed_trees];
     }
-    pub fn mut_trees(&mut self) -> Vec<&mut Vec<AnchoredElement>> {
+    fn mut_trees(&mut self) -> Vec<&mut Vec<AnchoredElement>> {
         return vec![&mut self.screen_tree, &mut self.fixed_trees];
     }
 
@@ -193,12 +193,12 @@ impl AnchorTree {
         self.fixed_trees.push(AnchoredElement::new(type_id, element_id));
     }
 
-    /// Add anchor that is anchored to another element
-    pub fn add_element_anchor(&mut self, anchor_type_id: TypeId, anchor_element_id: &ResourceId<UiElementId>, type_id: TypeId, element_id: ResourceId<UiElementId>)  -> Result<(), String>{
-        match self.get_mut(anchor_type_id, anchor_element_id) {
+    /// Add element as anchored to parent
+    pub fn add_element_anchor(&mut self, parent_type_id: TypeId, parent_element_id: &ResourceId<UiElementId>, type_id: TypeId, element_id: ResourceId<UiElementId>) -> Result<(), String> {
+        match self.get_mut(parent_type_id, parent_element_id) {
             Some(anchor) => Ok(anchor.push(type_id, element_id)),
             None => {
-                Err(format!("anchor with type {:?} and id {:?} was not found", anchor_type_id, anchor_element_id))
+                Err(format!("anchor with type {:?} and id {:?} was not found", parent_type_id, parent_element_id))
             },
         }
     }
@@ -384,7 +384,7 @@ impl AnchorTree {
     }
 
     /// Add children to the given parent.
-    /// Returns an error of the parent (with id = `parent_id`) was not found
+    /// Returns an error if the parent was not found
     pub fn add_children(&mut self, parent_id: &ResourceId<UiElementId>, mut children: Vec<AnchoredElement>) -> Result<(), String> {
         match self.get_mut_by_id(parent_id) {
             Some(parent) => Ok(parent.anchored_elements.append(&mut children)),
