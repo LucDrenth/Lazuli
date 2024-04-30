@@ -3,7 +3,7 @@ use std::{fmt::Debug, f32::consts::PI};
 use glam::Vec2;
 use interface::WidgetRegistryUdpateResult;
 
-use crate::{asset_manager::AssetManager, graphics::{ui::{ElementRegistry, widget::{ButtonBuilder, UiWidget, IconBuilder}, interface::{is_valid_z_index, MAX_Z_INDEX, self, WidgetRegistry, LayoutRegistry}, Position, AnchorPoint, UiElementId, TextAlign, UiWidgetId, bounds_2d::Bounds2d, UiLayoutId, VerticalListBuilder, Width, UiUpdateTargets, WidgetUpdateTarget, LayoutUpdateTarget, UpdateTargetCollection}, Color}, log, input::InputAction, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{ui::{bounds_2d::Bounds2d, element::InputEvent, interface::{self, is_valid_z_index, LayoutRegistry, WidgetRegistry, MAX_Z_INDEX}, widget::{ButtonBuilder, IconBuilder, UiWidget}, AnchorPoint, ElementRegistry, LayoutUpdateTarget, Position, TextAlign, UiElementId, UiLayoutId, UiUpdateTargets, UiWidgetId, UpdateTargetCollection, VerticalListBuilder, WidgetUpdateTarget, Width}, Color}, input::InputAction, log, ResourceId};
 
 struct DropdownOptionButton<T: Debug + Clone> {
     button_id: ResourceId<UiWidgetId>,
@@ -289,6 +289,8 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
             .with_color(self.text_color.clone())
             .with_z_index(self.z_index + 0.01)
             .with_height(6.0)
+            .with_handle_input_event(InputEvent::MouseLeftDown, false)
+            .with_handle_input_event(InputEvent::MouseLeftUp, false)
         , element_registry, asset_manager)?;
 
         let (layout, layout_update_targets) = layout_registry.create_layout(&mut layout_builder, element_registry, widget_registry, asset_manager)?;

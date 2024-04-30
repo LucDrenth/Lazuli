@@ -77,4 +77,14 @@ impl InputEventHandlers {
         self.scroll_handler.set_does_handle(handle);
         self.mouse_left_drag_handler.set_does_handle(handle);
     }
+
+    pub fn set_handle_for_input_event(&mut self, event: &InputEvent, does_handle: bool) {
+        match event {
+            InputEvent::MouseLeftDown => self.mouse_left_down_handler.set_does_handle(does_handle),
+            InputEvent::MouseLeftUp => self.mouse_left_up_handler.set_does_handle(does_handle),
+            InputEvent::MouseLeftDrag => self.mouse_left_drag_handler.set_does_handle(does_handle),
+            InputEvent::Hover => self.hover_handler.set_does_handle(does_handle),
+            InputEvent::Scroll => self.scroll_handler.set_does_handle(does_handle),
+        }
+    }
 }

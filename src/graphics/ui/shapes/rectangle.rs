@@ -1,6 +1,6 @@
 use glam::{Vec2, Vec4, Vec3};
 
-use crate::{asset_manager::AssetManager, error::opengl, graphics::{material::Material, renderer::buffer::{Buffer, Vao}, shader::{CustomShaderValues, GlShaderBuilder, UniformValue}, ui::{bounds_2d::Bounds2d, element::{ui_element::UiElement, world_element_data::WorldElementData, AnchorElementData, AnchorPoint}, interface::{is_valid_z_index, map_z_index_for_shader}, ElementRegistry, Position, UiTexture}, Color}, log, set_attribute, ResourceId};
+use crate::{asset_manager::AssetManager, error::opengl, graphics::{material::Material, renderer::buffer::{Buffer, Vao}, shader::{CustomShaderValues, GlShaderBuilder, UniformValue}, ui::{bounds_2d::Bounds2d, element::{ui_element::UiElement, world_element_data::WorldElementData, AnchorElementData, AnchorPoint, InputEvent}, interface::{is_valid_z_index, map_z_index_for_shader}, ElementRegistry, Position, UiTexture}, Color}, log, set_attribute, ResourceId};
 use crate::graphics::shapes::RECTANGLE_INDICES;
 
 use super::rectangle_border::{Border, BorderSize, BorderRadius};
@@ -193,7 +193,7 @@ pub struct RectangleBuilder {
     border: Border,
     texture_padding: f32,
     custom_shader_values: CustomShaderValues,
-    handle_scroll: bool,
+    handle_input_events: Vec<(InputEvent, bool)>,
 }
 
 impl RectangleBuilder {
@@ -214,7 +214,7 @@ impl RectangleBuilder {
             },
             texture_padding: 0.0,
             custom_shader_values: Default::default(),
-            handle_scroll: false,
+            handle_input_events: vec![],
         }
     }
 
@@ -260,7 +260,10 @@ impl RectangleBuilder {
             element_registry
         );
         world_data.show = self.is_visible;
-        world_data.event_handlers.scroll_handler.set_does_handle(self.handle_scroll);
+        
+        for (event, does_handle) in &self.handle_input_events {
+            world_data.event_handlers.set_handle_for_input_event(event, *does_handle);
+        }
 
         Ok(Rectangle { 
             vao, 
@@ -385,8 +388,10 @@ impl RectangleBuilder {
         self.custom_shader_values.set_f32(name, value);
         self
     }
-    pub fn with_handle_scroll(mut self, handle_scroll: bool) -> Self {
-        self.handle_scroll = handle_scroll;
+
+    /// Can be called multiple times for different input events
+    pub fn with_handle_input_event(mut self, input_event: InputEvent, handle: bool) -> Self {
+        self.handle_input_events.push((input_event, handle));
         self
     }
 }

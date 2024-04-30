@@ -1,6 +1,6 @@
 use glam::{Vec2, Vec4, Vec3};
 
-use crate::{asset_manager::AssetManager, graphics::{font::Font, material::Material, shader::{CustomShaderValues, UniformValue}, ui::{element::{ui_element::UiElement, world_element_data::WorldElementData, AnchorElementData, AnchorPoint}, interface::{self, is_valid_z_index, map_z_index_for_shader}, ElementRegistry, Position}, Color, Transform}, log::{self}, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{font::Font, material::Material, shader::{CustomShaderValues, UniformValue}, ui::{element::{ui_element::UiElement, world_element_data::WorldElementData, AnchorElementData, AnchorPoint, InputEvent}, interface::{self, is_valid_z_index, map_z_index_for_shader}, ElementRegistry, Position}, Color, Transform}, log, ResourceId};
 
 use super::glyph::Glyph;
 
@@ -163,6 +163,7 @@ pub struct TextBuilder {
     scale: Vec2,
     is_visible: bool,
     custom_shader_values: CustomShaderValues,
+    handle_input_events: Vec<(InputEvent, bool)>,
 }
 
 impl TextBuilder {
@@ -176,6 +177,7 @@ impl TextBuilder {
             scale: Vec2::ONE,
             is_visible: true,
             custom_shader_values: Default::default(),
+            handle_input_events: vec![],
         }
     }
 
@@ -197,6 +199,10 @@ impl TextBuilder {
         );
         world_data.show = self.is_visible;
         world_data.event_handlers.set_handle(false);
+        
+        for (event, does_handle) in &self.handle_input_events {
+            world_data.event_handlers.set_handle_for_input_event(event, *does_handle);
+        }
 
         let mut result = Text { 
             text: text.into(), 
@@ -274,6 +280,12 @@ impl TextBuilder {
     }
     pub fn with_custom_shader_value_f32(mut self, name: impl Into<String>, value: f32) -> Self {
         self.custom_shader_values.set_f32(name, value);
+        self
+    }
+
+    /// Can be called multiple times for different input events
+    pub fn with_handle_input_event(mut self, input_event: InputEvent, handle: bool) -> Self {
+        self.handle_input_events.push((input_event, handle));
         self
     }
 }

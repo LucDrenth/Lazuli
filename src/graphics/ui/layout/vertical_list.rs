@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{asset_manager::AssetManager, graphics::{ui::{bounds_2d::Bounds2d, interface::{self, WidgetRegistry}, padding::Padding, shapes::RectangleBuilder, AnchorPoint, ElementRegistry, Position, UiElementId, UiUpdateTargets, UiWidgetId, UpdateTargetCollection, WidgetUpdateTarget}, Color}, input::{Input, MouseButton}, log, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{ui::{bounds_2d::Bounds2d, element::InputEvent, interface::{self, WidgetRegistry}, padding::Padding, shapes::RectangleBuilder, AnchorPoint, ElementRegistry, Position, UiElementId, UiUpdateTargets, UiWidgetId, UpdateTargetCollection, WidgetUpdateTarget}, Color}, input::{Input, MouseButton}, log, ResourceId};
 
 use super::{Layout, layout::{LAYOUT_ELEMENT_EXTRA_Z_INDEX, LAYOUT_SCROLLBAR_EXTRA_Z_INDEX, LayoutBuilder}};
 
@@ -368,14 +368,14 @@ impl VerticalListBuilder {
         }; 
         let background_height = calculate_background_height(&self.widget_ids, self.gap_size, &self.padding, &element_registry, &widget_registry).min(self.max_height);
 
-        let background_element_id = element_registry.create_rectangle(&RectangleBuilder::new()
+        let background_element_id = element_registry.create_rectangle(&&RectangleBuilder::new()
             .with_color(self.background_color.clone())
             .with_position(self.position)
             .with_width(background_width)
             .with_height(background_height)
             .with_z_index(self.z_index)
             .with_visibility(self.is_visible)
-            .with_handle_scroll(true)
+            .with_handle_input_event(InputEvent::Scroll, true)
         , asset_manager)?;
 
         let scrollbar_element_id = match self.has_scrollbar {

@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{asset_manager::AssetManager, graphics::{shader::GlShaderBuilder, texture::Texture, ui::{bounds_2d::Bounds2d, interface::{self, is_valid_z_index, WidgetRegistry}, shapes::{Rectangle, RectangleBuilder}, widget::UiWidget, ElementRegistry, Position, UiElementId, UiLayoutId, UiTexture, UiUpdateTargets, UiWidgetId, UpdateTargetCollection}, Color}, log, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{shader::GlShaderBuilder, texture::Texture, ui::{bounds_2d::Bounds2d, element::InputEvent, interface::{self, is_valid_z_index, WidgetRegistry}, shapes::{Rectangle, RectangleBuilder}, widget::UiWidget, ElementRegistry, Position, UiElementId, UiLayoutId, UiTexture, UiUpdateTargets, UiWidgetId, UpdateTargetCollection}, Color}, log, ResourceId};
 
 pub struct Icon {
     rectangle_element_id: ResourceId<UiElementId>,
@@ -102,6 +102,7 @@ pub struct IconBuilder {
     padding: f32,
     is_visible: bool,
     debug: bool,
+    handle_input_events: Vec<(InputEvent, bool)>,
 }
 
 impl IconBuilder {
@@ -117,6 +118,7 @@ impl IconBuilder {
             padding: 0.0,
             is_visible: true,
             debug: false,
+            handle_input_events: vec![],
         }
     }
 
@@ -143,6 +145,9 @@ impl IconBuilder {
             .with_custom_shader_value_f32("rotation", 0.)
             .with_visibility(self.is_visible)
         ;
+        for (event, does_handle) in &self.handle_input_events {
+            rectangle_builder = rectangle_builder.with_handle_input_event(event.clone(), *does_handle);
+        }
 
         match &self.color {
             Some(color) => {
@@ -241,6 +246,12 @@ impl IconBuilder {
 
     pub fn with_debug(mut self, debug: bool) -> Self {
         self.debug = debug;
+        self
+    }
+
+    /// Can be called multiple times for different input events
+    pub fn with_handle_input_event(mut self, input_event: InputEvent, handle: bool) -> Self {
+        self.handle_input_events.push((input_event, handle));
         self
     }
 }
