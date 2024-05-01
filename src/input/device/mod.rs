@@ -8,3 +8,5 @@ pub use mouse::MouseButton;
 
 #[cfg(test)]
 pub mod keyboard_test;
+#[cfg(test)]
+pub mod mouse_test;

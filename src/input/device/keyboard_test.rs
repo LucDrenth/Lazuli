@@ -42,3 +42,21 @@ fn test_is_key_up() {
 
     assert_eq!(false, keyboard.is_key_up(key));
 }
+
+#[test]
+fn test_is_key_held() {
+    let mut keyboard = KeyboardDevice::new();
+    let key = Key::L;
+
+    assert_eq!(false, keyboard.is_key_held(key));
+
+    keyboard.register_key_event(key, ButtonState::Down);
+    assert_eq!(true, keyboard.is_key_held(key));
+
+    // next frame
+    keyboard.reset();
+    assert_eq!(true, keyboard.is_key_held(key));
+
+    keyboard.register_key_event(key, ButtonState::Up);
+    assert_eq!(false, keyboard.is_key_held(key));
+}
