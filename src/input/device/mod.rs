@@ -1,7 +1,7 @@
-mod key;
-pub use key::KeyboardDevice;
-pub use key::Key;
-pub use key::KeyState;
+mod keyboard;
+pub use keyboard::KeyboardDevice;
+pub use keyboard::Key;
+pub use keyboard::KeyState;
 
 mod mouse;
 pub use mouse::MouseDevice;
