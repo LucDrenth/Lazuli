@@ -131,7 +131,7 @@ pub enum Key {
     Caret = 66,
 }
 
-impl InputElement for  Key {
+impl InputElement for Key {
     fn as_number(&self) -> usize {
         *self as usize
     }

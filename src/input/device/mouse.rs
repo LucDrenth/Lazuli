@@ -148,7 +148,7 @@ pub enum MouseButton {
     Extra4 = 9,
 }
 
-impl InputElement for  MouseButton {
+impl InputElement for MouseButton {
     fn as_number(&self) -> usize {
         *self as usize
     }
