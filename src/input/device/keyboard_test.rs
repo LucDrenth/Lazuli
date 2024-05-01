@@ -10,15 +10,31 @@ fn test_is_key_down() {
     keyboard.register_key_event(key, ButtonState::Down);
     assert_eq!(true, keyboard.is_key_down(key));
 
+    // next frame
+    keyboard.reset();
+
     keyboard.register_key_event(key, ButtonState::Up);
     assert_eq!(false, keyboard.is_key_down(key));
-
-    keyboard.register_key_event(key, ButtonState::Down);
     
     // next frame
     keyboard.reset();
     
     assert_eq!(false, keyboard.is_key_down(key));
+
+    // next frame
+    keyboard.reset();
+
+    keyboard.register_key_event(key, ButtonState::Down);
+    keyboard.register_key_event(key, ButtonState::Up);
+    assert_eq!(true, keyboard.is_key_down(key));
+
+    // next frame
+    keyboard.reset();
+
+    keyboard.register_key_event(key, ButtonState::Down);
+    keyboard.register_key_event(key, ButtonState::Up);
+    keyboard.register_key_event(key, ButtonState::Down);
+    assert_eq!(true, keyboard.is_key_down(key));
 }
 
 #[test]

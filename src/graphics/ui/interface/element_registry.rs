@@ -55,8 +55,12 @@ impl ElementRegistry {
 
         if input.mouse.is_button_down(MouseButton::Left) {
             self.handle_input_event(InputEvent::MouseLeftDown, input);
-            self.handle_input_event(InputEvent::MouseLeftDrag, input);
-        } else if input.mouse.is_button_up(MouseButton::Left) {
+
+            if !input.mouse.is_button_up(MouseButton::Left) {
+                self.handle_input_event(InputEvent::MouseLeftDrag, input);
+            }
+        } 
+        if input.mouse.is_button_up(MouseButton::Left) {
             self.handle_input_event(InputEvent::MouseLeftUp, input);
         }
     }

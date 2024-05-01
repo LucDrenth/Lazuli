@@ -1,4 +1,4 @@
-use crate::input::button::{is_button_down, is_button_held, is_button_up, register_button_event};
+use crate::input::button::ButtonRegistry;
 
 use super::{input::InputElement, ButtonState};
 
@@ -18,48 +18,61 @@ impl InputElement for MockInputElement {
 
 #[test]
 fn test_register_button_event() {
-    let mut current_state = [ButtonState::Up; NUMBER_OF_BUTTONS];
-    assert_eq!(true, register_button_event(&mut current_state, &MockInputElement::Valid, ButtonState::Down).is_ok());
-    assert_eq!(true, register_button_event(&mut current_state, &MockInputElement::Invalid, ButtonState::Down).is_err());
+    let mut button_registry = ButtonRegistry::new(1);
+    button_registry.register_button_event(&MockInputElement::Valid, ButtonState::Up);
+    button_registry.register_button_event(&MockInputElement::Invalid, ButtonState::Down);
 }
 
 #[test]
-fn test_is_button_down() -> Result<(), String> {
-    let mut current_state = [ButtonState::Up; NUMBER_OF_BUTTONS];
-    let last_state = [ButtonState::Up; NUMBER_OF_BUTTONS];
+fn test_is_button_down() {
+    let mut button_registry = ButtonRegistry::new(NUMBER_OF_BUTTONS);
 
-    assert_eq!(false, is_button_down(&current_state, &last_state, &MockInputElement::Valid));
-    assert_eq!(false, is_button_down(&current_state, &last_state, &MockInputElement::Invalid));
+    assert_eq!(false, button_registry.is_button_down(&MockInputElement::Valid));
+    assert_eq!(false, button_registry.is_button_down(&MockInputElement::Invalid));
 
-    register_button_event(&mut current_state, &MockInputElement::Valid, ButtonState::Down)?;
-    assert_eq!(true, is_button_down(&current_state, &last_state, &MockInputElement::Valid));
+    button_registry.register_button_event(&MockInputElement::Valid, ButtonState::Down);
 
-    Ok(())
+    assert_eq!(true, button_registry.is_button_down(&MockInputElement::Valid));
+    assert_eq!(false, button_registry.is_button_down(&MockInputElement::Invalid));
+
+    button_registry.reset();
+
+    assert_eq!(false, button_registry.is_button_down(&MockInputElement::Valid));
+    assert_eq!(false, button_registry.is_button_down(&MockInputElement::Invalid));
 }
 
 #[test]
-fn test_is_button_up() -> Result<(), String> {
-    let mut current_state = [ButtonState::Down; NUMBER_OF_BUTTONS];
-    let last_state = [ButtonState::Down; NUMBER_OF_BUTTONS];
+fn test_is_button_up() {
+    let mut button_registry = ButtonRegistry::new(NUMBER_OF_BUTTONS);
 
-    assert_eq!(false, is_button_up(&current_state, &last_state, &MockInputElement::Valid));
-    assert_eq!(false, is_button_up(&current_state, &last_state, &MockInputElement::Invalid));
+    assert_eq!(false, button_registry.is_button_up(&MockInputElement::Valid));
+    assert_eq!(false, button_registry.is_button_up(&MockInputElement::Invalid));
 
-    register_button_event(&mut current_state, &MockInputElement::Valid, ButtonState::Up)?;
-    assert_eq!(true, is_button_up(&current_state, &last_state, &MockInputElement::Valid));
+    button_registry.register_button_event(&MockInputElement::Valid, ButtonState::Up);
 
-    Ok(())
+    assert_eq!(true, button_registry.is_button_up(&MockInputElement::Valid));
+    assert_eq!(false, button_registry.is_button_up(&MockInputElement::Invalid));
+
+    button_registry.reset();
+
+    assert_eq!(false, button_registry.is_button_up(&MockInputElement::Valid));
+    assert_eq!(false, button_registry.is_button_up(&MockInputElement::Invalid));
 }
 
 #[test]
-fn test_is_button_held() -> Result<(), String> {
-    let mut current_state = [ButtonState::Up; NUMBER_OF_BUTTONS];
+fn test_is_button_held() {
+    let mut button_registry = ButtonRegistry::new(NUMBER_OF_BUTTONS);
 
-    assert_eq!(false, is_button_held(&current_state, &MockInputElement::Valid));
-    assert_eq!(false, is_button_held(&current_state, &MockInputElement::Invalid));
+    assert_eq!(false, button_registry.is_button_held(&MockInputElement::Valid));
+    assert_eq!(false, button_registry.is_button_held(&MockInputElement::Invalid));
 
-    register_button_event(&mut current_state, &MockInputElement::Valid, ButtonState::Down)?;
-    assert_eq!(true, is_button_held(&current_state, &MockInputElement::Valid));
+    button_registry.register_button_event(&MockInputElement::Valid, ButtonState::Down);
 
-    Ok(())
+    assert_eq!(true, button_registry.is_button_held(&MockInputElement::Valid));
+    assert_eq!(false, button_registry.is_button_held(&MockInputElement::Invalid));
+
+    button_registry.reset();
+
+    assert_eq!(true, button_registry.is_button_held(&MockInputElement::Valid));
+    assert_eq!(false, button_registry.is_button_held(&MockInputElement::Invalid));
 }

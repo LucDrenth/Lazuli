@@ -8,6 +8,7 @@ pub enum SliderProgressBarAlignment {
     Natural,
     Center,
 }
+
 #[derive(Clone, Copy, Debug)]
 pub enum SliderDirection {
     /// All the way to the left is the minimum value. All the way to the right is the maximum value
@@ -119,15 +120,18 @@ impl UiWidget for Slider {
 impl Slider {
     /// Returns Some if there is a change by dragging the slider
     pub fn update(&mut self, input: &Input, element_registry: &mut ElementRegistry, asset_manager: &mut dyn AssetManager) -> Option<SliderUpdateResult> {
-        let did_start_drag: bool;
+        let mut did_start_drag: bool = false;
 
         match element_registry.get_ui_element_by_id(&self.background_element_id) {
             Some(background_element) => {
                 if !background_element.world_data().event_handlers.mouse_left_drag_handler.is_handling() {
-                    return None;
+                    // We're not dragging. Now we'll check if there was a click to move the slider.
+                    if !background_element.world_data().event_handlers.mouse_left_down_handler.did_handle() {
+                        return None;
+                    }
+                } else {
+                    did_start_drag = background_element.world_data().event_handlers.mouse_left_drag_handler.did_drag_start();
                 }
-
-                did_start_drag = background_element.world_data().event_handlers.mouse_left_drag_handler.did_drag_start();
             },
             None => {
                 log::engine_warn(format!("returning None for slider update because we could not find background element with id {}", self.background_element_id.id()));

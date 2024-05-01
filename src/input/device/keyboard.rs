@@ -1,57 +1,40 @@
 use button::ButtonAction;
 
-use crate::{input::{button, input::InputElement, ButtonState}, log};
+use crate::input::{button::{self, ButtonRegistry}, input::InputElement, ButtonState};
 
 pub struct KeyboardDevice {
-    current_state: State,
-    last_state: State,
+    key_registry: ButtonRegistry,
 }
 
 impl KeyboardDevice {
     pub fn new () -> Self {
         Self { 
-            current_state: State::new(), 
-            last_state: State::new(),
+            key_registry: ButtonRegistry::new(256),
         }
     }
 
     pub fn reset(&mut self) {
-        self.last_state = self.current_state;
+        self.key_registry.reset();
     }
 
     pub fn register_key_event(&mut self, key: Key, state: ButtonState) {
-        button::register_button_event(&mut self.current_state.keys, &key, state).unwrap_or_else(|err|{
-            log::engine_warn(format!("Failed to register keyboard key event {:?} with state {:?}: {}", key, state, err));
-        });
+        self.key_registry.register_button_event(&key, state);
     }
 
     pub fn is_key_down(&self, key: Key) -> bool {
-        return button::is_button_down(&self.current_state.keys, &self.last_state.keys, &key);
+        self.key_registry.is_button_down(&key)
     }
 
     pub fn is_key_up(&self, key: Key) -> bool {
-        return button::is_button_up(&self.current_state.keys, &self.last_state.keys, &key);
+        self.key_registry.is_button_up(&key)
     }
 
     pub fn is_key_held(&self, key: Key) -> bool {        
-        return button::is_button_held(&self.current_state.keys, &key)
+        self.key_registry.is_button_held(&key)
     }
 
     pub fn is_key_action(&self, key: Key, action: &ButtonAction) -> bool {
-        button::is_action(&self.current_state.keys, &self.last_state.keys, &key, &action)
-    }
-}
-
-#[derive(Copy, Clone)]
-struct State {
-    keys: [ButtonState; 256],
-}
-
-impl State {
-    fn new() -> Self {
-        Self {
-            keys: [ButtonState::Up; 256],
-        }
+        self.key_registry.is_button_action(&key, action)
     }
 }
 

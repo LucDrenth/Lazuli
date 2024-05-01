@@ -1,15 +1,18 @@
 use glam::Vec2;
 
-use crate::{input::{button, input::InputElement, ButtonAction, ButtonState}, log};
+use crate::input::{button::ButtonRegistry, input::InputElement, ButtonAction, ButtonState};
 
 pub struct MouseDevice {
+    button_registry: ButtonRegistry,
+    
     current_state: State,
     last_state: State,
 }
 
 impl MouseDevice {
-    pub fn new () -> Self {
+    pub fn new() -> Self {
         Self {
+            button_registry: ButtonRegistry::new(16),
             current_state: State::new(),
             last_state: State::new(),
         }
@@ -18,14 +21,12 @@ impl MouseDevice {
     pub fn reset(&mut self) {
         self.last_state = self.current_state;
         self.current_state.reset();
+
+        self.button_registry.reset();
     }
 
     pub fn register_button_event(&mut self, button: MouseButton, state: ButtonState) {
-        log::info(format!("register mouse button {:?} with state {:?}", button, state));
-
-        button::register_button_event(&mut self.current_state.buttons, &button, state).unwrap_or_else(|err|{
-            log::engine_warn(format!("Failed to register mouse button event {:?} with state {:?}: {}", button, state, err));
-        });
+        self.button_registry.register_button_event(&button, state);
     }
 
     pub fn register_scroll_x_event(&mut self, scroll: f64) {
@@ -47,19 +48,19 @@ impl MouseDevice {
     }
 
     pub fn is_button_down(&self, button: MouseButton) -> bool {
-        button::is_button_down(&self.current_state.buttons, &self.last_state.buttons, &button)
+        self.button_registry.is_button_down(&button)
     }
 
     pub fn is_button_up(&self, button: MouseButton) -> bool {
-        button::is_button_up(&self.current_state.buttons, &self.last_state.buttons, &button)
+        self.button_registry.is_button_up(&button)
     }
 
     pub fn is_button_held(&self, button: MouseButton) -> bool {
-        button::is_button_held(&self.current_state.buttons, &button)
+        self.button_registry.is_button_held(&button)
     }
 
     pub fn is_button_action(&self, mouse_button: MouseButton, action: &ButtonAction) -> bool {
-        button::is_action(&self.current_state.buttons, &self.last_state.buttons, &mouse_button, &action)
+        self.button_registry.is_button_action(&mouse_button, action)
     }
 
     pub fn get_position_x(&self) -> f64 {
@@ -105,7 +106,6 @@ impl MouseDevice {
 
 #[derive(Copy, Clone)]
 struct State {
-    buttons: [ButtonState; 16],
     scroll_x: f64,
     scroll_y: f64,
     moved_x: f64,
@@ -114,10 +114,10 @@ struct State {
     position_y: f64,
 }
 
+
 impl State {
     fn new() -> Self {
         Self {
-            buttons: [ButtonState::Up; 16],
             scroll_x: 0.0,
             scroll_y: 0.0,
             moved_x: 0.0,
