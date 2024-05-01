@@ -1,6 +1,6 @@
 /// Functions to map input from the "glutin" crate to that of our own
 
-use crate::{input::{Key, KeyState, MouseButton, MouseButtonState}, log};
+use crate::{input::{ButtonState, Key, MouseButton}, log};
 
 pub fn map_glutin_keycode(glutin_key: glutin::event::VirtualKeyCode) -> Key {
     match glutin_key {
@@ -87,10 +87,10 @@ pub fn map_glutin_keycode(glutin_key: glutin::event::VirtualKeyCode) -> Key {
     }
 }
 
-pub fn map_glutin_key_state(state: glutin::event::ElementState) -> KeyState {
+pub fn map_glutin_key_state(state: glutin::event::ElementState) -> ButtonState {
     match state {
-        glutin::event::ElementState::Pressed => KeyState::Down,
-        glutin::event::ElementState::Released => KeyState::Up,
+        glutin::event::ElementState::Pressed => ButtonState::Down,
+        glutin::event::ElementState::Released => ButtonState::Up,
     }
 }
 
@@ -106,9 +106,9 @@ pub fn map_glutin_mouse_button(state: glutin::event::MouseButton) -> MouseButton
     }
 }
 
-pub fn map_glutin_mouse_button_state(state: glutin::event::ElementState) -> MouseButtonState {
+pub fn map_glutin_mouse_button_state(state: glutin::event::ElementState) -> ButtonState {
     match state {
-        glutin::event::ElementState::Pressed => MouseButtonState::Down,
-        glutin::event::ElementState::Released => MouseButtonState::Up,
+        glutin::event::ElementState::Pressed => ButtonState::Down,
+        glutin::event::ElementState::Released => ButtonState::Up,
     }
 }

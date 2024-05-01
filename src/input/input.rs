@@ -19,9 +19,6 @@ impl Input {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
-pub enum ButtonAction {
-    Down,
-    Up,
-    UpOrDown,
+pub trait InputElement {
+    fn as_number(&self) -> usize;
 }

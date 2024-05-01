@@ -1,4 +1,6 @@
-use crate::log;
+use button::ButtonAction;
+
+use crate::{input::{button, input::InputElement, ButtonState}, log};
 
 pub struct KeyboardDevice {
     current_state: State,
@@ -17,56 +19,40 @@ impl KeyboardDevice {
         self.last_state = self.current_state;
     }
 
-    pub fn register_key_event(&mut self, key: Key, state: KeyState) {
-        if key.as_number() > self.current_state.keys.len() {
-            log::engine_warn(format!(
-                "Tried to register key event [{:?}] with state [{:?}] but its number representation [{}] does not fit in self.current_state.keys, which has length [{}]", 
-                key, state, key.as_number(), self.current_state.keys.len()
-            ));
-            return;
-        }
-        
-        self.current_state.keys[key.as_number()] = state;
+    pub fn register_key_event(&mut self, key: Key, state: ButtonState) {
+        button::register_button_event(&mut self.current_state.keys, &key, state).unwrap_or_else(|err|{
+            log::engine_warn(format!("Failed to register keyboard key event {:?} with state {:?}: {}", key, state, err));
+        });
     }
 
     pub fn is_key_down(&self, key: Key) -> bool {
-        let key_number = key.as_number();
-
-        return self.current_state.keys[key_number] == KeyState::Down 
-            && self.last_state.keys[key_number] == KeyState::Up
+        return button::is_button_down(&self.current_state.keys, &self.last_state.keys, &key);
     }
 
     pub fn is_key_up(&self, key: Key) -> bool {
-        let key_number = key.as_number();
-        
-        return self.current_state.keys[key_number] == KeyState::Up 
-            && self.last_state.keys[key_number] == KeyState::Down
+        return button::is_button_up(&self.current_state.keys, &self.last_state.keys, &key);
     }
 
-    pub fn is_key_held(&self, key: Key) -> bool {
-        let key_number = key.as_number();
-        
-        return self.current_state.keys[key_number] == KeyState::Down;
+    pub fn is_key_held(&self, key: Key) -> bool {        
+        return button::is_button_held(&self.current_state.keys, &key)
+    }
+
+    pub fn is_key_action(&self, key: Key, action: &ButtonAction) -> bool {
+        button::is_action(&self.current_state.keys, &self.last_state.keys, &key, &action)
     }
 }
 
 #[derive(Copy, Clone)]
 struct State {
-    keys: [KeyState; 256],
+    keys: [ButtonState; 256],
 }
 
 impl State {
     fn new() -> Self {
         Self {
-            keys: [KeyState::Up; 256],
+            keys: [ButtonState::Up; 256],
         }
     }
-}
-
-#[derive(Copy, Clone, Debug, PartialEq)]
-pub enum KeyState {
-    Up, // pressed down
-    Down, // released
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -145,8 +131,8 @@ pub enum Key {
     Caret = 66,
 }
 
-impl Key {
-    pub fn as_number(&self) -> usize {
+impl InputElement for  Key {
+    fn as_number(&self) -> usize {
         *self as usize
     }
 }

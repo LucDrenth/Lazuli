@@ -1,6 +1,9 @@
 mod input;
 pub use input::Input;
-pub use input::ButtonAction;
 
 mod device;
 pub use device::*;
+
+mod button;
+pub use button::ButtonAction;
+pub use button::ButtonState;
