@@ -24,7 +24,6 @@ impl MouseDevice {
         button::register_button_event(&mut self.current_state.buttons, &button, state).unwrap_or_else(|err|{
             log::engine_warn(format!("Failed to register mouse button event {:?} with state {:?}: {}", button, state, err));
         });
-        self.current_state.buttons[button.as_number()] = state;
     }
 
     pub fn register_scroll_x_event(&mut self, scroll: f64) {
