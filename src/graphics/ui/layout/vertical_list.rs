@@ -44,7 +44,7 @@ impl Layout for VerticalList {
 
         for existing_widget_id in self.widget_ids.iter() {
             if existing_widget_id.equals(widget_id) {
-                log::engine_warn( format!("VerticalList: widget with id {} was already in the list", widget_id.id()) );
+                log::engine_warn( format!("VerticalList: widget with id {} is already in the list", widget_id.id()) );
                 return update_targets;
             }
         }
@@ -473,7 +473,7 @@ impl VerticalListBuilder {
     fn try_add_widget(&mut self, widget_id: ResourceId<UiWidgetId>) {
         for existing_widget_id in self.widget_ids.iter() {
             if existing_widget_id.equals(&widget_id) {
-                log::engine_warn(format!("VerticalListBuilder: widget with id {} was already in the list", widget_id.id()));
+                log::engine_warn(format!("VerticalListBuilder: widget with id {} is already in the list", widget_id.id()));
                 return;
             }
         }
