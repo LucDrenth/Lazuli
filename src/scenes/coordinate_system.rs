@@ -84,11 +84,11 @@ impl Scene for CoordinateSystem {
         self.poll_free_movement(input);
         self.poll_zoom(input, asset_manager);
         
-        if input.did_mouse_move() {
-            self.camera.rotate(input.get_mouse_moved_x() as f32 / 50.0, input.get_mouse_moved_y() as f32 / 50.0);
+        if input.mouse.did_move() {
+            self.camera.rotate(input.mouse.get_moved_x() as f32 / 50.0, input.mouse.get_moved_y() as f32 / 50.0);
         }
 
-        if input.is_key_down(Key::Space) {
+        if input.keyboard.is_key_down(Key::Space) {
             self.camera.look_at(self.transforms[0].position);
         }
 
@@ -107,35 +107,35 @@ impl Scene for CoordinateSystem {
 
 impl CoordinateSystem {
     fn poll_free_movement(&mut self, input: &Input) {
-        if input.is_key_held(Key::A) {
+        if input.keyboard.is_key_held(Key::A) {
             self.camera.move_left(self.movement_speed * time::DELTA);
         }
-        if input.is_key_held(Key::D) {
+        if input.keyboard.is_key_held(Key::D) {
             self.camera.move_right(self.movement_speed * time::DELTA);
         }
-        if input.is_key_held(Key::S) {
+        if input.keyboard.is_key_held(Key::S) {
             self.camera.move_back(self.movement_speed * time::DELTA);
         }
-        if input.is_key_held(Key::W) {
+        if input.keyboard.is_key_held(Key::W) {
             self.camera.move_forth(self.movement_speed * time::DELTA);
         }
-        if input.is_key_held(Key::Shift) {
+        if input.keyboard.is_key_held(Key::Shift) {
             self.camera.move_up(self.movement_speed * time::DELTA);
         }
-        if input.is_key_held(Key::Cntrl) {
+        if input.keyboard.is_key_held(Key::Cntrl) {
             self.camera.move_down(self.movement_speed * time::DELTA);
         }
 
-        if input.is_key_held(Key::T) {
+        if input.keyboard.is_key_held(Key::T) {
             self.camera.move_towards(self.transforms[0].position, self.movement_speed * time::DELTA);
         }
-        if input.is_key_held(Key::G) {
+        if input.keyboard.is_key_held(Key::G) {
             self.camera.move_away_from(self.transforms[0].position, self.movement_speed * time::DELTA);
         }
     }
 
     fn poll_zoom(&mut self, input: &Input, asset_manager: &mut dyn AssetManager) {
-        let scroll_y = input.get_scroll_y() as f32 * self.zoom_speed * time::DELTA;
+        let scroll_y = input.mouse.get_scroll_y() as f32 * self.zoom_speed * time::DELTA;
 
         if scroll_y != 0.0 {
             self.camera.zoom(scroll_y);

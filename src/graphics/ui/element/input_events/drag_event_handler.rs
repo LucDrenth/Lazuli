@@ -33,7 +33,7 @@ impl DragEventHandler {
 
         if self.event_handler.did_handle() {
             self.did_drag_start = true;
-            self.drag_start_position = input.get_mouse_position();
+            self.drag_start_position = input.mouse.get_position();
         }
 
         self.event_handler.did_capture()
@@ -42,7 +42,7 @@ impl DragEventHandler {
     pub fn reset(&mut self, input: &Input) {
         self.did_drag_start = false;
 
-        if input.is_mouse_button_up(MouseButton::Left) {
+        if input.mouse.is_button_up(MouseButton::Left) {
             self.event_handler.reset();
         }
     }

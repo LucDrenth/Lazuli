@@ -2,7 +2,7 @@ use std::any::TypeId;
 
 use glam::Vec2;
 
-use crate::{asset_manager::AssetManager, graphics::{font::Font, shader::{CustomShaderValues, UniformValue}, ui::{bounds_2d::Bounds2d, element::{ui_element::UiElement, world_element_data::WorldElementData, AnchorElementData, InputEvent}, shapes::{Rectangle, RectangleBuilder}, Position, Text, TextBuilder, UiElementId}, Color}, input::{Input, InputAction, MouseButton}, log, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{font::Font, shader::{CustomShaderValues, UniformValue}, ui::{bounds_2d::Bounds2d, element::{ui_element::UiElement, world_element_data::WorldElementData, AnchorElementData, InputEvent}, shapes::{Rectangle, RectangleBuilder}, Position, Text, TextBuilder, UiElementId}, Color}, input::{Input, ButtonAction, MouseButton}, log, ResourceId};
 
 use super::{interface, element_list::{ElementList, OrderedElementsItem, self}, anchor_tree::{AnchorTree, AnchoredElement, AnchorElementIdentifier}};
 
@@ -49,14 +49,14 @@ impl ElementRegistry {
 
         self.handle_input_event(InputEvent::Hover, input);
 
-        if input.has_scroll() {
+        if input.mouse.has_scroll() {
             self.handle_input_event(InputEvent::Scroll, input);
         }
 
-        if input.is_mouse_button_down(MouseButton::Left) {
+        if input.mouse.is_button_down(MouseButton::Left) {
             self.handle_input_event(InputEvent::MouseLeftDown, input);
             self.handle_input_event(InputEvent::MouseLeftDrag, input);
-        } else if input.is_mouse_button_up(MouseButton::Left) {
+        } else if input.mouse.is_button_up(MouseButton::Left) {
             self.handle_input_event(InputEvent::MouseLeftUp, input);
         }
     }
@@ -383,7 +383,7 @@ impl ElementRegistry {
         }
     }
 
-    pub fn is_element_clicked(&self, element_id: &ResourceId<UiElementId>, mouse_button: MouseButton, input_action: &InputAction) -> bool {
+    pub fn is_element_clicked(&self, element_id: &ResourceId<UiElementId>, mouse_button: MouseButton, input_action: &ButtonAction) -> bool {
         match self.get_ui_element_by_id(element_id) {
             Some(element) => {
                 element.world_data().event_handlers.did_handle_mouse_event(&mouse_button, input_action)
@@ -692,8 +692,8 @@ impl ElementRegistry {
     /// Map mouse position to screen coordinates (in pixels) so that (0, 0) is the center
     pub fn map_mouse_position(&self, input: &Input) -> Vec2 {
         Vec2 {
-            x: input.get_mouse_position_x() as f32 - self.window_size.x / 2.0,
-            y: -(input.get_mouse_position_y() as f32 - self.window_size.y / 2.0),
+            x: input.mouse.get_position_x() as f32 - self.window_size.x / 2.0,
+            y: -(input.mouse.get_position_y() as f32 - self.window_size.y / 2.0),
         }
     }
 

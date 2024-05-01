@@ -192,7 +192,7 @@ impl VerticalList {
                         self.scroll_on_start_scrollbar_drag = self.current_scroll;
                     }
 
-                    let amount_moved = input.get_mouse_position_y() as f32 - element.world_data().event_handlers.mouse_left_drag_handler.get_drag_start_position().y;
+                    let amount_moved = input.mouse.get_position_y() as f32 - element.world_data().event_handlers.mouse_left_drag_handler.get_drag_start_position().y;
                     let extra_scroll = (amount_moved / self.max_height) * (self.max_scroll + self.max_height);
                     return (self.scroll_on_start_scrollbar_drag + extra_scroll).clamp(0.0, self.max_scroll);
                 }
@@ -206,7 +206,7 @@ impl VerticalList {
     }
 
     fn calculate_new_scroll_amount_from_scroll(&self, input: &Input, scroll_speed: f32) -> f32 {
-        (self.current_scroll - input.get_scroll_y() as f32 * scroll_speed).clamp(0.0, self.max_scroll)
+        (self.current_scroll - input.mouse.get_scroll_y() as f32 * scroll_speed).clamp(0.0, self.max_scroll)
     }
 
     fn update_scroll(&mut self, new_scroll_amount: f32, update_target_collection: &mut UpdateTargetCollection, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, input: &Input) {
@@ -224,7 +224,7 @@ impl VerticalList {
     }
 
     fn should_update_scroll(&self, element_registry: &ElementRegistry, input: &Input) -> bool {
-        if self.widget_ids.is_empty() && input.get_scroll_y() == 0.0 {
+        if self.widget_ids.is_empty() && input.mouse.get_scroll_y() == 0.0 {
             return false;
         }
 

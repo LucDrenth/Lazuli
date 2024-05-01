@@ -1,4 +1,4 @@
-use crate::{input::{Input, InputAction, MouseButton}, log};
+use crate::{input::{ButtonAction, Input, MouseButton}, log};
 
 use super::{drag_event_handler::DragEventHandler, EventHandler};
 
@@ -55,12 +55,12 @@ impl InputEventHandlers {
         self.scroll_handler.reset();
     }
 
-    pub fn did_handle_mouse_event(&self, mouse_button: &MouseButton, input_action: &InputAction) -> bool {
-        if matches!(mouse_button, MouseButton::Left) && matches!(input_action, InputAction::Down) {
+    pub fn did_handle_mouse_event(&self, mouse_button: &MouseButton, input_action: &ButtonAction) -> bool {
+        if matches!(mouse_button, MouseButton::Left) && matches!(input_action, ButtonAction::Down) {
             return self.mouse_left_down_handler.did_handle()
-        } else if matches!(mouse_button, MouseButton::Left) && matches!(input_action, InputAction::Up) {
+        } else if matches!(mouse_button, MouseButton::Left) && matches!(input_action, ButtonAction::Up) {
             return self.mouse_left_up_handler.did_handle()
-        } else if matches!(mouse_button, MouseButton::Left) && matches!(input_action, InputAction::UpOrDown) {
+        } else if matches!(mouse_button, MouseButton::Left) && matches!(input_action, ButtonAction::UpOrDown) {
             return self.mouse_left_down_handler.did_handle() || self.mouse_left_up_handler.did_handle()
         }
         

@@ -1,11 +1,11 @@
 use glam::Vec2;
 
-use crate::{asset_manager::AssetManager, graphics::{font::PlainBitmapBuilder, ui::{self, bounds_2d::Bounds2d, element::{ui_element::UiElement, AnchorPoint}, interface::{self, is_valid_z_index, WidgetRegistry}, text::TextAlign, widget::UiWidget, ElementRegistry, Padding, Position, TextBuilder, UiElementId, UiLayoutId, UiUpdateTargets, UiWidgetId, UpdateTargetCollection}, Color}, input::{InputAction, MouseButton}, log, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{font::PlainBitmapBuilder, ui::{self, bounds_2d::Bounds2d, element::{ui_element::UiElement, AnchorPoint}, interface::{self, is_valid_z_index, WidgetRegistry}, text::TextAlign, widget::UiWidget, ElementRegistry, Padding, Position, TextBuilder, UiElementId, UiLayoutId, UiUpdateTargets, UiWidgetId, UpdateTargetCollection}, Color}, input::{ButtonAction, MouseButton}, log, ResourceId};
 
 pub struct Button {
     text_element_id: ResourceId<UiElementId>,
     background_element_id: ResourceId<UiElementId>,
-    mouse_action_to_activate: InputAction,
+    mouse_action_to_activate: ButtonAction,
     mouse_button_to_activate: MouseButton,
     z_index: f32,
     width: f32,
@@ -128,7 +128,7 @@ pub struct ButtonBuilder {
     position: Position,
     font_size: f32,
     scale: Vec2,
-    mouse_action_to_activate: InputAction,
+    mouse_action_to_activate: ButtonAction,
     mouse_button_to_activate: MouseButton,
     width: Option<f32>,
     height: Option<f32>,
@@ -148,7 +148,7 @@ impl ButtonBuilder {
             position: Position::ScreenAnchor(AnchorPoint::Center),
             font_size: interface::default_font_size(),
             scale: Vec2::ONE,
-            mouse_action_to_activate: InputAction::Down,
+            mouse_action_to_activate: ButtonAction::Down,
             mouse_button_to_activate: MouseButton::Left,
             width: None,
             height: None,
@@ -266,7 +266,7 @@ impl ButtonBuilder {
         self
     }
 
-    pub fn with_mouse_action_to_activate(mut self, mouse_action_to_activate: InputAction) -> Self {
+    pub fn with_mouse_action_to_activate(mut self, mouse_action_to_activate: ButtonAction) -> Self {
         self.mouse_action_to_activate = mouse_action_to_activate;
         self
     }

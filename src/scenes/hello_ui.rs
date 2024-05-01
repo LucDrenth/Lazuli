@@ -129,10 +129,10 @@ impl Scene for HelloUi {
             interface.mut_element_registry().set_element_scale(&self.rectangle_id, Vec2::ONE).unwrap();
         }
 
-        if input.is_key_down(Key::ArrowUp) {
+        if input.keyboard.is_key_down(Key::ArrowUp) {
             _ = interface.set_widget_visibility(&self.reset_button_id, true);
         }
-        if input.is_key_down(Key::ArrowDown) {
+        if input.keyboard.is_key_down(Key::ArrowDown) {
             _ = interface.set_widget_visibility(&self.reset_button_id, false);
         }
 
@@ -157,17 +157,17 @@ impl Scene for HelloUi {
             None => (),
         }
 
-        if input.is_key_down(Key::Space) {
+        if input.keyboard.is_key_down(Key::Space) {
             _ = interface.add_widget_to_layout(&self.height_slider_id, &self.layout_id);
         }
 
-        if input.is_key_down(Key::Backspace) {
+        if input.keyboard.is_key_down(Key::Backspace) {
             _ = interface.mut_element_registry().remove_element(&self.rectangle_to_remove).map_err(|err|{
                 log::err(format!("failed to remove element: {}", err))
             });
         }
 
-        let mouse_pos = input.get_mouse_position() - interface.size() / 2.0;
+        let mouse_pos = input.mouse.get_position() - interface.size() / 2.0;
         let mouse_pos_text = format!("{}, {}", mouse_pos.x as i32, mouse_pos.y as i32);
         _ = interface.mut_element_registry().set_text(&self.mouse_pos, &mouse_pos_text, asset_manager);
     }

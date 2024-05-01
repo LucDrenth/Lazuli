@@ -3,7 +3,7 @@ use std::{fmt::Debug, f32::consts::PI};
 use glam::Vec2;
 use interface::WidgetRegistryUdpateResult;
 
-use crate::{asset_manager::AssetManager, graphics::{ui::{bounds_2d::Bounds2d, element::InputEvent, interface::{self, is_valid_z_index, LayoutRegistry, WidgetRegistry, MAX_Z_INDEX}, widget::{ButtonBuilder, IconBuilder, UiWidget}, AnchorPoint, ElementRegistry, LayoutUpdateTarget, Position, TextAlign, UiElementId, UiLayoutId, UiUpdateTargets, UiWidgetId, UpdateTargetCollection, VerticalListBuilder, WidgetUpdateTarget, Width}, Color}, input::InputAction, log, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{ui::{bounds_2d::Bounds2d, element::InputEvent, interface::{self, is_valid_z_index, LayoutRegistry, WidgetRegistry, MAX_Z_INDEX}, widget::{ButtonBuilder, IconBuilder, UiWidget}, AnchorPoint, ElementRegistry, LayoutUpdateTarget, Position, TextAlign, UiElementId, UiLayoutId, UiUpdateTargets, UiWidgetId, UpdateTargetCollection, VerticalListBuilder, WidgetUpdateTarget, Width}, Color}, input::ButtonAction, log, ResourceId};
 
 struct DropdownOptionButton<T: Debug + Clone> {
     button_id: ResourceId<UiWidgetId>,
@@ -263,7 +263,7 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
 
         let option_button_builder = ButtonBuilder::new()
             .with_height(button.height())
-            .with_mouse_action_to_activate(InputAction::UpOrDown)
+            .with_mouse_action_to_activate(ButtonAction::UpOrDown)
             .with_text_align(self.text_align)
             .with_text_color(self.text_color.clone())
         ;

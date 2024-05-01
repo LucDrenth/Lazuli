@@ -78,14 +78,14 @@ impl Window for GlutinWindow {
                     },
                     WindowEvent::KeyboardInput { device_id: _, input, is_synthetic: _ } => {
                         if let Some(key) = input.virtual_keycode {
-                            lz_input.register_key_event(
+                            lz_input.keyboard.register_key_event(
                                 event_mapper::map_glutin_keycode(key), 
                                 event_mapper::map_glutin_key_state(input.state)
                             );
                         }
                     },
                     WindowEvent::MouseInput { device_id: _, state, button, .. } => {
-                        lz_input.register_mouse_button_event(
+                        lz_input.mouse.register_button_event(
                             event_mapper::map_glutin_mouse_button(button), 
                             event_mapper::map_glutin_mouse_button_state(state)
                         );
@@ -95,24 +95,24 @@ impl Window for GlutinWindow {
                             glutin::event::MouseScrollDelta::LineDelta(x, y) => {
                                 // TODO how is this triggered? Can we register it the same as the other type?
                                 log::engine_warn(format!("TODO Untested MouseWheel event delta type: {:?}", delta));
-                                lz_input.register_scroll_x_event(x as f64);
-                                lz_input.register_scroll_y_event(y as f64);
+                                lz_input.mouse.register_scroll_x_event(x as f64);
+                                lz_input.mouse.register_scroll_y_event(y as f64);
                             },
                             glutin::event::MouseScrollDelta::PixelDelta(movement) => {
-                                lz_input.register_scroll_x_event(movement.x);
-                                lz_input.register_scroll_y_event(movement.y);
+                                lz_input.mouse.register_scroll_x_event(movement.x as f64);
+                                lz_input.mouse.register_scroll_y_event(movement.y as f64);
                             },
                         }
                     },
                     WindowEvent::CursorMoved { device_id: _, position, .. } => {
                         let logical_position: LogicalPosition<f64> = position.to_logical(render_context.window().scale_factor());
-                        lz_input.register_mouse_reposition_event(logical_position.x, logical_position.y);
+                        lz_input.mouse.register_reposition_event(logical_position.x, logical_position.y);
                     },
                     _ => (),
                 },
                 Event::DeviceEvent { device_id: _, event } => match event {
                     glutin::event::DeviceEvent::MouseMotion { delta } => {
-                        lz_input.register_mouse_move_event(delta.0, delta.1);
+                        lz_input.mouse.register_move_event(delta.0, delta.1);
                     },
                     _ => (),
                 }
