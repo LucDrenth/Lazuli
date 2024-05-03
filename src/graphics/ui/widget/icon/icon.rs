@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{asset_manager::AssetManager, graphics::{shader::GlShaderBuilder, texture::Texture, ui::{bounds_2d::Bounds2d, element::InputEvent, interface::{self, is_valid_z_index, WidgetRegistry}, shapes::{Rectangle, RectangleBuilder}, widget::UiWidget, ElementRegistry, Position, UiElementId, UiLayoutId, UiTexture, UiUpdateTargets, UiWidgetId, UpdateTargetCollection}, Color}, log, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{shader::GlShaderBuilder, texture::Texture, ui::{bounds_2d::Bounds2d, element::InputEvent, interface::{self, is_valid_z_index}, shapes::{Rectangle, RectangleBuilder}, widget::UiWidget, ElementRegistry, Position, UiElementId, UiLayoutId, UiTexture, UiUpdateTargets, UiWidgetId, UpdateTargetCollection}, Color}, log, ResourceId};
 
 pub struct Icon {
     rectangle_element_id: ResourceId<UiElementId>,
@@ -22,7 +22,7 @@ impl UiWidget for Icon {
         vec![]
     }
 
-    fn get_main_element_id(&self, _widget_registry: &WidgetRegistry) -> ResourceId<UiElementId> {
+    fn get_main_element_id(&self) -> ResourceId<UiElementId> {
         self.rectangle_element_id
     }
 

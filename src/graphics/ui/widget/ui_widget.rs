@@ -10,9 +10,9 @@ pub trait UiWidget {
     /// Get direct widgets, not including widgets of nested widgets and layouts
     fn get_direct_widget_ids(&self) -> Vec<ResourceId<UiWidgetId>>;
 
-    /// Get the id of the main element (usually the background), which can be 
-    /// used for positioning, anchoring etcetera. It is usually the background element.
-    fn get_main_element_id(&self, widget_registry: &WidgetRegistry) -> ResourceId<UiElementId>;
+    /// Get the id of the main element, which can be used for positioning, anchoring etcetera.
+    /// It is usually the background element.
+    fn get_main_element_id(&self) -> ResourceId<UiElementId>;
 
     fn z_index(&self) -> f32;
     fn set_z_index(&mut self, z_index: f32, element_registry: &mut ElementRegistry) -> UiUpdateTargets<f32>;

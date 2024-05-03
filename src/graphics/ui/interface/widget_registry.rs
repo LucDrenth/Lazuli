@@ -67,7 +67,7 @@ impl WidgetRegistry {
 
     pub fn get_widget_main_element_id(&self, widget_id: &ResourceId<UiWidgetId>) -> Option<ResourceId<UiElementId>> {
         match self.get_widget_by_id(widget_id) {
-            Some(widget) => Some(widget.get_main_element_id(&self)),
+            Some(widget) => Some(widget.get_main_element_id()),
             None => None,
         }
     }
@@ -85,7 +85,7 @@ impl WidgetRegistry {
     }
 
 
-    // =============================================================================== \\
+    // ===================================================================================== \\
     // ========= Functions for updating a widget (and its embedded widgets/layouts) ========= \\
 
     pub fn set_widget_z_index(&mut self, widget_id: &ResourceId<UiWidgetId>, z_index: f32, element_registry: &mut ElementRegistry) -> UiUpdateTargets<f32> {
@@ -112,7 +112,7 @@ impl WidgetRegistry {
     
 
     // =============================================================================== \\
-    // =========== Functions for adding widgets and getting update result ============ \\
+    // ============ Functions for adding widgets and getting update result ============ \\
 
     pub fn add_slider(&mut self, slider: Slider) -> ResourceId<UiWidgetId> {
         self.sliders.push(slider)
@@ -160,8 +160,8 @@ impl WidgetRegistry {
     }
 
 
-    // =================================================== \\
-    // =========== Functions to get a UiWidget ============ \\
+    // ================================================== \\
+    // =========== Functions to get a UiWidget =========== \\
 
     pub fn get_widget_by_id(&self, widget_id: &ResourceId<UiWidgetId>) -> Option<Box<&dyn UiWidget>> {
         macro_rules! get_widget {
@@ -228,7 +228,7 @@ impl WidgetRegistry {
     }
 
 
-    // =================================================== \\
+    // ================================================== \\
     // ============ Widget specific functions ============ \\
 
     pub fn set_slider_value(&mut self, value: f32, slider_id: &ResourceId<UiWidgetId>, element_registry: &mut ElementRegistry, asset_manager: &mut dyn AssetManager) {

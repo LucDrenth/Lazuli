@@ -14,6 +14,7 @@ struct DropdownOptionButton<T: Debug + Clone> {
 pub struct Dropdown<T: Debug + Clone> {
     z_index: f32,
     button_id: ResourceId<UiWidgetId>,
+    button_main_element_id: ResourceId<UiElementId>,
     icon_widget_id: ResourceId<UiWidgetId>,
     options: Vec<DropdownOptionButton<T>>,
     options_layout: ResourceId<UiLayoutId>,
@@ -40,8 +41,8 @@ impl <T: Debug + Clone> UiWidget for Dropdown<T> {
         ]
     }
 
-    fn get_main_element_id(&self, widget_registry: &WidgetRegistry) -> ResourceId<UiElementId> {
-        widget_registry.get_widget_by_id(&self.button_id).unwrap().get_main_element_id(widget_registry)
+    fn get_main_element_id(&self) -> ResourceId<UiElementId> {
+        self.button_main_element_id
     }
 
     fn z_index(&self) -> f32 {
@@ -259,7 +260,7 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
         ?;
 
         let mut options = vec![];
-        let button_anchor = button.get_main_element_id(&widget_registry);
+        let button_anchor = button.get_main_element_id();
 
         let option_button_builder = ButtonBuilder::new()
             .with_height(button.height())
@@ -299,6 +300,7 @@ impl<T: Debug + Clone> DropdownBuilder<T> {
         Ok((Dropdown {
             z_index: self.z_index,
             button_id,
+            button_main_element_id: button_anchor,
             icon_widget_id,
             options,
             options_layout: layout,

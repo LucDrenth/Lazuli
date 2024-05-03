@@ -165,7 +165,7 @@ impl Interface {
     pub fn set_icon_padding(&mut self, padding: f32, icon_id: &ResourceId<UiWidgetId>) -> Result<(), String> {
         match self.widget_registry.get_widget_by_id(&icon_id) {
             Some(ui_widget) => self.element_registry.set_rectangle_texture_padding(
-                &ui_widget.get_main_element_id(&self.widget_registry), 
+                &ui_widget.get_main_element_id(), 
                 padding,
             ),
             None => Err(format!("Icon with id {:?} not found", icon_id)),
