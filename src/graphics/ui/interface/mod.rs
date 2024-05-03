@@ -19,3 +19,5 @@ mod anchor_tree;
 mod element_list_test;
 #[cfg(test)]
 mod anchor_tree_test;
+#[cfg(test)]
+mod widget_list_test;

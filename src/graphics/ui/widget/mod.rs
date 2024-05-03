@@ -12,3 +12,5 @@ pub use icon::*;
 
 mod ui_widget;
 pub use ui_widget::UiWidget;
+
+pub mod ui_widget_mock;

@@ -76,7 +76,7 @@ impl <T: UiWidget, U: Debug + Clone> WidgetList<T, U> {
     }
 
     // Sort elements so that the elements with the lowest z-index are at the start of the list
-    pub fn sort(&mut self) {
+    fn sort(&mut self) {
         self.entries.sort_by(|a, b| b.widget.z_index().total_cmp(&a.widget.z_index()));
     }
 }
