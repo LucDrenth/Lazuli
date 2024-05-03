@@ -8,11 +8,12 @@ pub struct Interface {
     element_registry: ElementRegistry,
     widget_registry: WidgetRegistry,
     layout_registry: LayoutRegistry,
+
     size: Vec2,
     scroll_speed: f32,
 
     window_resize_listener: EventReader<WindowResizeEvent>,
-    pixel_density_change_event: EventReader<PixelDensityChangeEvent>,
+    pixel_density_change_listener: EventReader<PixelDensityChangeEvent>,
 }
 
 impl Interface {
@@ -25,7 +26,7 @@ impl Interface {
             scroll_speed: 0.2,
 
             window_resize_listener: event_system.register(),
-            pixel_density_change_event: event_system.register(),
+            pixel_density_change_listener: event_system.register(),
         }
     }
 
@@ -45,7 +46,7 @@ impl Interface {
             }
         });
 
-        self.pixel_density_change_event.read().last().map(|e| {
+        self.pixel_density_change_listener.read().last().map(|e| {
             self.element_registry.set_pixel_density(e.pixel_density);
         });
 
@@ -211,7 +212,6 @@ impl Interface {
         self.handle_ui_update_targets_height(targets_collection.height);
         self.handle_ui_update_targets_draw_bounds_recursively(targets_collection.update_draw_bounds_recursively);
     }
-
 
     // UiUpdateTarget handlers
     fn handle_ui_update_targets_z_index(&mut self, targets: UiUpdateTargets<f32>) {
