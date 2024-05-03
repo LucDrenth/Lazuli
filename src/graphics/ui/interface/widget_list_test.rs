@@ -11,11 +11,11 @@ fn test_get_widget() {
     let widget_id = widget_list.push(MockWidget::default());
     let non_existing_widget_id: ResourceId<UiWidgetId> = ResourceId::new(widget_id.id() + 1);
 
-    assert_eq!(true, widget_list.get_widget(&widget_id).is_some());
-    assert_eq!(true, widget_list.get_widget(&non_existing_widget_id).is_none());
+    assert!(widget_list.get_widget(&widget_id).is_some());
+    assert!(widget_list.get_widget(&non_existing_widget_id).is_none());
 
-    assert_eq!(true, widget_list.get_mut_widget(&widget_id).is_some());
-    assert_eq!(true, widget_list.get_mut_widget(&non_existing_widget_id).is_none());
+    assert!(widget_list.get_mut_widget(&widget_id).is_some());
+    assert!(widget_list.get_mut_widget(&non_existing_widget_id).is_none());
 }
 
 #[test]
@@ -49,4 +49,16 @@ fn test_sort_after_push() {
         assert!(entry.widget.z_index < z_index);
         z_index = entry.widget.z_index;
     }
+}
+
+#[test]
+fn test_remove() {
+    let mut widget_list: WidgetList<MockWidget, ()> = WidgetList::new(());
+
+    let widget_id = widget_list.push(MockWidget::default());
+    let non_existing_widget_id = ResourceId::new(widget_id.id() + 1);
+
+    assert!(widget_list.remove(&non_existing_widget_id).is_none());
+    assert!(widget_list.remove(&widget_id).is_some());
+    assert!(widget_list.get_widget(&widget_id).is_none());
 }

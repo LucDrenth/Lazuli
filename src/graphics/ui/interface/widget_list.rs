@@ -75,6 +75,17 @@ impl <T: UiWidget, U: Debug + Clone> WidgetList<T, U> {
         self.default_update_result.clone()
     }
 
+    // Returns the removed element, or None if it was not found
+    pub fn remove(&mut self, widget_id: &ResourceId<UiWidgetId>) -> Option<T> {
+        for i in 0..self.entries.len() {
+            if self.entries[i].id.equals(&widget_id) {
+                return Some(self.entries.remove(i).widget);
+            }
+        }
+
+        None
+    }
+
     // Sort elements so that the elements with the lowest z-index are at the start of the list
     fn sort(&mut self) {
         self.entries.sort_by(|a, b| b.widget.z_index().total_cmp(&a.widget.z_index()));
