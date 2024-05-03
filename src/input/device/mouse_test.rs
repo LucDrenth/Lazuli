@@ -8,7 +8,7 @@ fn test_is_button_down() {
     assert_eq!(false, mouse.is_button_down(button));
 
     mouse.register_button_event(button, ButtonState::Down);
-    assert_eq!(true, mouse.is_button_down(button));
+    assert!(mouse.is_button_down(button));
 
     // next frame
     mouse.reset();
@@ -26,7 +26,7 @@ fn test_is_button_down() {
 
     mouse.register_button_event(button, ButtonState::Down);
     mouse.register_button_event(button, ButtonState::Up);
-    assert_eq!(true, mouse.is_button_down(button));
+    assert!(mouse.is_button_down(button));
 
     // next frame
     mouse.reset();
@@ -34,7 +34,7 @@ fn test_is_button_down() {
     mouse.register_button_event(button, ButtonState::Down);
     mouse.register_button_event(button, ButtonState::Up);
     mouse.register_button_event(button, ButtonState::Down);
-    assert_eq!(true, mouse.is_button_down(button));
+    assert!(mouse.is_button_down(button));
 }
 
 #[test]
@@ -51,7 +51,7 @@ fn test_is_button_up() {
     mouse.reset();
 
     mouse.register_button_event(button, ButtonState::Up);
-    assert_eq!(true, mouse.is_button_up(button));
+    assert!(mouse.is_button_up(button));
 
     // next frame
     mouse.reset();
@@ -63,7 +63,7 @@ fn test_is_button_up() {
 
     mouse.register_button_event(button, ButtonState::Down);
     mouse.register_button_event(button, ButtonState::Up);
-    assert_eq!(true, mouse.is_button_up(button));
+    assert!(mouse.is_button_up(button));
 }
 
 #[test]
@@ -74,11 +74,11 @@ fn test_is_button_held() {
     assert_eq!(false, mouse.is_button_held(button));
 
     mouse.register_button_event(button, ButtonState::Down);
-    assert_eq!(true, mouse.is_button_held(button));
+    assert!(mouse.is_button_held(button));
 
     // next frame
     mouse.reset();
-    assert_eq!(true, mouse.is_button_held(button));
+    assert!(mouse.is_button_held(button));
 
     mouse.register_button_event(button, ButtonState::Up);
     assert_eq!(false, mouse.is_button_held(button));

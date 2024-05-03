@@ -8,7 +8,7 @@ fn test_is_key_down() {
     assert_eq!(false, keyboard.is_key_down(key));
 
     keyboard.register_key_event(key, ButtonState::Down);
-    assert_eq!(true, keyboard.is_key_down(key));
+    assert!(keyboard.is_key_down(key));
 
     // next frame
     keyboard.reset();
@@ -26,7 +26,7 @@ fn test_is_key_down() {
 
     keyboard.register_key_event(key, ButtonState::Down);
     keyboard.register_key_event(key, ButtonState::Up);
-    assert_eq!(true, keyboard.is_key_down(key));
+    assert!(keyboard.is_key_down(key));
 
     // next frame
     keyboard.reset();
@@ -34,7 +34,7 @@ fn test_is_key_down() {
     keyboard.register_key_event(key, ButtonState::Down);
     keyboard.register_key_event(key, ButtonState::Up);
     keyboard.register_key_event(key, ButtonState::Down);
-    assert_eq!(true, keyboard.is_key_down(key));
+    assert!(keyboard.is_key_down(key));
 }
 
 #[test]
@@ -51,7 +51,7 @@ fn test_is_key_up() {
     keyboard.reset();
 
     keyboard.register_key_event(key, ButtonState::Up);
-    assert_eq!(true, keyboard.is_key_up(key));
+    assert!(keyboard.is_key_up(key));
 
     // next frame
     keyboard.reset();
@@ -67,11 +67,11 @@ fn test_is_key_held() {
     assert_eq!(false, keyboard.is_key_held(key));
 
     keyboard.register_key_event(key, ButtonState::Down);
-    assert_eq!(true, keyboard.is_key_held(key));
+    assert!(keyboard.is_key_held(key));
 
     // next frame
     keyboard.reset();
-    assert_eq!(true, keyboard.is_key_held(key));
+    assert!(keyboard.is_key_held(key));
 
     keyboard.register_key_event(key, ButtonState::Up);
     assert_eq!(false, keyboard.is_key_held(key));

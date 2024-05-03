@@ -15,8 +15,8 @@ fn test_add_element_anchor() {
 
     anchor_tree.add_fixed_anchor(type_id, parent_id);
     
-    assert_eq!(true, anchor_tree.add_element_anchor(type_id, &non_existing_id, type_id, child_id).is_err());
-    assert_eq!(true, anchor_tree.add_element_anchor(type_id, &parent_id, type_id, child_id).is_ok());
+    assert!(anchor_tree.add_element_anchor(type_id, &non_existing_id, type_id, child_id).is_err());
+    assert!(anchor_tree.add_element_anchor(type_id, &parent_id, type_id, child_id).is_ok());
 }
 
 #[test]
@@ -48,31 +48,31 @@ fn test_get() -> Result<(), String> {
     anchor_tree.add_element_anchor(type_id, &screen_parent_id, type_id, child_id.clone())?;
     anchor_tree.add_element_anchor(type_id, &child_id, type_id, nested_child)?;
 
-    assert_eq!(true, anchor_tree.get(type_id, &non_existing_id).is_none());
-    assert_eq!(true, anchor_tree.get(non_existing_type_id, &screen_parent_id).is_none());
-    assert_eq!(true, anchor_tree.get(type_id, &fixed_parent_id).is_some());
-    assert_eq!(true, anchor_tree.get(type_id, &screen_parent_id).is_some());
-    assert_eq!(true, anchor_tree.get(type_id, &child_id).is_some());
-    assert_eq!(true, anchor_tree.get(type_id, &nested_child).is_some());
+    assert!(anchor_tree.get(type_id, &non_existing_id).is_none());
+    assert!(anchor_tree.get(non_existing_type_id, &screen_parent_id).is_none());
+    assert!(anchor_tree.get(type_id, &fixed_parent_id).is_some());
+    assert!(anchor_tree.get(type_id, &screen_parent_id).is_some());
+    assert!(anchor_tree.get(type_id, &child_id).is_some());
+    assert!(anchor_tree.get(type_id, &nested_child).is_some());
 
-    assert_eq!(true, anchor_tree.get_mut(type_id, &non_existing_id).is_none());
-    assert_eq!(true, anchor_tree.get_mut(non_existing_type_id, &screen_parent_id).is_none());
-    assert_eq!(true, anchor_tree.get_mut(type_id, &fixed_parent_id).is_some());
-    assert_eq!(true, anchor_tree.get_mut(type_id, &screen_parent_id).is_some());
-    assert_eq!(true, anchor_tree.get_mut(type_id, &child_id).is_some());
-    assert_eq!(true, anchor_tree.get_mut(type_id, &nested_child).is_some());
+    assert!(anchor_tree.get_mut(type_id, &non_existing_id).is_none());
+    assert!(anchor_tree.get_mut(non_existing_type_id, &screen_parent_id).is_none());
+    assert!(anchor_tree.get_mut(type_id, &fixed_parent_id).is_some());
+    assert!(anchor_tree.get_mut(type_id, &screen_parent_id).is_some());
+    assert!(anchor_tree.get_mut(type_id, &child_id).is_some());
+    assert!(anchor_tree.get_mut(type_id, &nested_child).is_some());
 
-    assert_eq!(true, anchor_tree.get_by_id(&non_existing_id).is_none());
-    assert_eq!(true, anchor_tree.get_by_id(&fixed_parent_id).is_some());
-    assert_eq!(true, anchor_tree.get_by_id(&screen_parent_id).is_some());
-    assert_eq!(true, anchor_tree.get_by_id(&child_id).is_some());
-    assert_eq!(true, anchor_tree.get_by_id(&nested_child).is_some());
+    assert!(anchor_tree.get_by_id(&non_existing_id).is_none());
+    assert!(anchor_tree.get_by_id(&fixed_parent_id).is_some());
+    assert!(anchor_tree.get_by_id(&screen_parent_id).is_some());
+    assert!(anchor_tree.get_by_id(&child_id).is_some());
+    assert!(anchor_tree.get_by_id(&nested_child).is_some());
 
-    assert_eq!(true, anchor_tree.get_mut_by_id(&non_existing_id).is_none());
-    assert_eq!(true, anchor_tree.get_mut_by_id(&fixed_parent_id).is_some());
-    assert_eq!(true, anchor_tree.get_mut_by_id(&screen_parent_id).is_some());
-    assert_eq!(true, anchor_tree.get_mut_by_id(&child_id).is_some());
-    assert_eq!(true, anchor_tree.get_mut_by_id(&nested_child).is_some());
+    assert!(anchor_tree.get_mut_by_id(&non_existing_id).is_none());
+    assert!(anchor_tree.get_mut_by_id(&fixed_parent_id).is_some());
+    assert!(anchor_tree.get_mut_by_id(&screen_parent_id).is_some());
+    assert!(anchor_tree.get_mut_by_id(&child_id).is_some());
+    assert!(anchor_tree.get_mut_by_id(&nested_child).is_some());
 
     Ok(())
 }
@@ -134,12 +134,12 @@ fn test_get_parent() -> Result<(), String> {
     anchor_tree.add_element_anchor(type_id, &child, type_id, child_nested_2)?;
     anchor_tree.add_element_anchor(type_id, &child_nested_2, type_id, child_nested_2_nested)?;
 
-    assert_eq!(true, anchor_tree.get_parent(&non_existing_id).is_none());
+    assert!(anchor_tree.get_parent(&non_existing_id).is_none());
     assert_eq!(4, *anchor_tree.get_parent(&child_nested_2_nested).unwrap().identifier().element_id.id());
     assert_eq!(2, *anchor_tree.get_parent(&child_nested_2).unwrap().identifier().element_id.id());
     assert_eq!(2, *anchor_tree.get_parent(&child_nested_1).unwrap().identifier().element_id.id());
     assert_eq!(1, *anchor_tree.get_parent(&child).unwrap().identifier().element_id.id());
-    assert_eq!(true, anchor_tree.get_parent(&parent_id).is_none());
+    assert!(anchor_tree.get_parent(&parent_id).is_none());
 
     Ok(())
 }
@@ -168,9 +168,9 @@ fn test_remove_element_by_id() -> Result<(), String> {
     anchor_tree.add_element_anchor(type_id, &child, type_id, child_nested_2)?;
     anchor_tree.add_element_anchor(type_id, &child_nested_2, type_id, child_nested_2_nested)?;
 
-    assert_eq!(true, anchor_tree.remove_element_by_id(&non_existing_id).is_none());
-    assert_eq!(true, anchor_tree.remove_element_by_id(&child_nested_2).unwrap().identifier().element_id.equals(&child_nested_2));
-    assert_eq!(true, anchor_tree.remove_element_by_id(&child_nested_2).is_none());
+    assert!(anchor_tree.remove_element_by_id(&non_existing_id).is_none());
+    assert!(anchor_tree.remove_element_by_id(&child_nested_2).unwrap().identifier().element_id.equals(&child_nested_2));
+    assert!(anchor_tree.remove_element_by_id(&child_nested_2).is_none());
 
     Ok(())
 }

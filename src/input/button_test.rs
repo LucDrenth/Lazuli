@@ -32,7 +32,7 @@ fn test_is_button_down() {
 
     button_registry.register_button_event(&MockInputElement::Valid, ButtonState::Down);
 
-    assert_eq!(true, button_registry.is_button_down(&MockInputElement::Valid));
+    assert!(button_registry.is_button_down(&MockInputElement::Valid));
     assert_eq!(false, button_registry.is_button_down(&MockInputElement::Invalid));
 
     button_registry.reset();
@@ -50,7 +50,7 @@ fn test_is_button_up() {
 
     button_registry.register_button_event(&MockInputElement::Valid, ButtonState::Up);
 
-    assert_eq!(true, button_registry.is_button_up(&MockInputElement::Valid));
+    assert!(button_registry.is_button_up(&MockInputElement::Valid));
     assert_eq!(false, button_registry.is_button_up(&MockInputElement::Invalid));
 
     button_registry.reset();
@@ -68,11 +68,11 @@ fn test_is_button_held() {
 
     button_registry.register_button_event(&MockInputElement::Valid, ButtonState::Down);
 
-    assert_eq!(true, button_registry.is_button_held(&MockInputElement::Valid));
+    assert!(button_registry.is_button_held(&MockInputElement::Valid));
     assert_eq!(false, button_registry.is_button_held(&MockInputElement::Invalid));
 
     button_registry.reset();
 
-    assert_eq!(true, button_registry.is_button_held(&MockInputElement::Valid));
+    assert!(button_registry.is_button_held(&MockInputElement::Valid));
     assert_eq!(false, button_registry.is_button_held(&MockInputElement::Invalid));
 }
