@@ -21,3 +21,5 @@ mod element_list_test;
 mod anchor_tree_test;
 #[cfg(test)]
 mod widget_list_test;
+#[cfg(test)]
+mod layout_registry_test;

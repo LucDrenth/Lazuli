@@ -47,7 +47,7 @@ impl LayoutRegistry {
         Ok((layout_id, update_targets))
     }
 
-    fn add_layout(&mut self, layout: Box<dyn Layout>) -> ResourceId<UiLayoutId> {
+    pub fn add_layout(&mut self, layout: Box<dyn Layout>) -> ResourceId<UiLayoutId> {
         let id: ResourceId<UiLayoutId> = ResourceId::new(generate_id());
         self.layouts.push(LayoutEntry { layout, id, });
         id.clone()
