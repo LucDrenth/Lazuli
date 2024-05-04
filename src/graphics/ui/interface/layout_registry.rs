@@ -53,6 +53,16 @@ impl LayoutRegistry {
         id.clone()
     }
 
+    pub fn remove_layout(&mut self, layout_id: &ResourceId<UiLayoutId>) -> Option<Box<dyn Layout>> {
+        for i in 0..self.layouts.len() {
+            if self.layouts[i].id.equals(layout_id) {
+                return Some(self.layouts.remove(i).layout)
+            }
+        }
+
+        None
+    }
+
     pub fn add_widget_to_layout(&mut self, 
         widget_id: &ResourceId<UiWidgetId>, 
         layout_id: &ResourceId<UiLayoutId>, 

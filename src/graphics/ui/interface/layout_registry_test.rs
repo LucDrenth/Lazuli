@@ -19,3 +19,15 @@ fn test_get_layout() {
     assert!(layout_registry.get_mut_layout(&layout_id).is_some());
     assert!(layout_registry.get_mut_layout(&non_existing_layout_id).is_none());
 }
+
+#[test]
+fn test_remove_layout() {
+    let mut layout_registry = LayoutRegistry::new();
+
+    let layout_id = layout_registry.add_layout(Box::new(MockLayout::default()));
+    let non_existing_layout_id = ResourceId::new(layout_id.id() + 1);
+
+    assert!(layout_registry.remove_layout(&non_existing_layout_id).is_none());
+    assert!(layout_registry.remove_layout(&layout_id).is_some());
+    assert!(layout_registry.remove_layout(&layout_id).is_none());
+}
