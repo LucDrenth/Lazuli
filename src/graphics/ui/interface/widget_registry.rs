@@ -251,4 +251,28 @@ impl WidgetRegistry {
             None => Err( format!("Failed to set button text color because button with id {} was not found", button_id.id()) ),
         }
     }
+
+    // ================================================== \\
+    // ============ Methods to remove widgets ============ \\
+
+    pub fn remove_widget(&mut self, widget_id: &ResourceId<UiWidgetId>) -> Option<Box<dyn UiWidget>> {
+        self.remove_button(widget_id).or_else(||{ 
+        self.remove_slider(widget_id).or_else(||{
+        self.remove_dropdown(widget_id).or_else(||{
+        self.remove_icon(widget_id)
+        }) }) })
+    }
+
+    pub fn remove_button(&mut self, widget_id: &ResourceId<UiWidgetId>) -> Option<Box<dyn UiWidget>> {
+        self.buttons.remove(widget_id).map(|widget| Box::new(widget) as Box<dyn UiWidget>)
+    }
+    pub fn remove_slider(&mut self, widget_id: &ResourceId<UiWidgetId>) -> Option<Box<dyn UiWidget>> {
+        self.sliders.remove(widget_id).map(|widget| Box::new(widget) as Box<dyn UiWidget>)
+    }
+    pub fn remove_dropdown(&mut self, widget_id: &ResourceId<UiWidgetId>) -> Option<Box<dyn UiWidget>> {
+        self.dropdowns.remove(widget_id).map(|widget| Box::new(widget) as Box<dyn UiWidget>)
+    }
+    pub fn remove_icon(&mut self, widget_id: &ResourceId<UiWidgetId>) -> Option<Box<dyn UiWidget>> {
+        self.icons.remove(widget_id).map(|widget| Box::new(widget) as Box<dyn UiWidget>)
+    }
 }
