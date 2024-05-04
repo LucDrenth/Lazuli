@@ -1,4 +1,4 @@
-use crate::{graphics::ui::{UiWidgetId, ElementRegistry, interface::WidgetRegistry, UiUpdateTargets, UpdateTargetCollection, Position}, input::Input, ResourceId, asset_manager::AssetManager};
+use crate::{asset_manager::AssetManager, graphics::ui::{interface::WidgetRegistry, ElementRegistry, Position, UiElementId, UiUpdateTargets, UiWidgetId, UpdateTargetCollection}, input::Input, ResourceId};
 
 /// Widgets in a layout should get a higher z_index than the background
 pub const LAYOUT_ELEMENT_EXTRA_Z_INDEX: f32  = 0.1;
@@ -21,6 +21,7 @@ pub trait Layout {
     fn update_draw_bounds(&mut self, element_registry: &ElementRegistry) -> UpdateTargetCollection;
 
     fn widgets(&self) -> Vec<ResourceId<UiWidgetId>>;
+    fn get_direct_element_ids(&self) -> Vec<ResourceId<UiElementId>>;
 }
 
 pub trait LayoutBuilder {

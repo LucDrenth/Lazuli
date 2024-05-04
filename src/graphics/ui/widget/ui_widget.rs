@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{graphics::ui::{ElementRegistry, Position, bounds_2d::Bounds2d, UiElementId, interface::WidgetRegistry, UiUpdateTargets, UpdateTargetCollection, UiLayoutId, UiWidgetId}, ResourceId};
+use crate::{graphics::ui::{ElementRegistry, Position, bounds_2d::Bounds2d, UiElementId, UiUpdateTargets, UpdateTargetCollection, UiLayoutId, UiWidgetId}, ResourceId};
 
 pub trait UiWidget {
     /// Get direct elements, not including elements of nested widgets and layouts

@@ -303,6 +303,83 @@ impl Interface {
             self.handle_ui_update_targets_collection(new_targets);
         }
     }
+
+    // methods for removal of widgets and layouts
+    pub fn remove_widget(&mut self, widget_id: &ResourceId<UiWidgetId>) -> Result<(), String> {
+        let widget = match self.widget_registry.remove_widget(widget_id) {
+            Some(widget) => widget,
+            None => return Err(format!("widget with id {} not found", widget_id.id())),
+        };
+
+        let mut ui_elements_to_remove = widget.get_direct_element_ids();
+        ui_elements_to_remove.append(
+            &mut self.remove_recursive(widget.get_direct_widget_ids(), widget.get_direct_layout_ids())
+        );
+
+        for ui_element_to_remove in ui_elements_to_remove {
+            // We do not check for errors here because the element may have already been removed
+            // if it was anchored to a previously removed element.
+            _ = self.element_registry.remove_element(&ui_element_to_remove)
+        }
+
+        Ok(())
+    }
+    pub fn remove_layout(&mut self, layout_id: &ResourceId<UiLayoutId>) -> Result<(), String> {
+        let layout = match self.layout_registry.remove_layout(layout_id) {
+            Some(layout) => layout,
+            None => return Err(format!("layout with id {} not found", layout_id.id())),
+        };
+
+        let mut ui_elements_to_remove = layout.get_direct_element_ids();
+        ui_elements_to_remove.append(
+            &mut self.remove_recursive(layout.widgets(), vec![])
+        );
+
+        for ui_element_to_remove in ui_elements_to_remove {
+            // We do not check for errors here because the element may have already been removed
+            // if it was anchored to a previously removed element.
+            _ = self.element_registry.remove_element(&ui_element_to_remove)
+        }
+
+        Ok(())
+    }
+    fn remove_recursive(&mut self, widget_ids: Vec<ResourceId<UiWidgetId>>, layout_ids: Vec<ResourceId<UiLayoutId>>) -> Vec<ResourceId<UiElementId>> {
+        let mut result: Vec<ResourceId<UiElementId>> = vec![];
+
+        let mut next_widget_ids: Vec<ResourceId<UiWidgetId>> = vec![];
+        let mut next_layout_ids: Vec<ResourceId<UiLayoutId>> = vec![];
+
+        for widget_id in widget_ids {
+            match self.widget_registry.get_widget_by_id(&widget_id) {
+                Some(widget) => {
+                    result.append(&mut widget.get_direct_element_ids());
+                    next_widget_ids.append(&mut widget.get_direct_widget_ids());
+                    next_layout_ids.append(&mut widget.get_direct_layout_ids());
+                }
+                None => (),
+            }
+
+            _ = self.widget_registry.remove_widget(&widget_id);
+        }
+
+        for layout_id in layout_ids {
+            match self.layout_registry.get_layout(&layout_id) {
+                Some(layout) => {
+                    result.append(&mut layout.get_direct_element_ids());
+                    next_widget_ids.append(&mut layout.widgets());
+                }
+                None => (),
+            }
+
+            _ = self.layout_registry.remove_layout(&layout_id);
+        }
+
+        if !next_widget_ids.is_empty() || !next_layout_ids.is_empty() {
+            result.append(&mut self.remove_recursive(next_widget_ids, next_layout_ids));
+        }
+
+        return result;
+    }
 }
 
 // TODO make these configurable

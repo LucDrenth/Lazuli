@@ -359,13 +359,13 @@ impl ElementRegistry {
                         Ok(_) => {},
                         Err(err) => {
                             log::engine_err(
-                                format!("failed to handle window resize for screen anchored root element with id {:?}: {}", screen_tree_root_element.element_id, err)
+                                format!("failed to handle window resize for screen anchored root element with id {}: {}", screen_tree_root_element.element_id.id(), err)
                             );
                         },
                     }
                 },
                 None => log::engine_err(
-                    format!("failed to handle window resize for screen anchored root element with id {:?}", screen_tree_root_element.element_id)
+                    format!("failed to handle window resize for screen anchored root element with id {}", screen_tree_root_element.element_id.id())
                 ),
             }
         }
@@ -381,7 +381,7 @@ impl ElementRegistry {
                 element.world_data().event_handlers.hover_handler.did_handle()
             }
             None => {
-                log::engine_warn(format!("ElementRegistry.is_element_hovered for element id {:?} returned false because element was not found", element_id));
+                log::engine_warn(format!("ElementRegistry.is_element_hovered for element id {} returned false because element was not found", element_id.id()));
                 false
             }
         }
@@ -393,7 +393,7 @@ impl ElementRegistry {
                 element.world_data().event_handlers.did_handle_mouse_event(&mouse_button, input_action)
             },
             None => {
-                log::engine_warn(format!("ElementRegistry.is_element_clicked for element id {:?} returned false because element was not found", element_id));
+                log::engine_warn(format!("ElementRegistry.is_element_clicked for element id {} returned false because element was not found", element_id.id()));
                 false
             },
         }

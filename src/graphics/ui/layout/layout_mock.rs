@@ -1,15 +1,17 @@
-use crate::{graphics::ui::{interface::WidgetRegistry, ElementRegistry, Position, UiUpdateTargets, UiWidgetId, UpdateTargetCollection}, input::Input, ResourceId};
+use crate::{graphics::ui::{interface::WidgetRegistry, ElementRegistry, Position, UiElementId, UiUpdateTargets, UiWidgetId, UpdateTargetCollection}, input::Input, ResourceId};
 
 use super::Layout;
 
 pub struct MockLayout {
     widgets: Vec<ResourceId<UiWidgetId>>,
+    elements: Vec<ResourceId<UiElementId>>,
 }
 
 impl Default for MockLayout {
     fn default() -> Self {
         Self { 
-            widgets: Default::default() 
+            widgets: Default::default() ,
+            elements: Default::default(),
         }
     }
 }
@@ -50,5 +52,9 @@ impl Layout for MockLayout {
 
     fn widgets(&self) -> Vec<ResourceId<UiWidgetId>> {
         self.widgets.clone()
+    }
+    
+    fn get_direct_element_ids(&self) -> Vec<ResourceId<UiElementId>> {
+        self.elements.clone()
     }
 }

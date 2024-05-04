@@ -9,6 +9,7 @@ pub struct HelloUi {
     rectangle_id: ResourceId<UiElementId>,
     dropdown_id: ResourceId<UiWidgetId>,
     layout_id: ResourceId<UiLayoutId>,
+    is_interface_removed: bool,
     mouse_pos: ResourceId<UiElementId>,
     rectangle_to_remove: ResourceId<UiElementId>,
 }
@@ -97,12 +98,21 @@ impl Scene for HelloUi {
             reset_button_id,
             dropdown_id,
             layout_id,
+            is_interface_removed: false,
             mouse_pos,
             rectangle_to_remove: second_rectangle_id,
         })
     }
 
     fn update(&mut self, _: &mut EventSystem, input: &Input, asset_manager: &mut dyn AssetManager, interface: &mut Interface) {
+        let mouse_pos = input.mouse.get_position() - interface.size() / 2.0;
+        let mouse_pos_text = format!("{}, {}", mouse_pos.x as i32, mouse_pos.y as i32);
+        _ = interface.mut_element_registry().set_text(&self.mouse_pos, &mouse_pos_text, asset_manager);
+
+        if self.is_interface_removed {
+            return;
+        }
+
         interface.slider_update_result(&self.width_slider_id).map(|result|{
             let y = interface.mut_element_registry().get_element_scale(&self.rectangle_id).unwrap().y;
             interface.mut_element_registry().set_element_scale(&self.rectangle_id, Vec2 { 
@@ -127,13 +137,6 @@ impl Scene for HelloUi {
             interface.set_slider_value(1.0, &self.width_slider_id, asset_manager);
             interface.set_slider_value(1.0, &self.height_slider_id, asset_manager);
             interface.mut_element_registry().set_element_scale(&self.rectangle_id, Vec2::ONE).unwrap();
-        }
-
-        if input.keyboard.is_key_down(Key::ArrowUp) {
-            _ = interface.set_widget_visibility(&self.reset_button_id, true);
-        }
-        if input.keyboard.is_key_down(Key::ArrowDown) {
-            _ = interface.set_widget_visibility(&self.reset_button_id, false);
         }
 
         match interface.dropdown_update_result(&self.dropdown_id) {
@@ -165,11 +168,15 @@ impl Scene for HelloUi {
             _ = interface.mut_element_registry().remove_element(&self.rectangle_to_remove).map_err(|err|{
                 log::err(format!("failed to remove element: {}", err))
             });
-        }
+            _ = interface.remove_layout(&self.layout_id).map_err(|err|{
+                log::err(format!("failed to remove layout: {}", err))
+            });
+            _ = interface.remove_widget(&self.height_slider_id).map_err(|err|{
+                log::err(format!("failed to remove widget: {}", err))
+            });
 
-        let mouse_pos = input.mouse.get_position() - interface.size() / 2.0;
-        let mouse_pos_text = format!("{}, {}", mouse_pos.x as i32, mouse_pos.y as i32);
-        _ = interface.mut_element_registry().set_text(&self.mouse_pos, &mouse_pos_text, asset_manager);
+            self.is_interface_removed = true;
+        }
     }
 
     unsafe fn draw(&self, _: &mut dyn AssetManager) {

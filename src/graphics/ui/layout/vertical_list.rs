@@ -174,6 +174,21 @@ impl Layout for VerticalList {
     fn widgets(&self) -> Vec<ResourceId<UiWidgetId>> {
         self.widget_ids.clone()
     }
+    
+    fn get_direct_element_ids(&self) -> Vec<ResourceId<UiElementId>> {
+        let mut elements = vec![
+            self.background_element_id.clone(),
+        ];
+
+        match self.scrollbar_element_id {
+            Some(scrollbar_element_id) => elements.push(scrollbar_element_id.clone()),
+            None => (),
+        }
+
+        elements
+    }
+
+    
 }
 
 impl VerticalList {
@@ -235,7 +250,7 @@ impl VerticalList {
                 }
             },
             None => {
-                log::engine_warn(format!("VerticalLst does not update scroll because background element (id={}) was not found", self.background_element_id.id()));
+                log::engine_warn(format!("VerticalList can not update scroll because background element (id={}) was not found", self.background_element_id.id()));
             },
         }
 
