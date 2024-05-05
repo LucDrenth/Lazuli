@@ -1,12 +1,11 @@
 use glam::Vec2;
 
-use crate::{asset_manager::AssetManager, graphics::{ui::{bounds_2d::Bounds2d, element::InputEvent, interface::{self, WidgetRegistry}, padding::Padding, shapes::RectangleBuilder, AnchorPoint, ElementRegistry, Position, UiElementId, UiUpdateTargets, UiWidgetId, UpdateTargetCollection, WidgetUpdateTarget}, Color}, input::{Input, MouseButton}, log, ResourceId};
+use crate::{asset_manager::AssetManager, graphics::{ui::{bounds_2d::Bounds2d, element::InputEvent, interface::{self, LayoutRegistry, WidgetRegistry}, padding::Padding, shapes::RectangleBuilder, AnchorPoint, ElementRegistry, LayoutUpdateTarget, Position, UiElementId, UiLayoutId, UiUpdateTargets, UiWidgetId, UpdateTargetCollection, WidgetUpdateTarget}, Color}, input::{Input, MouseButton}, log, ResourceId};
 
-use super::{Layout, layout::{LAYOUT_ELEMENT_EXTRA_Z_INDEX, LAYOUT_SCROLLBAR_EXTRA_Z_INDEX, LayoutBuilder}};
+use super::{layout::{LayoutBuilder, LAYOUT_ELEMENT_EXTRA_Z_INDEX, LAYOUT_SCROLLBAR_EXTRA_Z_INDEX}, layout_children::LayoutChildren, Layout};
 
 pub struct VerticalList {
-    // List of unique ids. We use a Vec instead some Set-like data structure because the order matters.
-    widget_ids: Vec<ResourceId<UiWidgetId>>,
+    children: LayoutChildren,
     background_element_id: ResourceId<UiElementId>,
     scrollbar_element_id: Option<ResourceId<UiElementId>>,
     scrollbar_inset: Vec2,
@@ -25,36 +24,35 @@ pub struct VerticalList {
 }
 
 impl Layout for VerticalList {
-    fn add_widget(&mut self, widget_id: &ResourceId<UiWidgetId>, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry) -> UpdateTargetCollection {
+    fn add_widget(&mut self, widget_id: &ResourceId<UiWidgetId>, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, layout_registry: &LayoutRegistry) -> UpdateTargetCollection {
         // Calculate position of newly added widget
         let anchor_id;
         let anchor_point;
 
-        if self.widget_ids.is_empty() {
+        if self.children.is_empty() {
             anchor_id = self.background_element_id;
             anchor_point = AnchorPoint::TopInside(self.gap_size);
         } else {
-            let anchor_widget_id = self.widget_ids.last().unwrap().clone();
-            anchor_id = widget_registry.get_widget_main_element_id(&anchor_widget_id).unwrap();
+            anchor_id = self.children.get_main_element_id(self.children.len() - 1, widget_registry, layout_registry).unwrap();
             anchor_point = AnchorPoint::BottomOutside(self.gap_size);
         }
 
         // Add our new widget to the list if widgets if we don't already have it
         let mut update_targets = UpdateTargetCollection::default();
 
-        for existing_widget_id in self.widget_ids.iter() {
+        for existing_widget_id in self.children.widgets().iter() {
             if existing_widget_id.equals(widget_id) {
                 log::engine_warn( format!("VerticalList: widget with id {} is already in the list", widget_id.id()) );
                 return update_targets;
             }
         }
 
-        self.widget_ids.push(widget_id.duplicate());
+        self.children.push_widget(widget_id.duplicate());
 
         // Resize background element
         let old_background_size = element_registry.get_element_size(&self.background_element_id).unwrap();
         let new_background_height = calculate_background_height(
-            &self.widget_ids, self.gap_size, &self.padding, &element_registry, &widget_registry
+            &self.children, self.gap_size, &self.padding, element_registry, widget_registry, layout_registry
         ).min(self.max_height);
         
         if old_background_size.y != new_background_height {
@@ -75,17 +73,17 @@ impl Layout for VerticalList {
         update_targets
     }
 
-    fn update_max_scroll(&mut self, element_registry: &mut ElementRegistry, widget_registry: &WidgetRegistry) {
+    fn update_max_scroll(&mut self, element_registry: &mut ElementRegistry, widget_registry: &WidgetRegistry, layout_registry: &LayoutRegistry) {
         let background_height = element_registry.get_element_size(&self.background_element_id).unwrap().x;
-        self.max_scroll = calculate_max_scroll(&self.widget_ids, &self.padding, &self.background_element_id, background_height, &element_registry, &widget_registry);
+        self.max_scroll = calculate_max_scroll(&self.children, &self.padding, &self.background_element_id, background_height, &element_registry, &widget_registry, layout_registry);
         self.update_scroll_bar(element_registry);
     }
 
-    fn update(&mut self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, input: &Input, scroll_speed: f32) -> UpdateTargetCollection {
+    fn update(&mut self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, layout_registry: &LayoutRegistry, input: &Input, scroll_speed: f32) -> UpdateTargetCollection {
         let mut update_targets = UpdateTargetCollection::default();
 
         let new_scroll_amount = self.calculate_new_scroll_amount(&element_registry, input, scroll_speed);
-        self.update_scroll(new_scroll_amount, &mut update_targets, element_registry, widget_registry, input);
+        self.update_scroll(new_scroll_amount, &mut update_targets, element_registry, widget_registry, layout_registry, input);
 
         update_targets
     }
@@ -107,8 +105,11 @@ impl Layout for VerticalList {
         } 
         
         let mut update_targets: UiUpdateTargets<f32> = Default::default();
-        for widget_id in self.widget_ids.iter() {
+        for widget_id in self.children.widgets().iter() {
             update_targets.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), self.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX));
+        }
+        for layout_id in self.children.layouts().iter() {
+            update_targets.layouts.push(LayoutUpdateTarget::new(layout_id.clone(), self.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX));
         }
         update_targets
     }
@@ -128,8 +129,11 @@ impl Layout for VerticalList {
         }
 
         let mut update_targets: UiUpdateTargets<bool> = Default::default();
-        for widget_id in self.widget_ids.iter() {
+        for widget_id in self.children.widgets().iter() {
             update_targets.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), visible));
+        }
+        for layout_id in self.children.layouts().iter() {
+            update_targets.layouts.push(LayoutUpdateTarget::new(layout_id.clone(), visible));
         }
         update_targets
     }
@@ -138,14 +142,19 @@ impl Layout for VerticalList {
         _ = element_registry.set_rectangle_width(&self.background_element_id, width);
 
         // calculate new draw bounds
-        let layout_position = element_registry.get_ui_element_by_id(&self.background_element_id).unwrap().world_data().position();
+        let layout_position = element_registry.get_ui_element_by_id(&self.background_element_id).unwrap().world_data().screen_coordinates();
         let background_size = element_registry.get_element_size(&self.background_element_id).unwrap();
         self.draw_bounds = calculate_draw_bounds(layout_position, background_size);
 
+        let new_child_width = width - self.padding.horizontal();
         let mut update_targets: UpdateTargetCollection = Default::default();
-        for widget_id in self.widget_ids.iter() {
-            update_targets.width.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), width - self.padding.horizontal()));
+        for widget_id in self.children.widgets().iter() {
+            update_targets.width.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), new_child_width));
             update_targets.draw_bounds.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), self.draw_bounds.clone()));
+        }
+        for layout_id in self.children.layouts().iter() {
+            update_targets.width.layouts.push(LayoutUpdateTarget::new(layout_id.clone(), new_child_width));
+            update_targets.draw_bounds.layouts.push(LayoutUpdateTarget::new(layout_id.clone(), self.draw_bounds.clone()));
         }
 
         update_targets
@@ -159,20 +168,23 @@ impl Layout for VerticalList {
     }
 
     fn update_draw_bounds(&mut self, element_registry: &ElementRegistry) -> UpdateTargetCollection {
-        let layout_position = element_registry.get_ui_element_by_id(&self.background_element_id).unwrap().world_data().position();
+        let layout_position = element_registry.get_ui_element_by_id(&self.background_element_id).unwrap().world_data().screen_coordinates();
         let background_size = element_registry.get_element_size(&self.background_element_id).unwrap();
         self.draw_bounds = calculate_draw_bounds(layout_position, background_size);
 
         let mut update_targets: UpdateTargetCollection = Default::default();
-        for widget_id in self.widget_ids.iter() {
+        for widget_id in self.children.widgets().iter() {
             update_targets.draw_bounds.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), self.draw_bounds.clone()));
+        }
+        for layout_id in self.children.layouts().iter() {
+            update_targets.draw_bounds.layouts.push(LayoutUpdateTarget::new(layout_id.clone(), self.draw_bounds.clone()));
         }
 
         update_targets
     }
 
-    fn widgets(&self) -> Vec<ResourceId<UiWidgetId>> {
-        self.widget_ids.clone()
+    fn get_direct_widget_ids(&self) -> Vec<ResourceId<UiWidgetId>> {
+        self.children.widgets()
     }
     
     fn get_direct_element_ids(&self) -> Vec<ResourceId<UiElementId>> {
@@ -187,7 +199,28 @@ impl Layout for VerticalList {
 
         elements
     }
+    
+    fn add_layout(&mut self, layout_id: &ResourceId<UiLayoutId>, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, layout_registry: &LayoutRegistry) -> UpdateTargetCollection {
+        todo!()
+    }
+    
+    fn get_direct_layout_ids(&self) -> Vec<ResourceId<UiLayoutId>> {
+        self.children.layouts()
+    }
+    
+    fn get_main_element_id(&self) -> ResourceId<UiElementId> {
+        self.background_element_id
+    }
+    
+    fn get_size(&self, element_registry: &ElementRegistry) -> Option<Vec2> {
+        element_registry.get_element_size(&self.get_main_element_id()).ok()
+    }
+    
+    fn get_position(&self) -> Position {
+        todo!()
+    }
 
+    
     
 }
 
@@ -224,7 +257,7 @@ impl VerticalList {
         (self.current_scroll - input.mouse.get_scroll_y() as f32 * scroll_speed).clamp(0.0, self.max_scroll)
     }
 
-    fn update_scroll(&mut self, new_scroll_amount: f32, update_target_collection: &mut UpdateTargetCollection, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, input: &Input) {
+    fn update_scroll(&mut self, new_scroll_amount: f32, update_target_collection: &mut UpdateTargetCollection, element_registry: &mut ElementRegistry, widget_registry: &WidgetRegistry, layout_registry: &LayoutRegistry, input: &Input) {
         if !self.should_update_scroll(element_registry, input) {
             return;
         }
@@ -234,12 +267,12 @@ impl VerticalList {
         }
         self.current_scroll = new_scroll_amount;
 
-        update_target_collection.append(self.update_scroll_for_widgets(element_registry, widget_registry));
+        update_target_collection.append(self.update_scroll_for_children(element_registry, widget_registry, layout_registry));
         self.update_scroll_bar(element_registry);
     }
 
     fn should_update_scroll(&self, element_registry: &ElementRegistry, input: &Input) -> bool {
-        if self.widget_ids.is_empty() && input.mouse.get_scroll_y() == 0.0 {
+        if self.children.is_empty() && input.mouse.get_scroll_y() == 0.0 {
             return false;
         }
 
@@ -262,22 +295,24 @@ impl VerticalList {
         }
     }
 
-    fn update_scroll_for_widgets(&self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry) -> UpdateTargetCollection {
+    fn update_scroll_for_children(&self, element_registry: &mut ElementRegistry, widget_registry: &WidgetRegistry, layout_registry: &LayoutRegistry) -> UpdateTargetCollection {
         let mut update_targets = UpdateTargetCollection::default();
 
         // Update widgets position
-        let first_widget_id = self.widget_ids.first().unwrap();
-        let first_widget_anchor_element_id  = widget_registry.get_widget_main_element_id(first_widget_id).unwrap();
+        let first_child_anchor_element_id  = self.children.get_main_element_id(0, &widget_registry, layout_registry).unwrap();
 
         _ = element_registry.set_element_position_transform(
-            &first_widget_anchor_element_id, 
+            &first_child_anchor_element_id, 
             Vec2::new(0.0, self.current_scroll)
         ).map_err(|err|{
             log::engine_err(format!("failed to scroll VerticalList layout because the first widget element [id={}] was not found", err));
         });
 
-        for widget_id in &self.widget_ids {
+        for widget_id in &self.children.widgets() {
             update_targets.update_draw_bounds_recursively.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), ()))
+        }
+        for layout_id in &self.children.layouts() {
+            update_targets.update_draw_bounds_recursively.layouts.push(LayoutUpdateTarget::new(layout_id.clone(), ()))
         }
         
         update_targets
@@ -328,7 +363,7 @@ pub enum Width {
 }
 
 pub struct VerticalListBuilder {
-    widget_ids: Vec<ResourceId<UiWidgetId>>,
+    children: LayoutChildren,
     gap_size: f32, // the amount of space between elements
     background_color: Color,
     max_height: f32,
@@ -345,8 +380,8 @@ pub struct VerticalListBuilder {
 }
 
 impl LayoutBuilder for VerticalListBuilder {
-    fn build(&mut self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, asset_manager: &mut dyn AssetManager) -> Result<(Box<dyn Layout>, UpdateTargetCollection), String> {
-        let (layout, update_targets) = self.build(element_registry, widget_registry, asset_manager)?;
+    fn build(&mut self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, layout_registry: &LayoutRegistry, asset_manager: &mut dyn AssetManager) -> Result<(Box<dyn Layout>, UpdateTargetCollection), String> {
+        let (layout, update_targets) = self.build(element_registry, widget_registry, layout_registry, asset_manager)?;
         Ok((Box::new(layout), update_targets))
     }
 }
@@ -356,7 +391,7 @@ impl VerticalListBuilder {
         let default_gap_size = 10.0;
 
         Self {
-            widget_ids: vec![],
+            children: LayoutChildren::default(),
             gap_size: default_gap_size,
             background_color: Color::black(),
             max_height: 300.0,
@@ -373,15 +408,15 @@ impl VerticalListBuilder {
         }
     }
 
-    pub fn build(&mut self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, asset_manager: &mut dyn AssetManager) -> Result<(VerticalList, UpdateTargetCollection), String> {
+    pub fn build(&mut self, element_registry: &mut ElementRegistry, widget_registry: &mut WidgetRegistry, layout_registry: &LayoutRegistry, asset_manager: &mut dyn AssetManager) -> Result<(VerticalList, UpdateTargetCollection), String> {
         let background_width = match self.width {
             Width::Fixed(width) => width,
             Width::MaxWidth(max_width) => { 
-                calculate_background_width(&self.widget_ids, &self.padding, &element_registry, &widget_registry).min(max_width) 
+                calculate_background_width(&self.children, &self.padding, &element_registry, &widget_registry, layout_registry).min(max_width) 
             },
-            Width::Auto() => { calculate_background_width(&self.widget_ids, &self.padding, &element_registry, &widget_registry) },
+            Width::Auto() => { calculate_background_width(&self.children, &self.padding, &element_registry, &widget_registry, layout_registry) },
         }; 
-        let background_height = calculate_background_height(&self.widget_ids, self.gap_size, &self.padding, &element_registry, &widget_registry).min(self.max_height);
+        let background_height = calculate_background_height(&self.children, self.gap_size, &self.padding, &element_registry, &widget_registry, layout_registry).min(self.max_height);
 
         let background_element_id = element_registry.create_rectangle(&&RectangleBuilder::new()
             .with_color(self.background_color.clone())
@@ -410,14 +445,10 @@ impl VerticalListBuilder {
             false => None,
         };
 
-        let layout_position = element_registry.get_ui_element_by_id(&background_element_id).unwrap().world_data().position();
-
-        // Take out all of the widget ids
-        let mut widget_ids: Vec<ResourceId<UiWidgetId>> = Vec::new();
-        widget_ids.extend(self.widget_ids.drain(..));
+        let layout_position = element_registry.get_ui_element_by_id(&background_element_id).unwrap().world_data().screen_coordinates();
 
         let list = VerticalList { 
-            widget_ids,
+            children: self.children.clone(),
             background_element_id, 
             scrollbar_element_id: scrollbar_element_id,
             scrollbar_inset: self.scrollbar_inset,
@@ -436,29 +467,37 @@ impl VerticalListBuilder {
 
         let mut update_targets = UpdateTargetCollection::default();
 
-        if list.widget_ids.is_empty() {
+        if list.children.is_empty() {
             return Ok((list, update_targets));
         }
 
-        update_targets.positions.widgets.push(WidgetUpdateTarget::new(
-            list.widget_ids[0], 
-            Position::ElementAnchor(AnchorPoint::TopInside(list.padding.top()), list.background_element_id)
-        ));
+        for i in 0..self.children.len() {
+            let (child_type_id, list_index) = self.children.get(i).unwrap();
+            let child_id_as_number = self.children.get_id_as_number(i).unwrap();
+            let child_main_element_id = self.children.get_main_element_id(i, widget_registry, layout_registry).unwrap();
 
-        for i in 1..list.widget_ids.len() {
-            let anchor_element = widget_registry.get_widget_main_element_id(&list.widget_ids[i - 1]).unwrap();
-            
-            update_targets.positions.widgets.push(WidgetUpdateTarget::new(
-                list.widget_ids[i], 
-                Position::ElementAnchor(AnchorPoint::BottomOutside(self.gap_size), anchor_element), 
-            ));
-        }
+            if i == 0 {
+                // for first child
+                update_targets.positions.push(
+                    child_type_id, 
+                    child_id_as_number, 
+                    Position::ElementAnchor(AnchorPoint::TopInside(list.padding.top()), list.background_element_id),
+                );
+            } else {
+                // for all children but the first
+                update_targets.positions.push(
+                    child_type_id, 
+                    child_id_as_number,
+                    Position::ElementAnchor(AnchorPoint::BottomOutside(self.gap_size), child_main_element_id),
+                );
+            }
 
-        for widget_id in list.widget_ids.iter() {
-            update_targets.z_index.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), list.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX));
-            update_targets.draw_bounds.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), list.draw_bounds.clone()));
-            update_targets.width.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), background_width - list.padding.horizontal()));
-            update_targets.visibility.widgets.push(WidgetUpdateTarget::new(widget_id.clone(), self.is_visible));
+            // for all children
+            update_targets.z_index.push(child_type_id, child_id_as_number, list.z_index + LAYOUT_ELEMENT_EXTRA_Z_INDEX);
+            update_targets.draw_bounds.push(child_type_id, child_id_as_number, list.draw_bounds.clone());
+            update_targets.width.push(child_type_id, child_id_as_number, background_width - list.padding.horizontal());
+            update_targets.visibility.push(child_type_id, child_id_as_number, self.is_visible);
+
         }
 
         // list.max_scroll still needs to be calculated, but only after the update targets are handled.
@@ -472,28 +511,29 @@ impl VerticalListBuilder {
      *******************************/
 
     pub fn add_widget(mut self, widget_id: &ResourceId<UiWidgetId>) -> Self {
-        self.try_add_widget(widget_id.duplicate());
+        self.children.push_widget(widget_id.clone());
         self
     }
 
     pub fn add_widgets(mut self, widget_ids: &Vec<ResourceId<UiWidgetId>>) -> Self {
-        // We do not add them all at once because we only want unique values in the list
         for widget_id in widget_ids.iter() {
-            self.try_add_widget(widget_id.duplicate());
+            self.children.push_widget(widget_id.clone());
         }
 
         self
     }
 
-    fn try_add_widget(&mut self, widget_id: ResourceId<UiWidgetId>) {
-        for existing_widget_id in self.widget_ids.iter() {
-            if existing_widget_id.equals(&widget_id) {
-                log::engine_warn(format!("VerticalListBuilder: widget with id {} is already in the list", widget_id.id()));
-                return;
-            }
+    pub fn add_layout(mut self, layout_id: &ResourceId<UiLayoutId>) -> Self {
+        self.children.push_layout(layout_id.clone());
+        self
+    }
+
+    pub fn add_layouts(mut self, layout_ids: &Vec<ResourceId<UiLayoutId>>) -> Self {
+        for layout_id in layout_ids.iter() {
+            self.children.push_layout(layout_id.clone());
         }
 
-        self.widget_ids.push(widget_id);
+        self
     }
 
     pub fn with_gap_size(mut self, gap_size: f32) -> Self {
@@ -570,27 +610,29 @@ impl VerticalListBuilder {
     }
 }
 
-fn calculate_background_height(widget_ids: &Vec<ResourceId<UiWidgetId>>, gap_size: f32, padding: &Padding, element_registry: &ElementRegistry, widget_registry: &WidgetRegistry) -> f32 {
+fn calculate_background_height(layout_children: &LayoutChildren, gap_size: f32, padding: &Padding, element_registry: &ElementRegistry, widget_registry: &WidgetRegistry, layout_registry: &LayoutRegistry) -> f32 {    
     let mut background_height = padding.top();
 
-    for widget_id in widget_ids.iter() {
-        background_height += widget_registry.get_widget_size(widget_id, element_registry).unwrap().y + gap_size;
+    for i in 0..layout_children.len() {
+        let element_size = layout_children.get_element_size(i, element_registry, widget_registry, layout_registry).unwrap();
+        background_height += element_size.y + gap_size;
     }
 
     background_height - gap_size + padding.bottom()
 }
 
 /// Returns the width of widest widget + two times the gap size as padding, or only the gap size if there are no elements
-fn calculate_background_width(widget_ids: &Vec<ResourceId<UiWidgetId>>, padding: &Padding, element_registry: &ElementRegistry, widget_registry: &WidgetRegistry) -> f32 {
-    if widget_ids.is_empty() {
+fn calculate_background_width(children: &LayoutChildren, padding: &Padding, element_registry: &ElementRegistry, widget_registry: &WidgetRegistry, layout_registry: &LayoutRegistry) -> f32 {
+    if children.is_empty() {
         return padding.horizontal();
     }
 
     let mut widest: f32 = 0.0;
 
-    for widget_id in widget_ids.iter() {
+    for i in 0..children.len() {
+        let child_size = children.get_element_size(i, element_registry, widget_registry, layout_registry).unwrap();
         widest = widest.max(
-            widget_registry.get_widget_size(widget_id, element_registry).unwrap().x
+            child_size.x
         )
     }
 
@@ -598,30 +640,30 @@ fn calculate_background_width(widget_ids: &Vec<ResourceId<UiWidgetId>>, padding:
 }
 
 fn calculate_max_scroll(
-    widget_ids: &Vec<ResourceId<UiWidgetId>>, 
+    children: &LayoutChildren, 
     padding: &Padding, 
     background_element_id: &ResourceId<UiElementId>, 
     layout_height: f32, 
     element_registry: &ElementRegistry, 
-    widget_registry: &WidgetRegistry
+    widget_registry: &WidgetRegistry,
+    layout_registry: &LayoutRegistry,
 ) -> f32 {
-    if widget_ids.is_empty() {
+    if children.is_empty() {
         return 0.0;
     }
 
-    let first_widget_id = widget_ids.first().unwrap();
-    let last_widget_id = widget_ids.last().unwrap();
-
-    let last_element_size = widget_registry.get_widget_size(last_widget_id, element_registry).unwrap();
-    let last_element_position = widget_registry.get_widget_screen_position(last_widget_id, element_registry).unwrap();
-    let bottom_of_last_element = last_element_position.y + last_element_size.y / 2.0;
+    let size_of_last_element = children.get_element_size(children.len() - 1, element_registry, widget_registry, layout_registry).unwrap();
+    let screen_coordinates_of_last_element = children.get_element_screen_coordinates(children.len() - 1, element_registry, widget_registry, layout_registry).unwrap();
+    let bottom_of_last_element = screen_coordinates_of_last_element.y + size_of_last_element.y / 2.0;
             
-    let layout_position_y = element_registry.get_element_screen_position(background_element_id).unwrap().y;
+    let layout_position_y = element_registry.get_element_screen_coordinates(background_element_id).unwrap().y;
     let bottom_of_layout = layout_position_y - layout_height / 2.0;
 
+    let main_element_id_of_first_child = children.get_main_element_id(0, widget_registry, layout_registry).unwrap();
     let max_scroll = (bottom_of_last_element - bottom_of_layout).abs() 
         + padding.bottom() 
-        + widget_registry.get_widget_position_transform(first_widget_id, element_registry).unwrap().y;
+        + element_registry.get_element_position_transform(&main_element_id_of_first_child).unwrap().y;
+
     (max_scroll).max(0.0)
 }
 

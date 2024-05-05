@@ -1,4 +1,6 @@
-use crate::{ResourceId, graphics::ui::{UiWidgetId, UiLayoutId, Position, bounds_2d::Bounds2d}};
+use std::any::TypeId;
+
+use crate::{graphics::ui::{bounds_2d::Bounds2d, Position, UiLayoutId, UiWidgetId}, log, ResourceId};
 
 /// Because we can not pass the WidgetRegistry to the widgets their mutable functions, we need to have the
 /// widgets pass a list of Data elements back to the WidgetRegistry so it can handle all of them within the
@@ -57,6 +59,16 @@ impl <T: Clone> UiUpdateTargets<T> {
     pub fn append(&mut self, mut target: UiUpdateTargets<T>) {
         self.widgets.append(&mut target.widgets);
         self.layouts.append(&mut target.layouts);
+    }
+
+    pub fn push(&mut self, type_id: TypeId, element_id: u32, data: T) {
+        if type_id == TypeId::of::<ResourceId<UiWidgetId>>() {
+            self.widgets.push(WidgetUpdateTarget::new(ResourceId::new(element_id), data));
+        } else if type_id == TypeId::of::<ResourceId<UiLayoutId>>() {
+            self.layouts.push(LayoutUpdateTarget::new(ResourceId::new(element_id), data));
+        } else {
+            log::engine_err(format!("UiUpdateTargets.push failed because of unhandled type {:?}", type_id));
+        }
     }
 }
 

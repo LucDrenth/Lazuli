@@ -99,7 +99,6 @@ impl WorldElementData {
         // If we implement screen anchor points we might want to use this function
     }
 
-    /// Screen position
-    pub fn position(&self) -> Vec2 { self.position + self.position_transform }
-    pub fn position_type(&self) -> &Position { &self.position_type }
+    pub fn screen_coordinates(&self) -> Vec2 { self.position + self.position_transform }
+    pub fn position(&self) -> &Position { &self.position_type }
 }

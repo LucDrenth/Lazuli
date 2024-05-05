@@ -212,7 +212,7 @@ impl ElementRegistry {
 
         self.update_ordered_elements();
 
-        let position = self.text_elements.last().unwrap().world_data().position_type().clone();
+        let position = self.text_elements.last().unwrap().world_data().position().clone();
         self.register_in_anchor_tree(TypeId::of::<Text>(), id.clone(), &position);
         
         id
@@ -230,7 +230,7 @@ impl ElementRegistry {
 
         self.update_ordered_elements();
 
-        let position = self.rectangle_elements.last().unwrap().world_data().position_type().clone();
+        let position = self.rectangle_elements.last().unwrap().world_data().position().clone();
         self.register_in_anchor_tree(TypeId::of::<Rectangle>(), id, &position);
 
         id
@@ -569,14 +569,14 @@ impl ElementRegistry {
         Ok(AnchorElementData{
             id: anchor_element_id.clone(),
             size: self.get_element_size(anchor_element_id)?,
-            coordinates: self.get_element_screen_position(anchor_element_id)?,
+            coordinates: self.get_element_screen_coordinates(anchor_element_id)?,
         })
     }
 
     pub fn get_anchor_element_id(&self, element_id: &ResourceId<UiElementId>) -> Result<Option<ResourceId<UiElementId>>, String> {
         match self.get_ui_element_by_id(element_id) {
             Some(element) => {
-                Ok(element.world_data().position_type().get_anchor_element_id())
+                Ok(element.world_data().position().get_anchor_element_id())
             },
             None => Err(format!("failed to get anchor element id because element with id {} was not found", element_id.id())),
         }
@@ -586,7 +586,7 @@ impl ElementRegistry {
     pub fn get_element_base_size(&self, element_id: &ResourceId<UiElementId>) -> Result<Vec2, String> {
         match self.get_ui_element_by_id(element_id) {
             Some(element) => Ok(element.world_data().size()),
-            None => Err(format!("failed to get size because element with id {:?} was not found", element_id)),
+            None => Err(format!("failed to get size because element with id {} was not found", element_id.id())),
         }
     }
 
@@ -594,22 +594,28 @@ impl ElementRegistry {
     pub fn get_element_size(&self, element_id: &ResourceId<UiElementId>) -> Result<Vec2, String> {        
         match self.get_ui_element_by_id(element_id) {
             Some(element) => Ok(element.world_data().size() * element.world_data().scale()),
-            None => Err(format!("failed to get size because element with id {:?} was not found", element_id)),
+            None => Err(format!("failed to get size because element with id {} was not found", element_id.id())),
         }
     }
 
     /// Get the position of the element as the center pixel (in world space)
-    pub fn get_element_screen_position(&self, element_id: &ResourceId<UiElementId>) -> Result<Vec2, String> {
+    pub fn get_element_screen_coordinates(&self, element_id: &ResourceId<UiElementId>) -> Result<Vec2, String> {
         match self.get_ui_element_by_id(element_id) {
-            Some(element) => Ok(element.world_data().position()),
-            None => Err(format!("failed to get size because element with id {:?} was not found", element_id)),
+            Some(element) => Ok(element.world_data().screen_coordinates()),
+            None => Err(format!("failed to get size because element with id {} was not found", element_id.id())),
         }
     }
 
     pub fn get_element_position_transform(&self, element_id: &ResourceId<UiElementId>) -> Result<Vec2, String> {
         match self.get_ui_element_by_id(element_id) {
             Some(element) => Ok(element.world_data().position_transform),
-            None => Err(format!("failed to get position transform because element with id {:?} was not found", element_id.id())),
+            None => Err(format!("failed to get position transform because element with id {} was not found", element_id.id())),
+        }
+    }
+    pub fn get_element_position(&self, element_id: &ResourceId<UiElementId>) -> Result<Position, String> {
+        match self.get_ui_element_by_id(element_id) {
+            Some(element) => Ok(element.world_data().position().clone()),
+            None => Err(format!("failed to get position because element with id {} was not found", element_id.id())),
         }
     }
 

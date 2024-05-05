@@ -151,7 +151,7 @@ impl Slider {
 
     fn handle_drag(&mut self, input: &Input, element_registry: &mut ElementRegistry, asset_manager: &mut dyn AssetManager) {
         let element_size = element_registry.get_element_size(&self.background_element_id).unwrap();
-        let element_position = element_registry.get_element_screen_position(&self.background_element_id).unwrap();
+        let element_position = element_registry.get_element_screen_coordinates(&self.background_element_id).unwrap();
 
         // The new slider progress as a value from 0.0 to 1.0
         let normalised_value = match self.direction {

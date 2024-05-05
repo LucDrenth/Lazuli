@@ -75,13 +75,17 @@ impl WidgetRegistry {
         let main_element_id = self.get_widget_main_element_id(widget_id).unwrap();
         element_registry.get_element_size(&main_element_id)
     }
-    pub fn get_widget_screen_position(&self, widget_id: &ResourceId<UiWidgetId>, element_registry: &ElementRegistry) -> Result<Vec2, String> {
+    pub fn get_widget_screen_coordinates(&self, widget_id: &ResourceId<UiWidgetId>, element_registry: &ElementRegistry) -> Result<Vec2, String> {
         let main_element_id = self.get_widget_main_element_id(widget_id).unwrap();
-        element_registry.get_element_screen_position(&main_element_id)
+        element_registry.get_element_screen_coordinates(&main_element_id)
     }
     pub fn get_widget_position_transform(&self, widget_id: &ResourceId<UiWidgetId>, element_registry: &ElementRegistry) -> Result<Vec2, String> {
         let main_element_id = self.get_widget_main_element_id(widget_id).unwrap();
         element_registry.get_element_position_transform(&main_element_id)
+    }
+    pub fn get_widget_position(&self, widget_id: &ResourceId<UiWidgetId>, element_registry: &ElementRegistry) -> Result<Position, String> {
+        let main_element_id = self.get_widget_main_element_id(widget_id).unwrap();
+        element_registry.get_element_position(&main_element_id)
     }
 
 

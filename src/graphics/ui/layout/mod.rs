@@ -9,3 +9,5 @@ pub use vertical_list::Width;
 
 mod layout_mock;
 pub use layout_mock::MockLayout;
+
+mod layout_children;

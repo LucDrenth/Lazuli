@@ -219,7 +219,7 @@ impl TextBuilder {
         result.set_text(
             &result.text.clone(), 
             element_registry.size().clone(), 
-            result.world_data.position_type().get_anchor_element_data(element_registry), 
+            result.world_data.position().get_anchor_element_data(element_registry), 
             asset_manager
         )?;
 

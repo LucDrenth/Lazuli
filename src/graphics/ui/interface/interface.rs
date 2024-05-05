@@ -94,7 +94,7 @@ impl Interface {
         self.widget_registry.get_widget_size(widget_id, &self.element_registry)
     }
     pub fn get_widget_screen_position(&self, widget_id: &ResourceId<UiWidgetId>) -> Result<Vec2, String> {
-        self.widget_registry.get_widget_screen_position(widget_id, &self.element_registry)
+        self.widget_registry.get_widget_screen_coordinates(widget_id, &self.element_registry)
     }
     pub fn get_widget_position_transform(&self, widget_id: &ResourceId<UiWidgetId>) -> Result<Vec2, String> {
         self.widget_registry.get_widget_position_transform(widget_id, &self.element_registry)
@@ -176,13 +176,13 @@ impl Interface {
     pub fn create_layout(&mut self, builder: &mut impl LayoutBuilder, asset_manager: &mut dyn AssetManager) -> Result<ResourceId<UiLayoutId>, String> {
         let (id, update_targets) = self.layout_registry.create_layout(builder, &mut self.element_registry, &mut self.widget_registry, asset_manager)?;
         self.handle_ui_update_targets_collection(update_targets);
-        self.layout_registry.get_mut_layout(&id).unwrap().update_max_scroll(&mut self.element_registry, &self.widget_registry);
+        self.layout_registry.get_mut_layout(&id).unwrap().update_max_scroll(&mut self.element_registry, &self.widget_registry, &self.layout_registry);
         Ok(id)
     }
     pub fn add_widget_to_layout(&mut self, widget_id: &ResourceId<UiWidgetId>, layout_id: &ResourceId<UiLayoutId>) -> Result<(), String> {
         let update_targets = self.layout_registry.add_widget_to_layout(widget_id, layout_id, &mut self.element_registry, &mut self.widget_registry)?;
         self.handle_ui_update_targets_collection(update_targets);
-        self.layout_registry.get_mut_layout(&layout_id).unwrap().update_max_scroll(&mut self.element_registry, &self.widget_registry);
+        self.layout_registry.get_mut_layout(&layout_id).unwrap().update_max_scroll(&mut self.element_registry, &self.widget_registry, &self.layout_registry);
         Ok(())
     }
 
@@ -332,7 +332,7 @@ impl Interface {
 
         let mut ui_elements_to_remove = layout.get_direct_element_ids();
         ui_elements_to_remove.append(
-            &mut self.remove_recursive(layout.widgets(), vec![])
+            &mut self.remove_recursive(layout.get_direct_widget_ids(), vec![])
         );
 
         for ui_element_to_remove in ui_elements_to_remove {
@@ -366,7 +366,7 @@ impl Interface {
             match self.layout_registry.get_layout(&layout_id) {
                 Some(layout) => {
                     result.append(&mut layout.get_direct_element_ids());
-                    next_widget_ids.append(&mut layout.widgets());
+                    next_widget_ids.append(&mut layout.get_direct_widget_ids());
                 }
                 None => (),
             }

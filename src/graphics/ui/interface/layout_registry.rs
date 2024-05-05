@@ -26,9 +26,11 @@ impl LayoutRegistry {
     ) -> Vec<UpdateTargetCollection> {
         let mut update_targets = vec![];
 
-        for entry in self.layouts.iter_mut() {
+        for i in 0..self.layouts.len() {
             update_targets.push(
-                entry.layout.update(element_registry, widget_registry, input, scroll_speed)
+                self.layouts[i].layout.update(
+                    element_registry, widget_registry, self, input, scroll_speed
+                )
             );
         }
 
@@ -41,7 +43,7 @@ impl LayoutRegistry {
         widget_registry: &mut WidgetRegistry, 
         asset_manager: &mut dyn AssetManager
     ) -> Result<(ResourceId<UiLayoutId>, UpdateTargetCollection), String> {
-        let (layout, update_targets) = builder.build(element_registry, widget_registry, asset_manager)?;
+        let (layout, update_targets) = builder.build(element_registry, widget_registry, self, asset_manager)?;
         let layout_id = self.add_layout(layout);
 
         Ok((layout_id, update_targets))
@@ -70,8 +72,20 @@ impl LayoutRegistry {
         widget_registry: &mut WidgetRegistry
     ) -> Result<UpdateTargetCollection, String> {
         match self.get_mut_layout(layout_id) {
-            Some(layout) => Ok(layout.add_widget(widget_id, element_registry, widget_registry)),
+            Some(layout) => Ok(layout.add_widget(widget_id, element_registry, widget_registry, self)),
             None => Err(Self::layout_not_found(layout_id)),
+        }
+    }
+
+    pub fn add_layout_to_layout(&mut self, 
+        layout_id_to_add: &ResourceId<UiLayoutId>, 
+        parent_layout_id: &ResourceId<UiLayoutId>, 
+        element_registry: &mut ElementRegistry, 
+        widget_registry: &mut WidgetRegistry
+    ) -> Result<UpdateTargetCollection, String> {
+        match self.get_mut_layout(parent_layout_id) {
+            Some(layout) => Ok(layout.add_layout(layout_id_to_add, element_registry, widget_registry, self)),
+            None => Err(Self::layout_not_found(parent_layout_id)),
         }
     }
 
@@ -123,7 +137,7 @@ impl LayoutRegistry {
         format!("Layout with id {:?} not found", layout_id)
     }
 
-    pub fn get_layout(&mut self, layout_id: &ResourceId<UiLayoutId>) -> Option<&Box<dyn Layout>> {
+    pub fn get_layout(&self, layout_id: &ResourceId<UiLayoutId>) -> Option<&Box<dyn Layout>> {
         for entry in self.layouts.iter() {
             if entry.id.equals(&layout_id) {
                 return Some(&entry.layout)
